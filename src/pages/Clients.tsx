@@ -69,6 +69,7 @@ export default function Clients() {
   const [cityFilter, setCityFilter] = useState<string>(saved.cityFilter ?? "all");
   const [paymentFilter, setPaymentFilter] = useState<string>(saved.paymentFilter ?? "all");
   const [riskFilter, setRiskFilter] = useState<string>(saved.riskFilter ?? "all");
+  const [salesFilter, setSalesFilter] = useState<string>(saved.salesFilter ?? "all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     if (!saved.dateRange) return undefined;
     return {
@@ -85,18 +86,18 @@ export default function Clients() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, dateRange, view]);
+  }, [debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, dateRange, view]);
 
   useEffect(() => {
     try {
       sessionStorage.setItem(FK, JSON.stringify({
         search, showFilters, view, currentPage,
         statusFilter, productFilter, partnerFilter, providerFilter,
-        cityFilter, paymentFilter, riskFilter, sortKey, sortDir,
+        cityFilter, paymentFilter, riskFilter, salesFilter, sortKey, sortDir,
         dateRange: dateRange ? { from: dateRange.from, to: dateRange.to } : undefined,
       }));
     } catch {}
-  }, [search, showFilters, view, currentPage, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, sortKey, sortDir, dateRange]);
+  }, [search, showFilters, view, currentPage, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, sortKey, sortDir, dateRange]);
 
 
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({
@@ -177,6 +178,13 @@ export default function Clients() {
   const cities = useMemo(() => {
     const set = new Set(clients.map((c) => c.city).filter(Boolean));
     return Array.from(set).sort();
+  }, [clients]);
+
+  // Status dinâmico: reflete o que realmente existe no banco (inclui "novo_cliente" etc.)
+  const statusOptions = useMemo(() => {
+    const base = ["ativo", "prospecto", "novo_cliente", "inativo"];
+    const fromData = (clients as any[]).map((c) => c.status).filter(Boolean);
+    return Array.from(new Set([...base, ...fromData]));
   }, [clients]);
 
   const enriched = useMemo(() => {
@@ -272,6 +280,15 @@ export default function Clients() {
         if (paymentFilter === "pendente" && c._totalPending === 0) return false;
       }
       if (riskFilter !== "all" && c._risk !== riskFilter) return false;
+      if (salesFilter !== "all") {
+        const cps: any[] = c.client_products || [];
+        const hasAtiva = cps.some((p) => ["ativo", "em_andamento", "ativa"].includes(String(p.status || "").toLowerCase()));
+        const hasConcluida = cps.some((p) => ["concluido", "concluída", "concluida", "finalizado"].includes(String(p.status || "").toLowerCase()));
+        if (salesFilter === "com_venda_ativa" && !hasAtiva) return false;
+        if (salesFilter === "com_venda_concluida" && !hasConcluida) return false;
+        if (salesFilter === "sem_venda" && cps.length > 0) return false;
+        if (salesFilter === "com_pendencia" && c._totalPending <= 0) return false;
+      }
       if (fromStart) {
         const createdAt = new Date(c.created_at);
         if (createdAt < fromStart) return false;
@@ -279,7 +296,7 @@ export default function Clients() {
       }
       return true;
     });
-  }, [enriched, debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, dateRange]);
+  }, [enriched, debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, dateRange]);
 
   const sorted = useMemo(() => {
     if (view !== "table") return filtered;
@@ -369,12 +386,12 @@ export default function Clients() {
   const resetFilters = () => {
     setStatusFilter("all"); setProductFilter("all"); setPartnerFilter("all");
     setProviderFilter("all"); setCityFilter("all"); setPaymentFilter("all");
-    setRiskFilter("all"); setDateRange(undefined); setSearch("");
+    setRiskFilter("all"); setSalesFilter("all"); setDateRange(undefined); setSearch("");
   };
 
   const activeFiltersCount = [
     statusFilter, productFilter, partnerFilter, providerFilter,
-    cityFilter, paymentFilter, riskFilter,
+    cityFilter, paymentFilter, riskFilter, salesFilter,
   ].filter((v) => v !== "all").length + (dateRange?.from ? 1 : 0);
 
   const productById = useMemo(() => Object.fromEntries(products.map((p: any) => [p.id, p.name])), [products]);
@@ -463,9 +480,21 @@ export default function Clients() {
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="ativo">Ativo</SelectItem>
-                  <SelectItem value="prospecto">Prospecto</SelectItem>
-                  <SelectItem value="inativo">Inativo</SelectItem>
+                  {statusOptions.map((s) => (
+                    <SelectItem key={s} value={s}>{statusLabel(s)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FilterField>
+            <FilterField label="Vendas">
+              <Select value={salesFilter} onValueChange={setSalesFilter}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="com_venda_ativa">Com venda ativa</SelectItem>
+                  <SelectItem value="com_venda_concluida">Com venda concluída</SelectItem>
+                  <SelectItem value="com_pendencia">Com pendência financeira</SelectItem>
+                  <SelectItem value="sem_venda">Sem venda</SelectItem>
                 </SelectContent>
               </Select>
             </FilterField>
@@ -554,7 +583,13 @@ export default function Clients() {
               <FilterChip label={`Busca: "${search}"`} onClear={() => setSearch("")} />
             )}
             {statusFilter !== "all" && (
-              <FilterChip label={`Status: ${statusFilter}`} onClear={() => setStatusFilter("all")} />
+              <FilterChip label={`Status: ${statusLabel(statusFilter)}`} onClear={() => setStatusFilter("all")} />
+            )}
+            {salesFilter !== "all" && (
+              <FilterChip
+                label={`Vendas: ${({ com_venda_ativa: "com venda ativa", com_venda_concluida: "concluídas", com_pendencia: "com pendência", sem_venda: "sem venda" } as any)[salesFilter] || salesFilter}`}
+                onClear={() => setSalesFilter("all")}
+              />
             )}
             {riskFilter !== "all" && (
               <FilterChip label={`Risco: ${riskFilter}`} onClear={() => setRiskFilter("all")} />
@@ -970,13 +1005,19 @@ function FilterChip({ label, onClear }: { label: string; onClear: () => void }) 
   );
 }
 
+const STATUS_META: Record<string, { label: string; cls: string }> = {
+  ativo: { label: "Ativo", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  prospecto: { label: "Prospecto", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  novo_cliente: { label: "Novo cliente", cls: "bg-sky-50 text-sky-700 border-sky-200" },
+  inativo: { label: "Inativo", cls: "bg-slate-100 text-slate-600 border-slate-200" },
+};
+
+function statusLabel(status: string) {
+  return STATUS_META[status]?.label ?? (status ? status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "—");
+}
+
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    ativo: { label: "Ativo", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-    prospecto: { label: "Prospecto", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-    inativo: { label: "Inativo", cls: "bg-slate-100 text-slate-600 border-slate-200" },
-  };
-  const m = map[status] || { label: status || "—", cls: "bg-slate-100 text-slate-600 border-slate-200" };
+  const m = STATUS_META[status] || { label: statusLabel(status), cls: "bg-slate-100 text-slate-600 border-slate-200" };
   return (
     <span className={cn("inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-semibold", m.cls)}>
       <span className="size-1.5 rounded-full bg-current mr-1.5 opacity-80" />
