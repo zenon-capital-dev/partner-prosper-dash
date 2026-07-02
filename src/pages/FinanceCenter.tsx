@@ -691,7 +691,7 @@ export default function FinanceCenter() {
               )}
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-sm">
             <button type="button" onClick={() => setStatusAndTab("recebidos", "todos")} className="text-left rounded-md border border-slate-200/70 bg-slate-50 p-3 hover:border-slate-300 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-indigo-200">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Bruto recebido</p>
               <p className="font-mono text-base font-semibold text-slate-900 mt-1 tabular-nums">{formatBRL(kpis.totalReceived)}</p>
