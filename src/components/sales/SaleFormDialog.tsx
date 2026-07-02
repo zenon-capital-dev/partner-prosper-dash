@@ -140,13 +140,16 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
     const isRecurring = payload.revenue_type === "recorrente";
     const recurrenceStart = form.first_due_date || form.sale_date || ymdBR(nowBR());
     if (isRecurring) {
-      const months = payload.recurrence_months as number;
-      const monthly = Number(form.amount);
+      const months = Math.max(1, payload.recurrence_months as number);
+      // form.amount = valor TOTAL do contrato recorrente; a mensalidade é total/meses.
+      const totalCents = Math.round(Number(form.amount) * 100);
+      const baseCents = Math.floor(totalCents / months);
+      const remainder = totalCents - baseCents * months;
       return Array.from({ length: months }, (_, i) => ({
         sale_id: saleRow.id,
         client_id: saleRow.client_id,
         product_id: saleRow.product_id,
-        amount: monthly,
+        amount: ((baseCents + (i === months - 1 ? remainder : 0)) / 100),
         due_date: addMonths(recurrenceStart, i),
         status: "pendente" as any,
         installments_count: months,
@@ -427,7 +430,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
               >
                 <p className="text-[10px] font-black uppercase tracking-wider text-indigo-600 mb-0.5">MRR</p>
                 <p className="text-[13px] font-bold text-slate-900">Recorrência mensal</p>
-                <p className="text-[10.5px] text-slate-500 mt-0.5">Mensalidade fixa por N meses.</p>
+                <p className="text-[10.5px] text-slate-500 mt-0.5">Valor total ÷ nº de meses = mensalidade.</p>
               </button>
             </div>
             {form.revenue_type === "recorrente" ? (
