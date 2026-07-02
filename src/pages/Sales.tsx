@@ -1410,7 +1410,7 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
           const s = filtered.find((x) => x.id === id) || { id, clients: null, products: null, partners: null, amount: 0, sale_date: null };
           return rowFor(s, v);
         });
-        return { title: "Recebido no mês — detalhamento", subtitle: "Pagamentos confirmados dentro do mês atual, por venda.", rows, isMoney: true };
+        return { title: `Recebido em ${ym} — detalhamento`, subtitle: "Pagamentos confirmados dentro do mês selecionado, por venda.", rows, isMoney: true };
       }
       case "a_receber": {
         const rows = filtered.filter(s => s.status !== "cancelada").map(s => {
