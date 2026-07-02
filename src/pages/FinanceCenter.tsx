@@ -649,7 +649,7 @@ export default function FinanceCenter() {
             value: formatBRL(kpis.netRevenue),
             tone: "primary",
             onClick: () => setTab("relatorios"),
-            hint: `Bruto ${formatBRL(kpis.totalReceived)} − Custos ${formatBRL(kpis.salesCostsTotal)} − Indicadores ${formatBRL(kpis.indicatorsPaid)} − Comissões ${formatBRL(kpis.commissionsOthersPaid)} − Variáveis ${formatBRL(kpis.variableExpenses)}`,
+            hint: `Bruto ${formatBRL(kpis.totalReceived)} − Custos ${formatBRL(kpis.salesCostsTotal)} − Indicadores ${formatBRL(kpis.indicatorsPaid)} − Comissões ${formatBRL(kpis.commissionsOthersPaid)} − Variáveis ${formatBRL(kpis.variableExpenses)} − Impostos ${formatBRL(kpis.taxesTotal)}${kpis.taxRate ? ` (${kpis.taxRate}%)` : ""}`,
           } as any,
           {
             label: "A receber",
