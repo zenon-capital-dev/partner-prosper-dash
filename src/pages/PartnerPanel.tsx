@@ -150,6 +150,8 @@ export default function PartnerPanel() {
   });
 
   const clientIds = useMemo(() => (clients as any[]).map((c) => c.id).filter(Boolean), [clients]);
+  const stageMatcher = useStageMatcher();
+  const { data: journeyStages = [] } = useJourneyStages();
 
   const { data: services = [] } = useQuery({
     queryKey: ["partner-services", partner?.id, clientIds.join(",")],
