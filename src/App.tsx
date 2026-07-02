@@ -167,6 +167,7 @@ const App = () => (
               <Route path="/financeiro/central" element={<FinanceCenter />} />
               <Route path="/financeiro/caixinhas" element={<ResourcePools />} />
               <Route path="/metas-comerciais" element={<SalesGoals />} />
+              <Route path="/despesas-operacionais" element={<OperationalExpenses />} />
               <Route path="/esteira" element={<ClientJourney />} />
               <Route path="/relatorios" element={<Reports />} />
               <Route path="/auditoria" element={<AuditLog />} />
