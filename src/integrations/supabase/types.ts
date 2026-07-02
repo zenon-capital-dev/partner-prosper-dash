@@ -6413,6 +6413,15 @@ export type Database = {
         }
         Returns: string
       }
+      financial_consistency_report: {
+        Args: never
+        Returns: {
+          check_code: string
+          check_name: string
+          problems: number
+          severity: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
