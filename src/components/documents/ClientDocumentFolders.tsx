@@ -19,6 +19,7 @@ import {
   Loader2, FilePlus2,
 } from "lucide-react";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
+import { cn } from "@/lib/utils";
 
 type Role = "admin" | "client" | "provider";
 
@@ -31,6 +32,8 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
+  const attachRef = useRef<HTMLInputElement>(null);
+  const [attachingDoc, setAttachingDoc] = useState<any>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
@@ -38,6 +41,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   const [providersFor, setProvidersFor] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [requestingInFolder, setRequestingInFolder] = useState<string | null>(null);
+
 
   const isAdmin = viewerRole === "admin";
   const canUpload = viewerRole === "admin" || viewerRole === "client";
@@ -165,6 +169,42 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
     qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
   }
 
+  async function onAttachToRequest(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    const doc = attachingDoc;
+    setAttachingDoc(null);
+    if (!file || !doc) return;
+    try {
+      setUploading(true);
+      const safe = sanitizeStorageFileName(file.name);
+      const path = `${clientId}/folder/${currentFolderId}/${Date.now()}_${safe}`;
+      const up = await supabase.storage.from("documents").upload(path, file);
+      if (up.error) throw up.error;
+      const oldPath = doc.file_path as string | undefined;
+      const { error } = await supabase.from("documents").update({
+        file_path: path,
+        file_size: file.size,
+        mime_type: file.type,
+        status: "em_analise",
+        uploaded_at: new Date().toISOString(),
+        uploaded_by: user?.id ?? null,
+        source: viewerRole === "client" ? "client_upload" : "admin_upload",
+      } as any).eq("id", doc.id);
+      if (error) throw error;
+      if (oldPath && oldPath !== path) {
+        await supabase.storage.from("documents").remove([oldPath]).catch(() => {});
+      }
+      toast.success("Arquivo anexado à solicitação");
+      qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
+    } catch (err: any) {
+      toast.error(uploadErrorMessage(err));
+    } finally {
+      setUploading(false);
+    }
+  }
+
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -245,6 +285,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                   {canUpload && (
                     <>
                       <input ref={fileRef} type="file" multiple hidden onChange={onUpload} />
+                      <input ref={attachRef} type="file" hidden onChange={onAttachToRequest} />
                       <Button size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
                         {uploading ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Upload className="size-3.5 mr-1" />}
                         Enviar arquivos
@@ -258,15 +299,20 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                 <p className="text-xs text-slate-500 text-center py-6">Nenhum arquivo nesta pasta.</p>
               ) : (
                 <ul className="divide-y divide-slate-100">
-                  {files.map((f: any) => (
+                  {files.map((f: any) => {
+                    const isRequest = !f.file_path;
+                    return (
                     <li key={f.id} className="flex items-center gap-3 py-2">
-                      <FileText className="size-4 text-slate-400 shrink-0" />
+                      <FileText className={cn("size-4 shrink-0", isRequest ? "text-amber-500" : "text-slate-400")} />
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900 truncate">{f.name}</p>
+                        <p className="text-sm font-medium text-slate-900 truncate">
+                          {f.name}
+                          {isRequest && <Badge variant="outline" className="ml-2 text-[9px] bg-amber-50 text-amber-700 border-amber-200">Aguardando envio</Badge>}
+                        </p>
                         <p className="text-[11px] text-slate-500">{formatDate(f.uploaded_at ?? f.created_at)}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        {f.file_path && (
+                        {f.file_path ? (
                           <>
                             <Button size="sm" variant="ghost" onClick={() => viewFile(f.file_path)}>
                               <Eye className="size-3.5" />
@@ -275,6 +321,11 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                               <Download className="size-3.5" />
                             </Button>
                           </>
+                        ) : canUpload && (
+                          <Button size="sm" variant="outline" disabled={uploading} onClick={() => { setAttachingDoc(f); setTimeout(() => attachRef.current?.click(), 0); }}>
+                            {uploading ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Upload className="size-3.5 mr-1" />}
+                            Anexar
+                          </Button>
                         )}
                         {(isAdmin || f.uploaded_by === user?.id) && (
                           <Button size="sm" variant="ghost" className="text-rose-600 hover:text-rose-700" onClick={() => removeFile(f)}>
@@ -283,7 +334,9 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                         )}
                       </div>
                     </li>
-                  ))}
+                    );
+                  })}
+
                 </ul>
               )}
             </div>
