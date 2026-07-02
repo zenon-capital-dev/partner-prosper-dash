@@ -37,6 +37,7 @@ import { Link } from "react-router-dom";
 import { confirmAction } from "@/lib/confirm";
 import { TaskDetailsExtras } from "@/components/tasks/TaskDetailsExtras";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { usePageSize } from "@/hooks/usePageSize";
 
 const STATUSES = [
   { value: "a_fazer", label: "A fazer", color: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/20" },
@@ -53,8 +54,6 @@ const PRIORITIES = [
   { value: "alta", label: "Alta", color: "bg-amber-50 text-amber-600 border-amber-200" },
   { value: "urgente", label: "Urgente", color: "bg-destructive/10 text-destructive border-destructive/20" },
 ] as const;
-
-const PAGE_SIZE = 10;
 
 const ENTITY_TYPES = [
   { value: "none", label: "Nenhum", icon: ClipboardList },
@@ -102,6 +101,8 @@ const toLocalDateKey = (d: Date | string) => {
 };
 
 export default function Tasks() {
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const qc = useQueryClient();
   const { user } = useAuth();
   const [view, setView] = useState<"lista" | "kanban" | "calendario">("lista");
@@ -541,7 +542,7 @@ export default function Tasks() {
             ) : (
               <>
                 {paginatedFiltered.map((t: any) => <TaskRow key={t.id} task={t} />)}
-                <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} className="mt-4 rounded-xl border" />
+                <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} className="mt-4 rounded-xl border" pageSize={__ps} onPageSizeChange={setPageSize} />
               </>
             )}
           </TabsContent>
@@ -585,7 +586,7 @@ export default function Tasks() {
                 );
               })}
             </div>
-            <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} className="mt-4 rounded-xl border" />
+            <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} className="mt-4 rounded-xl border" pageSize={__ps} onPageSizeChange={setPageSize} />
           </TabsContent>
 
           <TabsContent value="calendario" className="mt-4">

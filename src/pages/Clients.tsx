@@ -37,6 +37,7 @@ import { PaginationControl } from "@/components/ui/PaginationControl";
 import { EmptyState } from "@/components/EmptyState";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePageSize } from "@/hooks/usePageSize";
 
 type SortKey = "name" | "revenue" | "created" | "health";
 type SortDir = "asc" | "desc";
@@ -58,7 +59,8 @@ export default function Clients() {
   const [showFilters, setShowFilters] = useState<boolean>(saved.showFilters ?? false);
   const [view, setView] = useState<"grid" | "table">(saved.view ?? "grid");
   const [currentPage, setCurrentPage] = useState<number>(saved.currentPage ?? 1);
-  const itemsPerPage = 10;
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const itemsPerPage = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
 
   const [statusFilter, setStatusFilter] = useState<string>(saved.statusFilter ?? "all");
   const [productFilter, setProductFilter] = useState<string>(saved.productFilter ?? "all");
@@ -755,8 +757,7 @@ export default function Clients() {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
               totalItems={sorted.length}
-              itemsPerPage={itemsPerPage}
-            />
+              itemsPerPage={itemsPerPage} pageSize={__ps} onPageSizeChange={setPageSize} />
           </>
 
         ) : (
@@ -894,8 +895,7 @@ export default function Clients() {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
               totalItems={sorted.length}
-              itemsPerPage={itemsPerPage}
-            />
+              itemsPerPage={itemsPerPage} pageSize={__ps} onPageSizeChange={setPageSize} />
           </div>
         )}
 

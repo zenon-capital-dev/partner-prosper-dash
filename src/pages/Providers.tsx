@@ -26,6 +26,7 @@ import {
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { CredentialsManager } from "@/components/CredentialsManager";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { usePageSize } from "@/hooks/usePageSize";
 
 type ViewMode = "grid" | "list";
 type SortKey = "name" | "specialty" | "active_demands" | "clients" | "revenue" | "rating" | "status";
@@ -67,7 +68,8 @@ export default function Providers() {
   const [assignTarget, setAssignTarget] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [credRow, setCredRow] = useState<any>(null);
-  const itemsPerPage = 10;
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const itemsPerPage = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
 
   useEffect(() => {
     setCurrentPage(1);
@@ -435,8 +437,7 @@ export default function Providers() {
               onPageChange={setCurrentPage}
               totalItems={sorted.length}
               itemsPerPage={itemsPerPage}
-              className="mt-6 bg-white border border-slate-200/70 rounded-lg"
-            />
+              className="mt-6 bg-white border border-slate-200/70 rounded-lg" pageSize={__ps} onPageSizeChange={setPageSize} />
           </>
         ) : (
           <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
@@ -529,8 +530,7 @@ export default function Providers() {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
               totalItems={sorted.length}
-              itemsPerPage={itemsPerPage}
-            />
+              itemsPerPage={itemsPerPage} pageSize={__ps} onPageSizeChange={setPageSize} />
           </div>
         )}
       </div>

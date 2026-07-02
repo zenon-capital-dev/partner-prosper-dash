@@ -30,6 +30,7 @@ import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
 import { initials, formatPhone, formatBRL } from "@/lib/format";
 import { CredentialsManager } from "@/components/CredentialsManager";
+import { usePageSize } from "@/hooks/usePageSize";
 
 type Role = "admin" | "admin_secondary" | "colaborador";
 type CollabRow = {
@@ -79,7 +80,8 @@ export default function Collaborators() {
   const [editing, setEditing] = useState<CollabRow | null>(null);
   const [credRow, setCredRow] = useState<CollabRow | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const itemsPerPage = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
 
   useEffect(() => {
     setCurrentPage(1);
@@ -446,8 +448,7 @@ export default function Collaborators() {
               onPageChange={setCurrentPage}
               totalItems={sorted.length}
               itemsPerPage={itemsPerPage}
-              className="mt-6 bg-white border border-slate-200/70 rounded-lg"
-            />
+              className="mt-6 bg-white border border-slate-200/70 rounded-lg" pageSize={__ps} onPageSizeChange={setPageSize} />
           </>
         ) : (
           <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
@@ -560,8 +561,7 @@ export default function Collaborators() {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
               totalItems={sorted.length}
-              itemsPerPage={itemsPerPage}
-            />
+              itemsPerPage={itemsPerPage} pageSize={__ps} onPageSizeChange={setPageSize} />
           </div>
         )}
       </div>

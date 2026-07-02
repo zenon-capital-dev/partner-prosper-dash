@@ -55,6 +55,7 @@ import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ContractDialog } from "@/components/contracts/ContractDialog";
+import { usePageSize } from "@/hooks/usePageSize";
 
 export type ContractStatus =
   | "rascunho"
@@ -335,7 +336,9 @@ export default function Contracts() {
     setPage(1);
   };
 
-  const pageSize = 10;
+  const { pageSize: __ps, setPageSize } = usePageSize();
+
+  const pageSize = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const totalPages = Math.max(1, Math.ceil(sortedContracts.length / pageSize));
   const pageRows = sortedContracts.slice((page - 1) * pageSize, page * pageSize);
 
@@ -601,7 +604,7 @@ export default function Contracts() {
                   </tbody>
                 </table>
               </div>
-              <PaginationControl currentPage={page} totalPages={totalPages} onPageChange={setPage} totalItems={sortedContracts.length} itemsPerPage={pageSize} />
+              <PaginationControl currentPage={page} totalPages={totalPages} onPageChange={setPage} totalItems={sortedContracts.length} itemsPerPage={pageSize} pageSize={__ps} onPageSizeChange={setPageSize} />
             </>
           )}
         </div>

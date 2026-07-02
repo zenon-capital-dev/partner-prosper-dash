@@ -19,10 +19,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { usePageSize } from "@/hooks/usePageSize";
 
 type Bucket = "todos" | "atrasado" | "vence_hoje" | "atencao" | "no_prazo" | "pausado" | "sem_prazo";
-const PAGE_SIZE = 10;
-
 const BUCKETS: { key: Bucket; label: string; icon: any; tone: string }[] = [
   { key: "todos", label: "Todas", icon: ListFilter, tone: "text-slate-600" },
   { key: "atrasado", label: "Atrasadas", icon: AlertTriangle, tone: "text-rose-600" },
@@ -37,6 +36,8 @@ const isNoDueDate = (d: any) =>
   d.sla?.daysRemaining == null && d.sla?.status !== "pausado" && d.sla?.status !== "concluido";
 
 export default function SLAPages() {
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [bucket, setBucket] = useState<Bucket>("todos");
@@ -406,7 +407,7 @@ export default function SLAPages() {
               })}
             </div>
           )}
-          <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} />
+          <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} pageSize={__ps} onPageSizeChange={setPageSize} />
         </div>
 
         {/* Sidebar — ranking + dicas */}

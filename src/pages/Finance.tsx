@@ -26,6 +26,7 @@ import {
   ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area, BarChart,
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { usePageSize } from "@/hooks/usePageSize";
 
 type RangeKey = "HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO";
 type SortDir = "asc" | "desc";
@@ -105,7 +106,8 @@ export default function Finance() {
   const [salesPage, setSalesPage] = useState(1);
   const [expPage, setExpPage] = useState(1);
   const [splitPage, setSplitPage] = useState(1);
-  const PAGE_SIZE = 10;
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
 
   // expense dialog
   const [expDialogOpen, setExpDialogOpen] = useState(false);
@@ -704,7 +706,7 @@ export default function Finance() {
                     </table>
                   </div>
                   <div className="p-3 border-t border-slate-200">
-                    <PaginationControl currentPage={salesPage} totalPages={Math.max(1, Math.ceil(salesFiltered.length / PAGE_SIZE))} onPageChange={setSalesPage} />
+                    <PaginationControl currentPage={salesPage} totalPages={Math.max(1, Math.ceil(salesFiltered.length / PAGE_SIZE))} onPageChange={setSalesPage} pageSize={__ps} onPageSizeChange={setPageSize} />
                   </div>
                 </>
               )}
@@ -752,7 +754,7 @@ export default function Finance() {
                     </table>
                   </div>
                   <div className="p-3 border-t border-slate-200">
-                    <PaginationControl currentPage={expPage} totalPages={Math.max(1, Math.ceil(expensesFiltered.length / PAGE_SIZE))} onPageChange={setExpPage} />
+                    <PaginationControl currentPage={expPage} totalPages={Math.max(1, Math.ceil(expensesFiltered.length / PAGE_SIZE))} onPageChange={setExpPage} pageSize={__ps} onPageSizeChange={setPageSize} />
                   </div>
                 </>
               )}
@@ -822,7 +824,7 @@ export default function Finance() {
                     </table>
                   </div>
                   <div className="p-3 border-t border-slate-200">
-                    <PaginationControl currentPage={splitPage} totalPages={Math.max(1, Math.ceil(splitsFiltered.length / PAGE_SIZE))} onPageChange={setSplitPage} />
+                    <PaginationControl currentPage={splitPage} totalPages={Math.max(1, Math.ceil(splitsFiltered.length / PAGE_SIZE))} onPageChange={setSplitPage} pageSize={__ps} onPageSizeChange={setPageSize} />
                   </div>
                 </>
               )}

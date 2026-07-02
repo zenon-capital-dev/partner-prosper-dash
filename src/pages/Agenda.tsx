@@ -39,11 +39,10 @@ import { initials } from "@/lib/format";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { usePageSize } from "@/hooks/usePageSize";
 
 type Kind = "tarefa" | "reuniao" | "ligacao" | "pendencia_documento" | "lembrete" | "follow_up";
 type Status = "a_fazer" | "em_andamento" | "aguardando_terceiros" | "sem_atuacao" | "bloqueada" | "concluida" | "cancelada";
-const PAGE_SIZE = 10;
-
 const KIND_META: Record<Kind, { label: string; icon: any; color: string; ring: string; dot: string }> = {
   tarefa:              { label: "Tarefa",     icon: CheckCircle2, color: "bg-slate-100 text-slate-700 border-slate-200",     ring: "ring-slate-200",   dot: "bg-slate-500" },
   reuniao:             { label: "Reunião",    icon: Video,        color: "bg-violet-50 text-violet-700 border-violet-200",   ring: "ring-violet-200",  dot: "bg-violet-500" },
@@ -533,6 +532,8 @@ function EmptyHint({ text }: { text: string }) {
 }
 
 function ItemList({
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   items, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus, onRequestReschedule,
 }: {
   items: AgendaItem[];
@@ -561,7 +562,7 @@ function ItemList({
       {pageItems.map((it) => (
         <ItemRow key={it.id} item={it} onComplete={onComplete} onReopen={onReopen} onDelete={onDelete} onEdit={onEdit} onReschedule={onReschedule} onSetStatus={onSetStatus} onRequestReschedule={onRequestReschedule} />
       ))}
-      <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} totalItems={items.length} itemsPerPage={PAGE_SIZE} />
+      <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} totalItems={items.length} itemsPerPage={PAGE_SIZE} pageSize={__ps} onPageSizeChange={setPageSize} />
     </div>
   );
 }

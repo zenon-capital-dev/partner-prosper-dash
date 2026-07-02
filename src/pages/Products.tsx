@@ -26,6 +26,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { usePageSize } from "@/hooks/usePageSize";
 
 type Product = {
   id: string;
@@ -43,12 +44,12 @@ type Product = {
 
 type SortKey = "name" | "price" | "commission" | "partners" | "sales" | "revenue" | "status";
 type SortDir = "asc" | "desc";
-const PAGE_SIZE = 10;
-
 const norm = (s: any) =>
   String(s ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 export default function Products() {
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { isAdmin, isAdminSecondary } = useAuth();
@@ -552,7 +553,7 @@ export default function Products() {
             </div>
           </div>
         )}
-        <PaginationControl currentPage={page} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={sortedTable.length} itemsPerPage={PAGE_SIZE} />
+        <PaginationControl currentPage={page} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={sortedTable.length} itemsPerPage={PAGE_SIZE} pageSize={__ps} onPageSizeChange={setPageSize} />
       </div>
 
       <ProductFormDialog

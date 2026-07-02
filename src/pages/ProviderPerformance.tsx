@@ -13,6 +13,7 @@ import { Star, Activity, CheckCircle2, AlertTriangle, Clock, FileCheck, MessageS
 import { PaginationControl } from "@/components/ui/PaginationControl";
 ;
 import { ptBR } from "date-fns/locale";
+import { usePageSize } from "@/hooks/usePageSize";
 
 interface Provider {
   id: string;
@@ -36,12 +37,12 @@ interface Metrics {
   lastReport: string | null;
 }
 
-const PAGE_SIZE = 10;
-
 const ACTIVE_STATUSES = ["em_execucao", "em_andamento", "em_analise", "aguardando_inicio", "aguardando_documentos", "pendente_cliente", "pendente_prestador", "aguardando_aprovacao"];
 const COMPLETED_STATUSES = ["concluido", "concluida"];
 
 export default function ProviderPerformance() {
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const [providers, setProviders] = useState<Provider[]>([]);
   const [metricsMap, setMetricsMap] = useState<Record<string, Metrics>>({});
   const [loading, setLoading] = useState(true);
@@ -264,7 +265,7 @@ export default function ProviderPerformance() {
               </TableBody>
             </Table>
           )}
-          <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={providers.length} itemsPerPage={PAGE_SIZE} />
+          <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={providers.length} itemsPerPage={PAGE_SIZE} pageSize={__ps} onPageSizeChange={setPageSize} />
         </CardContent>
       </Card>
 

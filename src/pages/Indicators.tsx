@@ -27,6 +27,7 @@ import { confirmAction } from "@/lib/confirm";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { cn } from "@/lib/utils";
 import { CredentialsManager } from "@/components/CredentialsManager";
+import { usePageSize } from "@/hooks/usePageSize";
 
 type SortKey = "name" | "clients" | "total" | "pending" | "percent" | "status" | "recent";
 type SortDir = "asc" | "desc";
@@ -59,7 +60,8 @@ export default function Indicators() {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const itemsPerPage = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
 
   useEffect(() => { setCurrentPage(1); }, [debouncedSearch, statusFilter, accessFilter, finFilter, sortKey, sortDir]);
 
@@ -428,8 +430,7 @@ export default function Indicators() {
               onPageChange={setCurrentPage}
               totalItems={sorted.length}
               itemsPerPage={itemsPerPage}
-              className="mt-6 bg-white border border-slate-200/70 rounded-lg"
-            />
+              className="mt-6 bg-white border border-slate-200/70 rounded-lg" pageSize={__ps} onPageSizeChange={setPageSize} />
           </>
         ) : (
           <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
@@ -512,8 +513,7 @@ export default function Indicators() {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
               totalItems={sorted.length}
-              itemsPerPage={itemsPerPage}
-            />
+              itemsPerPage={itemsPerPage} pageSize={__ps} onPageSizeChange={setPageSize} />
           </div>
         )}
       </div>
