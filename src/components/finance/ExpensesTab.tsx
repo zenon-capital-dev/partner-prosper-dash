@@ -73,7 +73,13 @@ const emptyForm = () => ({
   recurringMonths: 1,
 });
 
-export function ExpensesTab() {
+interface ExpensesTabProps {
+  expenses?: Expense[];
+  canManage?: boolean;
+  showKpis?: boolean;
+}
+
+export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis = true }: ExpensesTabProps = {}) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const [month, setMonth] = useState<string>(ymNow());
@@ -83,8 +89,9 @@ export function ExpensesTab() {
   const [editing, setEditing] = useState<Expense | null>(null);
   const [form, setForm] = useState(emptyForm());
 
-  const { data: rows = [], isLoading } = useQuery({
+  const { data: fetched = [], isLoading } = useQuery({
     queryKey: ["fin-expenses-tab"],
+    enabled: !expensesProp,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("expenses")
@@ -95,6 +102,7 @@ export function ExpensesTab() {
       return (data ?? []) as Expense[];
     },
   });
+  const rows: Expense[] = expensesProp ?? fetched;
 
   const today = ymdNow();
   const filtered = useMemo(() => {
