@@ -247,17 +247,16 @@ export default function DashboardAdmin() {
     const todayISO = toISO(brasiliaToday);
 
     // Aplica o filtro compartilhado de Estágio da Jornada (via client_id) a todos
-    // os conjuntos que serão agregados adiante. Quando o filtro está desativado,
-    // matchesClientId() retorna sempre true e nada muda.
-    const clientsF = clients.filter((c: any) => matchesClientId(c.id));
-    const clientProductsF = clientProducts.filter((p: any) => matchesClientId(p.client_id));
-    const salesF = sales.filter((s: any) => matchesClientId(s.client_id));
-    const paymentsF = payments.filter((p: any) => matchesClientId(p.client_id));
-    const docRequestsF = docRequests.filter((d: any) => matchesClientId(d.client_id));
-    const agendaInteractionsF = agendaInteractions.filter((i: any) => matchesClientId(i.client_id));
-    const _clients = clientsF, _clientProducts = clientProductsF, _sales = salesF, _payments = paymentsF, _docRequests = docRequestsF, _agendaInteractions = agendaInteractionsF;
+    // os conjuntos que serão agregados adiante — shadow os arrays do escopo externo.
+    // Quando o filtro está desativado, matchesClientId() retorna sempre true.
+    const clients = _rawClients.filter((c: any) => matchesClientId(c.id));
+    const clientProducts = _rawClientProducts.filter((p: any) => matchesClientId(p.client_id));
+    const sales = _rawSales.filter((s: any) => matchesClientId(s.client_id));
+    const payments = _rawPayments.filter((p: any) => matchesClientId(p.client_id));
+    const docRequests = _rawDocRequests.filter((d: any) => matchesClientId(d.client_id));
+    const agendaInteractions = _rawAgendaInteractions.filter((i: any) => matchesClientId(i.client_id));
 
-    const filteredSales = _sales.filter((s: any) => s.sale_date && s.sale_date >= startISO && s.sale_date <= endISO);
+    const filteredSales = sales.filter((s: any) => s.sale_date && s.sale_date >= startISO && s.sale_date <= endISO);
     const rangeRevenue = filteredSales.reduce((a, s: any) => a + Number(s.amount || 0), 0);
 
     const periodDays = Math.max(1, Math.round((rangeEnd.getTime() - rangeStart.getTime()) / 86400000) + 1);
