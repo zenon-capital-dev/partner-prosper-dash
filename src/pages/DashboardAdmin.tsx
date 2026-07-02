@@ -189,7 +189,7 @@ export default function DashboardAdmin() {
     queryFn: async () => (await supabase.from("documents").select("id, status, created_at, name, client_id, due_date").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
 
-  const { data: agendaInteractions = [], isLoading: isLoadingAgenda } = useQuery({
+  const { data: _rawAgendaInteractions = [], isLoading: isLoadingAgenda } = useQuery({
     queryKey: ["dash-agenda-today"],
     staleTime: STALE,
     enabled: stageActive,
