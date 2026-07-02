@@ -19,8 +19,10 @@ import { confirmAction } from "@/lib/confirm";
 import {
   Banknote, TrendingUp, TrendingDown, AlertTriangle, Wallet, Receipt, BarChart3,
   Search, RefreshCw, CheckCircle2, AlertCircle, X, Download, ArrowUp, ArrowDown, ArrowUpDown,
-  Filter, FileX, CalendarRange,
+  Filter, FileX, CalendarRange, ShieldCheck,
 } from "lucide-react";
+
+import { ConsistencyReport } from "@/components/finance/ConsistencyReport";
 
 import { RevenueMap } from "@/components/finance/RevenueMap";
 
@@ -574,6 +576,7 @@ export default function FinanceCenter() {
     { id: "despesas", label: "Despesas", icon: TrendingDown },
     { id: "por_cliente", label: "Por cliente", icon: BarChart3 },
     { id: "relatorios", label: "Relatórios", icon: BarChart3 },
+    { id: "auditoria", label: "Auditoria", icon: ShieldCheck },
   ];
 
 
@@ -875,6 +878,9 @@ export default function FinanceCenter() {
           </TabsContent>
           <TabsContent value="relatorios" className="mt-6">
             <Reports payments={effectivePayments} commissions={commissionRows} sales={effectiveSalesCosts as any[]} />
+          </TabsContent>
+          <TabsContent value="auditoria" className="mt-6">
+            <ConsistencyReport />
           </TabsContent>
 
         </Tabs>
