@@ -474,7 +474,7 @@ export default function DashboardAdmin() {
       salesCount: filteredSales.length,
       todayTasksList, todayDemandsList, todayDocsList, todayContractsList, todayPendingCount, todayAgendaList,
     };
-  }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, brasiliaToday, taxRate]);
+  }, [_rawClients, _rawClientProducts, _rawSales, leads, commissions, tasks, contracts, _rawDocRequests, _rawPayments, _rawAgendaInteractions, rangeKey, brasiliaToday, taxRate, matchesClientId]);
 
   const stats: any = dashboardStats ?? computedStats;
 
