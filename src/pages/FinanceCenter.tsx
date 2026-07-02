@@ -163,6 +163,7 @@ function SortableTh({ label, k, sortKey, sortDir, onSort, align = "left" }: any)
 
 export default function FinanceCenter() {
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   const tab = params.get("tab") || "fluxo";
   const setTab = (t: string) => {
     const next = new URLSearchParams(params);
