@@ -785,7 +785,13 @@ export default function FinanceCenter() {
           </div>
         )}
 
-        <ProfitReservesPanel monthKey={kpiRange === "specific" ? specificMonth : nowMonthKey()} canManage={canManage} />
+        <div className="grid gap-4 lg:grid-cols-2">
+          <ProfitReservesPanel monthKey={kpiRange === "specific" ? specificMonth : nowMonthKey()} canManage={canManage} />
+          <RevenueByStage payments={effectivePayments.filter((p: any) => {
+            const d = (p.paid_at || p.payment_date || "") as string;
+            return d >= rangeStartIso && d < rangeEndIso;
+          })} />
+        </div>
 
 
 
