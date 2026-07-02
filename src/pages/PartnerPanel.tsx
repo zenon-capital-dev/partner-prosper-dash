@@ -693,24 +693,37 @@ export default function PartnerPanel() {
 
         {activeKey === "clientes" && (
           <>
-            <PanelHero role="parceiro" eyebrow="Carteira" title="Meus clientes" subtitle={`${clients.length} cliente(s) ativos sob sua parceria.`} />
+            <PanelHero role="parceiro" eyebrow="Carteira" title="Meus clientes" subtitle={`${clients.length} cliente(s) ativos sob sua parceria.`} actions={<StageFilterBar />} />
             <SectionCard title="">
-              {clients.length === 0 ? <EmptyState icon={Users} title="Sem clientes" /> :
-                <ul className="divide-y divide-slate-100 -mx-1">
-                  {(clients as any[]).map((c) => (
-                    <li key={c.id} className="flex items-center gap-3 px-3 py-3">
-                      <div className="size-10 rounded-full bg-violet-50 text-violet-700 flex items-center justify-center text-[12px] font-semibold">{initials(c.full_name)}</div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[13.5px] font-medium text-slate-900 truncate">{c.full_name}</p>
-                        <p className="text-[11.5px] text-slate-500 truncate">{c.email || c.phone || ""}</p>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {c.partner_link_type === "vinculado" && <Badge variant="outline" className="text-[10px] border-indigo-200 text-indigo-700 bg-indigo-50">vinculado</Badge>}
-                        <Badge variant="outline" className={cn("text-[10px] border capitalize", CLIENT_TONE[c.status] || "bg-slate-100")}>{c.status}</Badge>
-                      </div>
-                    </li>
-                  ))}
-                </ul>}
+              {(() => {
+                const list = (clients as any[]).filter((c) => stageMatcher.matchesClientId(c.id));
+                if (list.length === 0) return <EmptyState icon={Users} title="Sem clientes" />;
+                return (
+                  <ul className="divide-y divide-slate-100 -mx-1">
+                    {list.map((c) => {
+                      const stage = journeyStages.find((s: any) => s.id === c.journey_stage_id);
+                      return (
+                        <li key={c.id} className="flex items-center gap-3 px-3 py-3">
+                          <div className="size-10 rounded-full bg-violet-50 text-violet-700 flex items-center justify-center text-[12px] font-semibold">{initials(c.full_name)}</div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[13.5px] font-medium text-slate-900 truncate">{c.full_name}</p>
+                            <p className="text-[11.5px] text-slate-500 truncate">{c.email || c.phone || ""}</p>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {stage && (
+                              <Badge variant="outline" className="text-[10px] border" style={{ borderColor: (stage.color || "#94a3b8") + "55", color: stage.color || "#475569", background: (stage.color || "#94a3b8") + "10" }}>
+                                {stage.name}
+                              </Badge>
+                            )}
+                            {c.partner_link_type === "vinculado" && <Badge variant="outline" className="text-[10px] border-indigo-200 text-indigo-700 bg-indigo-50">vinculado</Badge>}
+                            <Badge variant="outline" className={cn("text-[10px] border capitalize", CLIENT_TONE[c.status] || "bg-slate-100")}>{c.status}</Badge>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                );
+              })()}
             </SectionCard>
           </>
         )}
