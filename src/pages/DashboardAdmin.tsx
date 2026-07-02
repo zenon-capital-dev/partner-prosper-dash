@@ -197,7 +197,7 @@ export default function DashboardAdmin() {
     staleTime: STALE,
     enabled: false,
     queryFn: async () => {
-      const data = (await supabase.from("payments").select("id, sale_id, status, amount, amount_paid, due_date, paid_at, sales(id, status)").in("status", ["pendente", "em_aberto", "parcialmente_pago", "atrasado", "vencido", "pago"]).limit(500)).data ?? [];
+      const data = (await supabase.from("payments").select("id, sale_id, client_id, status, amount, amount_paid, due_date, paid_at, sales(id, status)").in("status", ["pendente", "em_aberto", "parcialmente_pago", "atrasado", "vencido", "pago"]).limit(500)).data ?? [];
       return (data as any[]).filter(paymentSaleIsFinalized);
     }
   });
