@@ -86,18 +86,18 @@ export default function Clients() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, dateRange, view]);
+  }, [debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, dateRange, view]);
 
   useEffect(() => {
     try {
       sessionStorage.setItem(FK, JSON.stringify({
         search, showFilters, view, currentPage,
         statusFilter, productFilter, partnerFilter, providerFilter,
-        cityFilter, paymentFilter, riskFilter, sortKey, sortDir,
+        cityFilter, paymentFilter, riskFilter, salesFilter, sortKey, sortDir,
         dateRange: dateRange ? { from: dateRange.from, to: dateRange.to } : undefined,
       }));
     } catch {}
-  }, [search, showFilters, view, currentPage, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, sortKey, sortDir, dateRange]);
+  }, [search, showFilters, view, currentPage, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, sortKey, sortDir, dateRange]);
 
 
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({
