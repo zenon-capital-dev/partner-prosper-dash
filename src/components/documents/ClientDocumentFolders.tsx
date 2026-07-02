@@ -297,15 +297,20 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                 <p className="text-xs text-slate-500 text-center py-6">Nenhum arquivo nesta pasta.</p>
               ) : (
                 <ul className="divide-y divide-slate-100">
-                  {files.map((f: any) => (
+                  {files.map((f: any) => {
+                    const isRequest = !f.file_path;
+                    return (
                     <li key={f.id} className="flex items-center gap-3 py-2">
-                      <FileText className="size-4 text-slate-400 shrink-0" />
+                      <FileText className={cn("size-4 shrink-0", isRequest ? "text-amber-500" : "text-slate-400")} />
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900 truncate">{f.name}</p>
+                        <p className="text-sm font-medium text-slate-900 truncate">
+                          {f.name}
+                          {isRequest && <Badge variant="outline" className="ml-2 text-[9px] bg-amber-50 text-amber-700 border-amber-200">Aguardando envio</Badge>}
+                        </p>
                         <p className="text-[11px] text-slate-500">{formatDate(f.uploaded_at ?? f.created_at)}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        {f.file_path && (
+                        {f.file_path ? (
                           <>
                             <Button size="sm" variant="ghost" onClick={() => viewFile(f.file_path)}>
                               <Eye className="size-3.5" />
@@ -314,6 +319,11 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                               <Download className="size-3.5" />
                             </Button>
                           </>
+                        ) : canUpload && (
+                          <Button size="sm" variant="outline" disabled={uploading} onClick={() => { setAttachingDoc(f); setTimeout(() => attachRef.current?.click(), 0); }}>
+                            {uploading ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Upload className="size-3.5 mr-1" />}
+                            Anexar
+                          </Button>
                         )}
                         {(isAdmin || f.uploaded_by === user?.id) && (
                           <Button size="sm" variant="ghost" className="text-rose-600 hover:text-rose-700" onClick={() => removeFile(f)}>
@@ -322,7 +332,9 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                         )}
                       </div>
                     </li>
-                  ))}
+                    );
+                  })}
+
                 </ul>
               )}
             </div>
