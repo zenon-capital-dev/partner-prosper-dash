@@ -428,7 +428,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                       </Button>
                     </>
                   )}
-                  {canUpload && !isAllView && (
+                  {canUpload && !isAllView && !isContratos && (
                     <>
                       <input ref={fileRef} type="file" multiple hidden onChange={onUpload} />
                       <input ref={attachRef} type="file" multiple hidden onChange={onAttachToRequest} />
@@ -438,11 +438,75 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                       </Button>
                     </>
                   )}
+                  {isContratos && (isAdmin || viewerRole === "client") && (
+                    <Button size="sm" onClick={() => setCreatingContract(true)}>
+                      <FilePlus2 className="size-3.5 mr-1" /> Novo contrato
+                    </Button>
+                  )}
                 </div>
               </div>
 
+              {isContratos && (
+                <input ref={phaseFileRef} type="file" hidden onChange={onPhaseFileSelected} />
+              )}
 
-              {files.length === 0 ? (
+              {isContratos ? (
+                contractRoots.length === 0 ? (
+                  <p className="text-xs text-slate-500 text-center py-6">Nenhum contrato criado ainda.</p>
+                ) : (
+                  <ul className="space-y-3">
+                    {contractRoots.map((c: any) => {
+                      const phases = phasesByParent.get(c.id) ?? [];
+                      return (
+                        <li key={c.id} className="border border-slate-200 rounded-lg bg-slate-50/60 p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <FileText className="size-4 text-indigo-600" />
+                            <p className="text-sm font-semibold text-slate-900 flex-1 truncate">{c.name}</p>
+                            <Badge variant="outline" className="bg-white text-[10px]">{phases.length} fase(s)</Badge>
+                            {(isAdmin || c.uploaded_by === user?.id) && (
+                              <Button size="sm" variant="ghost" className="text-rose-600 hover:text-rose-700" onClick={() => deleteContractOrPhase(c)}>
+                                <Trash2 className="size-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                          {phases.length === 0 ? (
+                            <p className="text-[11px] text-slate-500 pl-6 pb-2">Nenhuma fase ainda. Adicione a primeira (ex.: "Minuta").</p>
+                          ) : (
+                            <ol className="pl-6 space-y-1.5">
+                              {phases.map((p: any, idx: number) => (
+                                <li key={p.id} className="flex items-center gap-2 text-sm bg-white border border-slate-200 rounded px-2 py-1.5">
+                                  <Badge variant="outline" className="text-[10px] shrink-0">Fase {idx + 1}</Badge>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-medium text-slate-800 truncate">{p.phase_label || "—"}</p>
+                                    <p className="text-[11px] text-slate-500 truncate">{p.name?.replace(`${p.phase_label} — `, "")} · {formatDate(p.uploaded_at ?? p.created_at)}</p>
+                                  </div>
+                                  {p.file_path && (
+                                    <>
+                                      <Button size="sm" variant="ghost" onClick={() => viewFile(p.file_path)}><Eye className="size-3.5" /></Button>
+                                      <Button size="sm" variant="ghost" onClick={() => downloadFile(p.file_path, p.name)}><Download className="size-3.5" /></Button>
+                                    </>
+                                  )}
+                                  {(isAdmin || p.uploaded_by === user?.id) && (
+                                    <Button size="sm" variant="ghost" className="text-rose-600 hover:text-rose-700" onClick={() => deleteContractOrPhase(p)}>
+                                      <Trash2 className="size-3.5" />
+                                    </Button>
+                                  )}
+                                </li>
+                              ))}
+                            </ol>
+                          )}
+                          <div className="pl-6 pt-2">
+                            <Button size="sm" variant="outline" disabled={uploading} onClick={() => openAddPhase(c.id)}>
+                              {uploading ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <FilePlus2 className="size-3.5 mr-1" />}
+                              Adicionar fase
+                            </Button>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )
+              ) : files.length === 0 ? (
                 <p className="text-xs text-slate-500 text-center py-6">Nenhum arquivo nesta pasta.</p>
               ) : (
                 <ul className="divide-y divide-slate-100">
