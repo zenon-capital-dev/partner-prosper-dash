@@ -250,8 +250,100 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
       setUploading(false);
     }
   }
+  const activeFolder = folders.find((f) => f.id === currentFolderId);
+  const isContratos = !isAllView && (activeFolder?.name || "").trim().toLowerCase() === "contratos";
+  const contractRoots = useMemo(
+    () => (isContratos ? (files as any[]).filter((f) => !f.parent_document_id) : []),
+    [isContratos, files],
+  );
+  const phasesByParent = useMemo(() => {
+    const m = new Map<string, any[]>();
+    if (!isContratos) return m;
+    for (const f of files as any[]) {
+      if (!f.parent_document_id) continue;
+      const arr = m.get(f.parent_document_id) ?? [];
+      arr.push(f);
+      m.set(f.parent_document_id, arr);
+    }
+    for (const arr of m.values()) arr.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    return m;
+  }, [isContratos, files]);
 
+  async function createContract() {
+    const name = newContractName.trim();
+    if (!name || !currentFolderId) return;
+    const { error } = await supabase.from("documents").insert({
+      client_id: clientId,
+      folder_id: currentFolderId,
+      name,
+      status: "em_analise",
+      source: viewerRole === "client" ? "client_upload" : "admin_upload",
+      is_required: false,
+    } as any);
+    if (error) return toast.error(error.message);
+    setNewContractName(""); setCreatingContract(false);
+    toast.success("Contrato criado");
+    qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
+  }
 
+  async function deleteContractOrPhase(row: any) {
+    if (!confirm(`Excluir "${row.phase_label || row.name}"?`)) return;
+    if (row.file_path) await supabase.storage.from("documents").remove([row.file_path]);
+    // children (fases) cascade via FK ON DELETE CASCADE
+    const { error } = await supabase.from("documents").delete().eq("id", row.id);
+    if (error) return toast.error(error.message);
+    toast.success("Excluído");
+    qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
+  }
+
+  function openAddPhase(parentId: string) {
+    setAddingPhaseTo(parentId);
+    setPhaseLabel("");
+  }
+
+  async function confirmAddPhase() {
+    if (!addingPhaseTo || !phaseLabel.trim()) return;
+    phaseUploadCtx.current = { parentId: addingPhaseTo, label: phaseLabel.trim() };
+    setAddingPhaseTo(null);
+    setTimeout(() => phaseFileRef.current?.click(), 0);
+  }
+
+  async function onPhaseFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    const ctx = phaseUploadCtx.current;
+    phaseUploadCtx.current = null;
+    if (!file || !ctx || !currentFolderId) return;
+    try {
+      setUploading(true);
+      const safe = sanitizeStorageFileName(file.name);
+      const path = `${clientId}/folder/${currentFolderId}/contract/${ctx.parentId}/${Date.now()}_${safe}`;
+      const up = await supabase.storage.from("documents").upload(path, file);
+      if (up.error) throw up.error;
+      const { error } = await supabase.from("documents").insert({
+        client_id: clientId,
+        folder_id: currentFolderId,
+        parent_document_id: ctx.parentId,
+        phase_label: ctx.label,
+        name: `${ctx.label} — ${file.name}`,
+        file_path: path,
+        file_size: file.size,
+        mime_type: file.type,
+        status: "em_analise",
+        source: viewerRole === "client" ? "client_upload" : viewerRole === "provider" ? "provider_upload" : "admin_upload",
+        uploaded_by: user?.id,
+        uploaded_at: new Date().toISOString(),
+        is_required: false,
+      } as any);
+      if (error) throw error;
+      toast.success("Fase adicionada");
+      qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
+    } catch (err: any) {
+      toast.error(uploadErrorMessage(err));
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <div className="space-y-3">
