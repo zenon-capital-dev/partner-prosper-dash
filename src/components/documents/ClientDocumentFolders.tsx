@@ -357,7 +357,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                             </Button>
                           </>
                         )}
-                        {canUpload && (
+                        {canUpload && !isAllView && (
                           <Button size="sm" variant="outline" disabled={uploading} onClick={() => { setAttachingDoc(f); setTimeout(() => attachRef.current?.click(), 0); }}>
                             {uploading ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Upload className="size-3.5 mr-1" />}
                             {isRequest ? "Anexar" : "Adicionar"}
