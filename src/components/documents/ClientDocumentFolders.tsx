@@ -31,6 +31,8 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
+  const attachRef = useRef<HTMLInputElement>(null);
+  const [attachingDoc, setAttachingDoc] = useState<any>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
@@ -38,6 +40,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   const [providersFor, setProvidersFor] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [requestingInFolder, setRequestingInFolder] = useState<string | null>(null);
+
 
   const isAdmin = viewerRole === "admin";
   const canUpload = viewerRole === "admin" || viewerRole === "client";
