@@ -111,7 +111,7 @@ export default function DashboardAdmin() {
     enabled: stageActive,
     queryFn: async () => (await supabase.from("clients").select("id, full_name, status, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
-  const { data: clientProducts = [], isLoading: isLoadingDemands } = useQuery({
+  const { data: _rawClientProducts = [], isLoading: isLoadingDemands } = useQuery({
     queryKey: ["dash-demands"],
     staleTime: STALE,
     enabled: stageActive,
