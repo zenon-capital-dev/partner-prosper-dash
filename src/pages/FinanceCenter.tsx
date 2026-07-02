@@ -32,6 +32,7 @@ import { StageFilterBar } from "@/components/filters/StageFilterBar";
 import { useStageMatcher } from "@/hooks/useSharedStageFilter";
 import { ProfitReservesPanel } from "@/components/finance/ProfitReservesPanel";
 import { RevenueByStage } from "@/components/finance/RevenueByStage";
+import { ExpensesTab } from "@/components/finance/ExpensesTab";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
