@@ -493,69 +493,70 @@ export async function exportFullBackup(): Promise<void> {
     }));
     XLSX.utils.book_append_sheet(wb, buildSheet(assinaturas), sheetName("14_Assinaturas_Recorr"));
 
-    // ---------- DUMP COMPLETO DE TODAS AS TABELAS (raw) ----------
-    // Garante que, em caso de perda do site, TUDO que existe no banco
-    // esteja preservado no arquivo — inclusive tabelas técnicas.
-    const ALL_TABLES = [
-      "activities","activity_logs","audit_logs","automation_logs","automation_rules",
-      "chat_messages","client_collaborators","client_document_folder_providers",
-      "client_document_folders","client_document_requests","client_interactions",
-      "client_journey_stages","client_partners","client_product_delays",
-      "client_product_pauses","client_product_providers","client_product_quality_checks",
-      "client_product_status_reports","client_product_steps","client_products",
-      "client_providers","client_referrers","client_stage_history","client_subscriptions",
-      "client_support_ticket_messages","client_support_tickets","client_timeline",
-      "clients","collaborator_products","commission_audit_log","commission_rules",
-      "commission_splits","commissions","companies","company_contacts","contract_folders",
-      "contract_history","contract_templates","contracts","daily_actions","demand_comments",
-      "demand_deliveries","demand_request_messages","demand_requests","demand_shares",
-      "document_history","document_requests","document_versions","documents","employees",
-      "expenses","financial_alerts","lead_history","leads","message_templates","notes",
-      "notification_preferences","notifications","nps_responses","onboarding_documents",
-      "onboarding_history","partner_contracts","partner_materials","partner_products",
-      "partner_support_ticket_messages","partner_support_tickets","partners",
-      "payment_audit_log","payments","product_document_files","product_document_folders",
-      "product_required_documents","product_steps","products","profiles","profit_reserves",
-      "projects","proposal_items","proposals","provider_interactions","provider_schedule",
-      "referrers","resource_pool_movements","resource_pools","sales","sales_goals",
-      "service_assignments","service_provider_products","service_providers",
-      "system_settings","task_checklist_items","task_comments","tasks","user_permissions",
-      "user_roles",
+    // ---------- VERIFICAÇÃO DE INTEGRIDADE ----------
+    // Antes de gerar o arquivo, comparamos a quantidade de registros no banco
+    // com a quantidade que colocamos na planilha, categoria por categoria.
+    toast.loading("Verificando integridade do backup...", { id: tId });
+
+    const CATEGORIAS: { nome: string; tabela: string; exportado: number }[] = [
+      { nome: "Clientes",              tabela: "clients",             exportado: clients.length },
+      { nome: "Colaboradores",         tabela: "employees",           exportado: employees.length },
+      { nome: "Parceiros",             tabela: "partners",            exportado: partners.length },
+      { nome: "Prestadores",           tabela: "service_providers",   exportado: providers.length },
+      { nome: "Indicadores",           tabela: "referrers",           exportado: referrers.length },
+      { nome: "Catálogo de produtos",  tabela: "products",            exportado: products.length },
+      { nome: "Serviços / demandas",   tabela: "client_products",     exportado: clientProducts.length },
+      { nome: "Vendas",                tabela: "sales",               exportado: sales.length },
+      { nome: "Pagamentos",            tabela: "payments",            exportado: payments.length },
+      { nome: "Comissões",             tabela: "commissions",         exportado: commissions.length },
+      { nome: "Divisões de comissão",  tabela: "commission_splits",   exportado: splits.length },
+      { nome: "Despesas",              tabela: "expenses",            exportado: expenses.length },
+      { nome: "Leads",                 tabela: "leads",               exportado: leads.length },
+      { nome: "Tarefas",               tabela: "tasks",               exportado: tasks.length },
+      { nome: "Assinaturas",           tabela: "client_subscriptions",exportado: subscriptions.length },
+      { nome: "Etapas da jornada",     tabela: "client_journey_stages",exportado: journeyStages.length },
     ];
 
-    // Reuso do cache pra não refazer fetch das tabelas já baixadas
-    const preFetched: Record<string, any[]> = {
-      clients, employees, profiles, partners, service_providers: providers, referrers,
-      products, client_products: clientProducts, sales, payments, commissions,
-      commission_splits: splits, expenses, leads, tasks, client_subscriptions: subscriptions,
-      client_journey_stages: journeyStages,
-    };
-
-    const flatten = (rows: any[]) => rows.map((r) => {
-      const out: Record<string, any> = {};
-      for (const k of Object.keys(r || {})) {
-        const v = (r as any)[k];
-        if (v === null || v === undefined) out[k] = "";
-        else if (typeof v === "object") out[k] = JSON.stringify(v);
-        else out[k] = v;
-      }
-      return out;
-    });
-
-    const rawSummary: { tabela: string; registros: number | string; status: string }[] = [];
-    let idx = 0;
-    for (const table of ALL_TABLES) {
-      idx++;
-      toast.loading(`Backup completo: ${table} (${idx}/${ALL_TABLES.length})...`, { id: tId });
+    const verificacao: { categoria: string; noBanco: number | string; naPlanilha: number; status: string }[] = [];
+    for (const c of CATEGORIAS) {
       try {
-        const rows = preFetched[table] ?? (await fetchAll(table));
-        const ws = buildSheet(flatten(rows), "(vazia)");
-        XLSX.utils.book_append_sheet(wb, ws, sheetName(`RAW_${table}`));
-        rawSummary.push({ tabela: table, registros: rows.length, status: rows.length ? "ok" : "vazia" });
-      } catch (e: any) {
-        rawSummary.push({ tabela: table, registros: "—", status: `erro: ${e?.message || e}` });
+        const { count, error } = await (supabase as any)
+          .from(c.tabela)
+          .select("*", { count: "exact", head: true });
+        if (error) throw error;
+        const noBanco = count ?? 0;
+        const ok = noBanco === c.exportado;
+        verificacao.push({
+          categoria: c.nome,
+          noBanco,
+          naPlanilha: c.exportado,
+          status: ok ? "✓ Completo" : (c.exportado < noBanco ? "⚠ Faltam registros" : "⚠ Divergência"),
+        });
+      } catch {
+        verificacao.push({
+          categoria: c.nome,
+          noBanco: "—",
+          naPlanilha: c.exportado,
+          status: "⚠ Não foi possível verificar",
+        });
       }
     }
+
+    const divergencias = verificacao.filter((v) => !v.status.startsWith("✓"));
+    if (divergencias.length > 0) {
+      const lista = divergencias.map((d) => `• ${d.categoria}: ${d.naPlanilha} de ${d.noBanco}`).join("\n");
+      const seguir = window.confirm(
+        `Atenção: encontramos divergências no backup:\n\n${lista}\n\n` +
+        `Isso normalmente acontece por falta de permissão de leitura. ` +
+        `Deseja gerar o arquivo mesmo assim?`
+      );
+      if (!seguir) {
+        toast.dismiss(tId);
+        toast.warning("Backup cancelado. Faça login como administrador para exportar tudo.");
+        return;
+      }
+    }
+
 
     // ---------- 00 RESUMO EXECUTIVO ----------
     toast.loading("Gerando resumo...", { id: tId });
