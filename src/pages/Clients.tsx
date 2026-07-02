@@ -29,6 +29,8 @@ import { endOfDay, startOfDay, startOfToday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FilterPresets } from "@/components/filters/FilterPresets";
+import { StageFilterBar } from "@/components/filters/StageFilterBar";
+import { useSharedStageFilter } from "@/hooks/useSharedStageFilter";
 import { DateRange } from "react-day-picker";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { PageHero } from "@/components/PageHero";
@@ -110,6 +112,7 @@ export default function Clients() {
           id, full_name, company, email, phone, document, status, source, birth_date,
           address_street, address_number, address_complement, address_neighborhood, address_zip_code,
           city, state, notes, tags, partner_id, referrer_id, collaborator_id, service_provider_id, created_at,
+          journey_stage_id,
           partners(id, full_name)
         `);
 
