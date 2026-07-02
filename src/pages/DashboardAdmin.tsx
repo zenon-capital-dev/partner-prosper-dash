@@ -476,7 +476,10 @@ export default function DashboardAdmin() {
     };
   }, [_rawClients, _rawClientProducts, _rawSales, leads, commissions, tasks, contracts, _rawDocRequests, _rawPayments, _rawAgendaInteractions, rangeKey, brasiliaToday, taxRate, matchesClientId]);
 
-  const stats: any = dashboardStats ?? computedStats;
+  // Quando o filtro de estágio está ativo, as métricas precisam vir do cálculo
+  // local (que já respeita `matchesClientId`), pois o RPC agregado do painel
+  // desconhece o filtro. Fora disso, mantemos o snapshot do servidor.
+  const stats: any = stageActive ? computedStats : (dashboardStats ?? computedStats);
 
   return (
     <div className="min-h-dvh bg-background text-foreground admin-shell overflow-x-hidden">
