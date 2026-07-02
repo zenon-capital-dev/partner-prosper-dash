@@ -430,7 +430,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
               >
                 <p className="text-[10px] font-black uppercase tracking-wider text-indigo-600 mb-0.5">MRR</p>
                 <p className="text-[13px] font-bold text-slate-900">Recorrência mensal</p>
-                <p className="text-[10.5px] text-slate-500 mt-0.5">Mensalidade fixa por N meses.</p>
+                <p className="text-[10.5px] text-slate-500 mt-0.5">Valor total ÷ nº de meses = mensalidade.</p>
               </button>
             </div>
             {form.revenue_type === "recorrente" ? (
