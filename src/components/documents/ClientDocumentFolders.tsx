@@ -168,6 +168,42 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
     qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
   }
 
+  async function onAttachToRequest(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    const doc = attachingDoc;
+    setAttachingDoc(null);
+    if (!file || !doc) return;
+    try {
+      setUploading(true);
+      const safe = sanitizeStorageFileName(file.name);
+      const path = `${clientId}/folder/${currentFolderId}/${Date.now()}_${safe}`;
+      const up = await supabase.storage.from("documents").upload(path, file);
+      if (up.error) throw up.error;
+      const oldPath = doc.file_path as string | undefined;
+      const { error } = await supabase.from("documents").update({
+        file_path: path,
+        file_size: file.size,
+        mime_type: file.type,
+        status: "em_analise",
+        uploaded_at: new Date().toISOString(),
+        uploaded_by: user?.id ?? null,
+        source: viewerRole === "client" ? "client_upload" : "admin_upload",
+      } as any).eq("id", doc.id);
+      if (error) throw error;
+      if (oldPath && oldPath !== path) {
+        await supabase.storage.from("documents").remove([oldPath]).catch(() => {});
+      }
+      toast.success("Arquivo anexado à solicitação");
+      qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
+    } catch (err: any) {
+      toast.error(uploadErrorMessage(err));
+    } finally {
+      setUploading(false);
+    }
+  }
+
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
