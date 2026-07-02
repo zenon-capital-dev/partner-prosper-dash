@@ -3,145 +3,16 @@ import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
 /**
- * Backup completo da plataforma em uma única planilha .xlsx.
+ * BACKUP COMPLETO E DETALHADO DA PLATAFORMA
  *
- * Organização: as tabelas são agrupadas por área de negócio e ganham um
- * prefixo numérico (01_, 02_, ...) para aparecerem na ordem certa no Excel.
- * Cada grupo tem uma cor identificadora no nome da aba e uma linha no resumo.
+ * Diferente de um dump cru de tabelas, este backup produz PLANILHAS LEGÍVEIS
+ * já categorizadas e com dados relacionados JÁ RESOLVIDOS (nome do cliente,
+ * nome do parceiro, nome do produto, etc), com valores atuais e status.
  *
- * Limitações: o backup respeita o RLS — só exporta o que o usuário logado
- * pode ler. Para um backup 100% completo, use uma conta admin.
+ * Respeita o RLS — para um backup 100% completo use uma conta admin.
  */
 
-type Group = {
-  key: string;
-  label: string;
-  tables: string[];
-};
-
-// Ordem e agrupamento "amigável" — espelha a navegação do sistema.
-const GROUPS: Group[] = [
-  {
-    key: "01_Usuarios",
-    label: "Usuários & Permissões",
-    tables: ["profiles", "user_roles", "user_permissions", "employees"],
-  },
-  {
-    key: "02_Clientes",
-    label: "Clientes",
-    tables: [
-      "clients",
-      "companies",
-      "company_contacts",
-      "client_partners",
-      "client_referrers",
-      "client_collaborators",
-      "client_providers",
-      "client_subscriptions",
-      "client_interactions",
-      "client_timeline",
-    ],
-  },
-  {
-    key: "03_Produtos",
-    label: "Catálogo de Produtos",
-    tables: ["products", "product_steps", "product_required_documents"],
-  },
-  {
-    key: "04_Demandas",
-    label: "Demandas (Produtos do Cliente)",
-    tables: [
-      "client_products",
-      "client_product_steps",
-      "client_product_providers",
-      "client_product_pauses",
-      "client_product_delays",
-      "client_product_quality_checks",
-      "client_product_status_reports",
-      "demand_comments",
-      "demand_deliveries",
-    ],
-  },
-  {
-    key: "05_Vendas",
-    label: "Vendas & Financeiro",
-    tables: [
-      "sales",
-      "payments",
-      "commissions",
-      "commission_splits",
-      "commission_rules",
-      "expenses",
-      "financial_alerts",
-    ],
-  },
-  {
-    key: "06_Parceiros",
-    label: "Parceiros",
-    tables: ["partners", "partner_products", "partner_contracts", "partner_materials", "referrers"],
-  },
-  {
-    key: "07_Prestadores",
-    label: "Prestadores de Serviço",
-    tables: [
-      "service_providers",
-      "service_provider_products",
-      "provider_interactions",
-      "provider_schedule",
-      "service_assignments",
-      "collaborator_products",
-    ],
-  },
-  {
-    key: "08_Leads",
-    label: "Leads & Propostas",
-    tables: ["leads", "lead_history", "proposals", "proposal_items"],
-  },
-  {
-    key: "09_Tarefas",
-    label: "Tarefas",
-    tables: ["tasks", "task_checklist_items", "task_comments", "daily_actions"],
-  },
-  {
-    key: "10_Documentos",
-    label: "Documentos & Contratos",
-    tables: [
-      "documents",
-      "document_requests",
-      "document_versions",
-      "document_history",
-      "client_document_requests",
-      "onboarding_documents",
-      "onboarding_history",
-      "contracts",
-      "contract_history",
-      "contract_templates",
-    ],
-  },
-  {
-    key: "11_Projetos",
-    label: "Projetos & Notas",
-    tables: ["projects", "notes"],
-  },
-  {
-    key: "12_Comunicacao",
-    label: "Comunicação & Notificações",
-    tables: ["notifications", "message_templates", "chat_messages", "nps_responses"],
-  },
-  {
-    key: "13_Sistema",
-    label: "Sistema, Automação & Auditoria",
-    tables: [
-      "activities",
-      "activity_logs",
-      "audit_logs",
-      "automation_rules",
-      "automation_logs",
-      "system_settings",
-    ],
-  },
-];
-
+// ---------- utilitários ----------
 const PAGE = 1000;
 const HARD_CAP = 200_000;
 
@@ -162,139 +33,537 @@ async function fetchAll(table: string): Promise<any[]> {
   return rows;
 }
 
-function flatten(rows: any[]) {
-  return rows.map((r) => {
-    const out: Record<string, any> = {};
-    for (const k of Object.keys(r)) {
-      const v = (r as any)[k];
-      if (v === null || v === undefined) out[k] = "";
-      else if (v instanceof Date) out[k] = v.toISOString();
-      else if (typeof v === "object") out[k] = JSON.stringify(v);
-      else out[k] = v;
-    }
-    return out;
-  });
+async function safeAll(table: string): Promise<any[]> {
+  try { return await fetchAll(table); } catch { return []; }
 }
 
-function buildSheet(rows: any[]) {
+function mapBy<T extends Record<string, any>>(rows: T[], key = "id") {
+  const m = new Map<string, T>();
+  for (const r of rows) if (r?.[key]) m.set(String(r[key]), r);
+  return m;
+}
+
+function money(v: any) {
+  const n = Number(v ?? 0);
+  if (!isFinite(n)) return 0;
+  return Math.round(n * 100) / 100;
+}
+
+function fmtDate(v: any) {
+  if (!v) return "";
+  try { return new Date(v).toLocaleDateString("pt-BR"); } catch { return String(v); }
+}
+function fmtDateTime(v: any) {
+  if (!v) return "";
+  try { return new Date(v).toLocaleString("pt-BR"); } catch { return String(v); }
+}
+
+function sheetName(name: string) {
+  return name.replace(/[:\\/?*\[\]]/g, "_").slice(0, 31);
+}
+
+function buildSheet(rows: any[], emptyMsg = "(sem registros ou sem permissão)") {
   if (!rows || rows.length === 0) {
-    const ws = XLSX.utils.aoa_to_sheet([["(sem registros ou sem permissão de leitura)"]]);
+    const ws = XLSX.utils.aoa_to_sheet([[emptyMsg]]);
     ws["!cols"] = [{ wch: 50 }];
     return ws;
   }
-  const flat = flatten(rows);
-  const ws = XLSX.utils.json_to_sheet(flat);
-
-  // Largura automática (cap em 60) baseada no maior valor da coluna.
-  const headers = Object.keys(flat[0]);
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const headers = Object.keys(rows[0]);
   ws["!cols"] = headers.map((h) => {
     let max = h.length;
-    for (const row of flat) {
-      const v = row[h];
+    for (const row of rows) {
+      const v = (row as any)[h];
       const len = v == null ? 0 : String(v).length;
       if (len > max) max = len;
       if (max > 60) break;
     }
-    return { wch: Math.min(Math.max(max + 2, 10), 60) };
+    return { wch: Math.min(Math.max(max + 2, 12), 60) };
   });
-  // Congela cabeçalho
-  ws["!freeze"] = { xSplit: 0, ySplit: 1 };
+  (ws as any)["!freeze"] = { xSplit: 0, ySplit: 1 };
   (ws as any)["!autofilter"] = { ref: ws["!ref"] };
   return ws;
 }
 
-function sheetName(name: string) {
-  // Excel: máx 31 chars, sem : \ / ? * [ ]
-  return name.replace(/[:\\/?*\[\]]/g, "_").slice(0, 31);
-}
+const statusPtCliente: Record<string, string> = {
+  active: "Ativo",
+  approved: "Aprovado",
+  pending: "Pendente",
+  inactive: "Inativo",
+  churned: "Churn",
+  lost: "Perdido",
+};
+const pt = (v: string | null | undefined, dict: Record<string, string>) =>
+  v ? dict[v] ?? v : "";
 
+// ---------- export principal ----------
 export async function exportFullBackup(): Promise<void> {
-  const tId = toast.loading("Preparando backup completo...");
-  const wb = XLSX.utils.book_new();
+  const tId = toast.loading("Preparando backup detalhado...");
+  try {
+    toast.loading("Baixando dados da plataforma...", { id: tId });
 
-  const summary: {
-    grupo: string;
-    tabela: string;
-    aba: string;
-    registros: number | string;
-    status: string;
-  }[] = [];
+    // 1) Fetch em paralelo dos núcleos
+    const [
+      clients, employees, profiles, partners, providers, referrers,
+      products, clientProducts, sales, payments, commissions, splits,
+      expenses, leads, tasks, subscriptions, journeyStages,
+    ] = await Promise.all([
+      safeAll("clients"),
+      safeAll("employees"),
+      safeAll("profiles"),
+      safeAll("partners"),
+      safeAll("service_providers"),
+      safeAll("referrers"),
+      safeAll("products"),
+      safeAll("client_products"),
+      safeAll("sales"),
+      safeAll("payments"),
+      safeAll("commissions"),
+      safeAll("commission_splits"),
+      safeAll("expenses"),
+      safeAll("leads"),
+      safeAll("tasks"),
+      safeAll("client_subscriptions"),
+      safeAll("client_journey_stages"),
+    ]);
 
-  const totalTables = GROUPS.reduce((s, g) => s + g.tables.length, 0);
-  let done = 0;
+    // 2) Lookup maps
+    const clientById = mapBy(clients);
+    const employeeById = mapBy(employees);
+    const employeeByUserId = mapBy(employees, "user_id");
+    const profileById = mapBy(profiles);
+    const partnerById = mapBy(partners);
+    const providerById = mapBy(providers);
+    const referrerById = mapBy(referrers);
+    const productById = mapBy(products);
+    const stageById = mapBy(journeyStages);
+    const saleById = mapBy(sales);
+    const clientProductById = mapBy(clientProducts);
 
-  for (const group of GROUPS) {
-    for (const table of group.tables) {
-      done++;
-      toast.loading(`Exportando ${table} (${done}/${totalTables})...`, { id: tId });
-      const abaNome = sheetName(`${group.key.slice(0, 2)}_${table}`);
-      try {
-        const rows = await fetchAll(table);
-        XLSX.utils.book_append_sheet(wb, buildSheet(rows), abaNome);
-        summary.push({
-          grupo: group.label,
-          tabela: table,
-          aba: abaNome,
-          registros: rows.length,
-          status: rows.length > 0 ? "ok" : "vazia",
-        });
-      } catch (e: any) {
-        summary.push({
-          grupo: group.label,
-          tabela: table,
-          aba: abaNome,
-          registros: "—",
-          status: `erro: ${e?.message || e}`,
-        });
+    const nameOfClient = (id: any) => clientById.get(String(id))?.full_name || "";
+    const nameOfPartner = (id: any) => partnerById.get(String(id))?.name || "";
+    const nameOfProvider = (id: any) => providerById.get(String(id))?.name || "";
+    const nameOfProduct = (id: any) => productById.get(String(id))?.name || "";
+    const nameOfReferrer = (id: any) => referrerById.get(String(id))?.name || "";
+    const nameOfEmployeeByUser = (uid: any) => employeeByUserId.get(String(uid))?.name
+      || profileById.get(String(uid))?.full_name || "";
+    const nameOfEmployee = (id: any) => employeeById.get(String(id))?.name || "";
+
+    const nameOfBeneficiary = (type: string | null, id: any) => {
+      const t = (type || "").toLowerCase();
+      if (!id) return "";
+      if (t === "partner") return nameOfPartner(id);
+      if (t === "provider" || t === "service_provider") return nameOfProvider(id);
+      if (t === "referrer") return nameOfReferrer(id);
+      if (t === "employee" || t === "collaborator") return nameOfEmployee(id) || nameOfEmployeeByUser(id);
+      // fallback: tenta todos
+      return nameOfPartner(id) || nameOfProvider(id) || nameOfEmployee(id) || nameOfReferrer(id) || nameOfEmployeeByUser(id);
+    };
+
+    const wb = XLSX.utils.book_new();
+
+    // ---------- 01 Clientes aprovados / ativos ----------
+    toast.loading("Montando clientes...", { id: tId });
+    const clientesRow = (c: any) => ({
+      "Nome": c.full_name || "",
+      "Empresa": c.company || "",
+      "Documento": c.document || "",
+      "E-mail": c.email || "",
+      "Telefone": c.phone || c.whatsapp || "",
+      "Status": pt(c.status, statusPtCliente),
+      "Etapa (Jornada)": stageById.get(String(c.journey_stage_id))?.name || "",
+      "Parceiro": nameOfPartner(c.partner_id),
+      "Indicador": nameOfReferrer(c.referrer_id || c.indicator_id),
+      "Colaborador Resp.": nameOfEmployee(c.collaborator_id) || nameOfEmployeeByUser(c.responsible_id),
+      "Prestador": nameOfProvider(c.service_provider_id || c.provider_id),
+      "Valor Contrato (R$)": money(c.contract_value),
+      "Valor Comissão (R$)": money(c.commission_value),
+      "Status Pagamento": c.payment_status || "",
+      "Cidade": c.city || c.address_city || "",
+      "UF": c.state || c.address_state || "",
+      "Origem": c.origin || c.source || "",
+      "Health Score": c.health_score ?? "",
+      "Risco de Churn": c.churn_risk ?? "",
+      "Data Cadastro": fmtDateTime(c.created_at),
+      "Data Entrada": fmtDate(c.entry_date),
+      "Data Conclusão": fmtDate(c.completion_date),
+    });
+
+    const clientesAprovados = clients
+      .filter((c) => ["active", "approved"].includes(String(c.status || "").toLowerCase()))
+      .map(clientesRow);
+    const clientesTodos = clients.map(clientesRow);
+
+    XLSX.utils.book_append_sheet(wb, buildSheet(clientesAprovados, "(nenhum cliente ativo/aprovado)"), sheetName("01_Clientes_Ativos"));
+    XLSX.utils.book_append_sheet(wb, buildSheet(clientesTodos), sheetName("02_Clientes_Todos"));
+
+    // ---------- 03 Colaboradores ----------
+    toast.loading("Montando colaboradores...", { id: tId });
+    // total de comissões por colaborador (via splits + commissions.collaborator_id)
+    const commByCollab: Record<string, { pend: number; pago: number; qtd: number }> = {};
+    const addComm = (key: string, amount: number, status: string) => {
+      const k = String(key);
+      if (!commByCollab[k]) commByCollab[k] = { pend: 0, pago: 0, qtd: 0 };
+      commByCollab[k].qtd += 1;
+      if (String(status).toLowerCase() === "paid") commByCollab[k].pago += amount;
+      else commByCollab[k].pend += amount;
+    };
+    for (const s of splits) {
+      if (["employee", "collaborator"].includes(String(s.beneficiary_type).toLowerCase()) && s.beneficiary_id) {
+        addComm(s.beneficiary_id, money(s.amount), s.status || "");
       }
     }
+    for (const c of commissions) {
+      if (c.collaborator_id) addComm(c.collaborator_id, money(c.amount || c.rule_value), c.workflow_status || c.status || "");
+    }
+
+    const colaboradores = employees.map((e: any) => {
+      const stats = commByCollab[String(e.id)] || { pend: 0, pago: 0, qtd: 0 };
+      const demandas = clientProducts.filter((cp) => cp.responsible_employee_id === e.user_id).length;
+      return {
+        "Nome": e.name || "",
+        "E-mail": e.email || "",
+        "Telefone": e.phone || "",
+        "Função": e.function || e.role || "",
+        "Status": e.status || "",
+        "Acesso ao Sistema": e.has_system_access ? "Sim" : "Não",
+        "Demandas Ativas": demandas,
+        "Comissões (qtd)": stats.qtd,
+        "Comissões Pendentes (R$)": money(stats.pend),
+        "Comissões Pagas (R$)": money(stats.pago),
+        "Cadastrado em": fmtDateTime(e.created_at),
+      };
+    });
+    XLSX.utils.book_append_sheet(wb, buildSheet(colaboradores), sheetName("03_Colaboradores"));
+
+    // ---------- 04 Parceiros ----------
+    toast.loading("Montando parceiros...", { id: tId });
+    const commByPartner: Record<string, { pend: number; pago: number; qtd: number }> = {};
+    for (const s of splits) {
+      if (String(s.beneficiary_type).toLowerCase() === "partner" && s.beneficiary_id) {
+        const k = String(s.beneficiary_id);
+        if (!commByPartner[k]) commByPartner[k] = { pend: 0, pago: 0, qtd: 0 };
+        commByPartner[k].qtd += 1;
+        if (String(s.status).toLowerCase() === "paid") commByPartner[k].pago += money(s.amount);
+        else commByPartner[k].pend += money(s.amount);
+      }
+    }
+    for (const c of commissions) {
+      if (c.partner_id) {
+        const k = String(c.partner_id);
+        if (!commByPartner[k]) commByPartner[k] = { pend: 0, pago: 0, qtd: 0 };
+        commByPartner[k].qtd += 1;
+        const amt = money(c.amount || c.rule_value);
+        if (String(c.workflow_status || c.status).toLowerCase() === "paid") commByPartner[k].pago += amt;
+        else commByPartner[k].pend += amt;
+      }
+    }
+    const parceiros = partners.map((p: any) => {
+      const stats = commByPartner[String(p.id)] || { pend: 0, pago: 0, qtd: 0 };
+      const clientesDoParceiro = clients.filter((c) => c.partner_id === p.id).length;
+      return {
+        "Nome": p.name || "",
+        "E-mail": p.email || "",
+        "Telefone": p.phone || "",
+        "Documento": p.document || p.cnpj || "",
+        "Status": p.status || "",
+        "Clientes Indicados": clientesDoParceiro,
+        "Comissões (qtd)": stats.qtd,
+        "Comissões Pendentes (R$)": money(stats.pend),
+        "Comissões Pagas (R$)": money(stats.pago),
+        "Cadastrado em": fmtDateTime(p.created_at),
+      };
+    });
+    XLSX.utils.book_append_sheet(wb, buildSheet(parceiros), sheetName("04_Parceiros"));
+
+    // ---------- 05 Prestadores ----------
+    toast.loading("Montando prestadores...", { id: tId });
+    const commByProv: Record<string, { pend: number; pago: number; qtd: number }> = {};
+    for (const s of splits) {
+      const t = String(s.beneficiary_type).toLowerCase();
+      if ((t === "provider" || t === "service_provider") && s.beneficiary_id) {
+        const k = String(s.beneficiary_id);
+        if (!commByProv[k]) commByProv[k] = { pend: 0, pago: 0, qtd: 0 };
+        commByProv[k].qtd += 1;
+        if (String(s.status).toLowerCase() === "paid") commByProv[k].pago += money(s.amount);
+        else commByProv[k].pend += money(s.amount);
+      }
+    }
+    for (const c of commissions) {
+      if (c.service_provider_id) {
+        const k = String(c.service_provider_id);
+        if (!commByProv[k]) commByProv[k] = { pend: 0, pago: 0, qtd: 0 };
+        commByProv[k].qtd += 1;
+        const amt = money(c.amount || c.rule_value);
+        if (String(c.workflow_status || c.status).toLowerCase() === "paid") commByProv[k].pago += amt;
+        else commByProv[k].pend += amt;
+      }
+    }
+    const prestadores = providers.map((p: any) => {
+      const stats = commByProv[String(p.id)] || { pend: 0, pago: 0, qtd: 0 };
+      const demandas = clientProducts.filter((cp) => cp.service_provider_id === p.id || cp.responsible_provider_id === p.id).length;
+      return {
+        "Nome": p.name || "",
+        "E-mail": p.email || "",
+        "Telefone": p.phone || "",
+        "Especialidade": p.specialty || p.category || "",
+        "Status": p.status || "",
+        "Demandas Ativas": demandas,
+        "Comissões (qtd)": stats.qtd,
+        "Comissões Pendentes (R$)": money(stats.pend),
+        "Comissões Pagas (R$)": money(stats.pago),
+        "Cadastrado em": fmtDateTime(p.created_at),
+      };
+    });
+    XLSX.utils.book_append_sheet(wb, buildSheet(prestadores), sheetName("05_Prestadores"));
+
+    // ---------- 06 Serviços/Demandas ativas ----------
+    toast.loading("Montando serviços ativos...", { id: tId });
+    const servicos = clientProducts.map((cp: any) => ({
+      "Cliente": nameOfClient(cp.client_id),
+      "Produto/Serviço": cp.custom_product_name || nameOfProduct(cp.product_id),
+      "Status": cp.status || "",
+      "Prioridade": cp.priority || "",
+      "Valor (R$)": money(cp.custom_value ?? cp.value),
+      "Desconto (R$)": money(cp.discount),
+      "Comissão Parceiro (R$)": money(cp.partner_commission),
+      "Comissão Colaborador (R$)": money(cp.employee_commission),
+      "Responsável (Colaborador)": nameOfEmployeeByUser(cp.responsible_employee_id),
+      "Prestador": nameOfProvider(cp.service_provider_id || cp.responsible_provider_id),
+      "Início": fmtDate(cp.start_date),
+      "Fim": fmtDate(cp.end_date),
+      "Prazo": fmtDate(cp.deadline),
+      "SLA": cp.sla_status || "",
+      "SLA Vence em": fmtDate(cp.sla_due_date),
+      "Criado em": fmtDateTime(cp.created_at),
+      "Atualizado em": fmtDateTime(cp.updated_at),
+    }));
+    XLSX.utils.book_append_sheet(wb, buildSheet(servicos), sheetName("06_Servicos_Demandas"));
+
+    // ---------- 07 Vendas ----------
+    toast.loading("Montando vendas...", { id: tId });
+    const vendas = sales.map((s: any) => ({
+      "Data": fmtDate(s.sale_date || s.created_at),
+      "Cliente": nameOfClient(s.client_id),
+      "Produto": nameOfProduct(s.product_id),
+      "Valor (R$)": money(s.sale_value || s.value || s.amount),
+      "Forma de Pagamento": s.payment_method || "",
+      "Parceiro": nameOfPartner(s.partner_id),
+      "Colaborador": nameOfEmployee(s.employee_id) || nameOfEmployeeByUser(s.created_by),
+      "Status": s.status || "",
+      "Observações": s.notes || "",
+    }));
+    XLSX.utils.book_append_sheet(wb, buildSheet(vendas), sheetName("07_Vendas"));
+
+    // ---------- 08 Comissões (unificado) ----------
+    toast.loading("Montando comissões...", { id: tId });
+    const linhasSplits = splits.map((s: any) => {
+      const sale = saleById.get(String(s.sale_id));
+      return {
+        "Origem": "Split",
+        "Tipo Beneficiário": s.beneficiary_type || "",
+        "Beneficiário": nameOfBeneficiary(s.beneficiary_type, s.beneficiary_id),
+        "Cliente": nameOfClient(sale?.client_id),
+        "Produto": nameOfProduct(sale?.product_id),
+        "Valor Venda (R$)": money(sale?.sale_value || sale?.value),
+        "%": s.percent ?? "",
+        "Valor Comissão (R$)": money(s.amount),
+        "Status": s.status || "",
+        "Pago em": fmtDate(s.paid_at),
+        "Forma Pagamento": s.payment_method || "",
+        "Criado em": fmtDateTime(s.created_at),
+      };
+    });
+    const linhasCommissions = commissions.map((c: any) => {
+      const sale = saleById.get(String(c.sale_id));
+      const cp = clientProductById.get(String(c.client_product_id));
+      const cliente = nameOfClient(c.client_id || sale?.client_id || cp?.client_id);
+      const beneficiario =
+        (c.partner_id && nameOfPartner(c.partner_id)) ||
+        (c.service_provider_id && nameOfProvider(c.service_provider_id)) ||
+        (c.collaborator_id && (nameOfEmployee(c.collaborator_id) || nameOfEmployeeByUser(c.collaborator_id))) ||
+        (c.referrer_id && nameOfReferrer(c.referrer_id)) || "";
+      const tipo = c.partner_id ? "Parceiro"
+        : c.service_provider_id ? "Prestador"
+        : c.collaborator_id ? "Colaborador"
+        : c.referrer_id ? "Indicador" : (c.commission_type || "");
+      return {
+        "Origem": "Comissão",
+        "Tipo Beneficiário": tipo,
+        "Beneficiário": beneficiario,
+        "Cliente": cliente,
+        "Produto": nameOfProduct(c.product_id || sale?.product_id || cp?.product_id),
+        "Valor Venda (R$)": money(c.sale_value || sale?.sale_value),
+        "%": c.percent ?? c.rule_value ?? "",
+        "Valor Comissão (R$)": money(c.amount ?? c.rule_value),
+        "Status": c.workflow_status || c.status || "",
+        "Pago em": fmtDate(c.paid_at || c.payment_date),
+        "Forma Pagamento": c.payment_method || "",
+        "Criado em": fmtDateTime(c.created_at),
+      };
+    });
+    const todasComissoes = [...linhasCommissions, ...linhasSplits];
+    XLSX.utils.book_append_sheet(wb, buildSheet(todasComissoes), sheetName("08_Comissoes"));
+
+    // ---------- 09 Pagamentos ----------
+    toast.loading("Montando pagamentos...", { id: tId });
+    const pagamentos = payments.map((p: any) => ({
+      "Data": fmtDate(p.payment_date || p.paid_at || p.created_at),
+      "Cliente": nameOfClient(p.client_id),
+      "Valor (R$)": money(p.amount || p.value),
+      "Forma": p.payment_method || p.method || "",
+      "Status": p.status || "",
+      "Referência": p.reference || p.description || "",
+      "Observações": p.notes || "",
+    }));
+    XLSX.utils.book_append_sheet(wb, buildSheet(pagamentos), sheetName("09_Pagamentos"));
+
+    // ---------- 10 Despesas ----------
+    toast.loading("Montando despesas...", { id: tId });
+    const despesas = expenses.map((e: any) => ({
+      "Data": fmtDate(e.expense_date || e.due_date),
+      "Descrição": e.description || "",
+      "Categoria": e.category || "",
+      "Subcategoria": e.subcategory || "",
+      "Fornecedor": e.vendor || "",
+      "Valor (R$)": money(e.amount),
+      "Pago": e.paid ? "Sim" : "Não",
+      "Pago em": fmtDate(e.paid_at),
+      "Forma Pagamento": e.payment_method || "",
+      "Mês Referência": e.reference_month || "",
+    }));
+    XLSX.utils.book_append_sheet(wb, buildSheet(despesas), sheetName("10_Despesas"));
+
+    // ---------- 11 Catálogo de Produtos ----------
+    toast.loading("Montando catálogo...", { id: tId });
+    const catalogo = products.map((p: any) => ({
+      "Produto": p.name || "",
+      "Categoria": p.category || "",
+      "Descrição": p.description || "",
+      "Valor Base (R$)": money(p.price || p.base_price || p.value),
+      "Comissão Parceiro (%)": p.partner_commission_percent ?? "",
+      "Comissão Colaborador (%)": p.employee_commission_percent ?? p.collaborator_commission_percent ?? "",
+      "Status": p.status || (p.active === false ? "Inativo" : "Ativo"),
+      "Criado em": fmtDateTime(p.created_at),
+    }));
+    XLSX.utils.book_append_sheet(wb, buildSheet(catalogo), sheetName("11_Catalogo_Produtos"));
+
+    // ---------- 12 Leads ----------
+    toast.loading("Montando leads...", { id: tId });
+    const leadsSheet = leads.map((l: any) => ({
+      "Nome": l.name || l.full_name || "",
+      "E-mail": l.email || "",
+      "Telefone": l.phone || l.whatsapp || "",
+      "Empresa": l.company || "",
+      "Origem": l.source || l.origin || "",
+      "Status": l.status || "",
+      "Responsável": nameOfEmployeeByUser(l.assigned_to) || nameOfEmployee(l.employee_id),
+      "Valor Estimado (R$)": money(l.estimated_value || l.value),
+      "Criado em": fmtDateTime(l.created_at),
+      "Última Interação": fmtDateTime(l.last_interaction_at || l.updated_at),
+    }));
+    XLSX.utils.book_append_sheet(wb, buildSheet(leadsSheet), sheetName("12_Leads"));
+
+    // ---------- 13 Tarefas ----------
+    toast.loading("Montando tarefas...", { id: tId });
+    const tarefas = tasks.map((t: any) => ({
+      "Título": t.title || "",
+      "Descrição": t.description || "",
+      "Status": t.status || "",
+      "Prioridade": t.priority || "",
+      "Responsável": nameOfEmployeeByUser(t.assigned_to) || nameOfEmployee(t.assigned_to),
+      "Cliente": nameOfClient(t.client_id),
+      "Vence em": fmtDate(t.due_date),
+      "Criado em": fmtDateTime(t.created_at),
+      "Concluído em": fmtDateTime(t.completed_at),
+    }));
+    XLSX.utils.book_append_sheet(wb, buildSheet(tarefas), sheetName("13_Tarefas"));
+
+    // ---------- 14 Assinaturas ----------
+    toast.loading("Montando assinaturas...", { id: tId });
+    const assinaturas = subscriptions.map((s: any) => ({
+      "Cliente": nameOfClient(s.client_id),
+      "Produto": nameOfProduct(s.product_id),
+      "Valor Mensal (R$)": money(s.monthly_value || s.amount),
+      "Status": s.status || "",
+      "Início": fmtDate(s.start_date),
+      "Próxima Cobrança": fmtDate(s.next_billing_date),
+      "Fim": fmtDate(s.end_date),
+      "Forma Pagamento": s.payment_method || "",
+    }));
+    XLSX.utils.book_append_sheet(wb, buildSheet(assinaturas), sheetName("14_Assinaturas_Recorr"));
+
+    // ---------- 00 RESUMO EXECUTIVO ----------
+    toast.loading("Gerando resumo...", { id: tId });
+    const totalVendas = vendas.reduce((s, v) => s + (v["Valor (R$)"] as number), 0);
+    const totalPagamentos = pagamentos.reduce((s, v) => s + (v["Valor (R$)"] as number), 0);
+    const totalDespesas = despesas.reduce((s, v) => s + (v["Valor (R$)"] as number), 0);
+    const totalComissoesPend = todasComissoes
+      .filter((r) => !["paid", "pago"].includes(String(r["Status"]).toLowerCase()))
+      .reduce((s, v) => s + (v["Valor Comissão (R$)"] as number), 0);
+    const totalComissoesPagas = todasComissoes
+      .filter((r) => ["paid", "pago"].includes(String(r["Status"]).toLowerCase()))
+      .reduce((s, v) => s + (v["Valor Comissão (R$)"] as number), 0);
+
+    const resumo = [
+      ["BACKUP DETALHADO DA PLATAFORMA"],
+      ["Gerado em", new Date().toLocaleString("pt-BR")],
+      [],
+      ["═══ VOLUMES ═══"],
+      ["Clientes (total)", clients.length],
+      ["  → Ativos/Aprovados", clientesAprovados.length],
+      ["Colaboradores", employees.length],
+      ["Parceiros", partners.length],
+      ["Prestadores", providers.length],
+      ["Leads", leads.length],
+      ["Produtos no catálogo", products.length],
+      ["Serviços/Demandas", clientProducts.length],
+      ["Vendas", sales.length],
+      ["Pagamentos", payments.length],
+      ["Comissões (linhas)", todasComissoes.length],
+      ["Despesas", expenses.length],
+      ["Tarefas", tasks.length],
+      ["Assinaturas", subscriptions.length],
+      [],
+      ["═══ FINANCEIRO (R$) ═══"],
+      ["Total em vendas", totalVendas],
+      ["Total recebido (pagamentos)", totalPagamentos],
+      ["Total em despesas", totalDespesas],
+      ["Comissões pagas", totalComissoesPagas],
+      ["Comissões pendentes", totalComissoesPend],
+      ["Resultado (Pagamentos − Despesas − Comissões pagas)", money(totalPagamentos - totalDespesas - totalComissoesPagas)],
+      [],
+      ["═══ ÍNDICE DE ABAS ═══"],
+      ["01_Clientes_Ativos", "Somente clientes com status Ativo/Aprovado"],
+      ["02_Clientes_Todos", "Todos os clientes cadastrados"],
+      ["03_Colaboradores", "Equipe interna + comissões acumuladas"],
+      ["04_Parceiros", "Parceiros + clientes indicados + comissões"],
+      ["05_Prestadores", "Prestadores + demandas + comissões"],
+      ["06_Servicos_Demandas", "Serviços em execução por cliente"],
+      ["07_Vendas", "Vendas registradas"],
+      ["08_Comissoes", "Comissões (rules + splits) unificadas"],
+      ["09_Pagamentos", "Pagamentos recebidos"],
+      ["10_Despesas", "Despesas operacionais"],
+      ["11_Catalogo_Produtos", "Catálogo de produtos/serviços"],
+      ["12_Leads", "Leads no funil"],
+      ["13_Tarefas", "Tarefas da equipe"],
+      ["14_Assinaturas_Recorr", "Assinaturas / receita recorrente"],
+    ];
+    const resumoWs = XLSX.utils.aoa_to_sheet(resumo);
+    resumoWs["!cols"] = [{ wch: 45 }, { wch: 45 }];
+    (resumoWs as any)["!freeze"] = { xSplit: 0, ySplit: 3 };
+    XLSX.utils.book_append_sheet(wb, resumoWs, "00_Resumo");
+    wb.SheetNames = ["00_Resumo", ...wb.SheetNames.filter((n) => n !== "00_Resumo")];
+
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    XLSX.writeFile(wb, `backup-plataforma-${stamp}.xlsx`, { bookType: "xlsx" });
+
+    toast.success(
+      `Backup gerado: ${clients.length} clientes, ${sales.length} vendas, ${todasComissoes.length} linhas de comissão.`,
+      { id: tId }
+    );
+  } catch (e: any) {
+    toast.error(`Falha no backup: ${e?.message || e}`, { id: tId });
+    throw e;
   }
-
-  // Resumo geral
-  const totalRegistros = summary.reduce(
-    (s, r) => s + (typeof r.registros === "number" ? r.registros : 0),
-    0
-  );
-  const erros = summary.filter((s) => s.status.startsWith("erro")).length;
-  const vazias = summary.filter((s) => s.status === "vazia").length;
-
-  const header = [
-    ["BACKUP COMPLETO DA PLATAFORMA"],
-    ["Gerado em", new Date().toLocaleString("pt-BR")],
-    ["Total de tabelas", totalTables],
-    ["Total de registros", totalRegistros],
-    ["Tabelas vazias", vazias],
-    ["Tabelas com erro/sem permissão", erros],
-    [],
-    ["Grupo", "Tabela", "Aba", "Registros", "Status"],
-  ];
-  const summarySheet = XLSX.utils.aoa_to_sheet(header);
-  XLSX.utils.sheet_add_json(summarySheet, summary, {
-    origin: "A9",
-    skipHeader: true,
-    header: ["grupo", "tabela", "aba", "registros", "status"],
-  });
-  summarySheet["!cols"] = [
-    { wch: 32 },
-    { wch: 30 },
-    { wch: 34 },
-    { wch: 12 },
-    { wch: 40 },
-  ];
-  summarySheet["!freeze"] = { xSplit: 0, ySplit: 8 };
-
-  XLSX.utils.book_append_sheet(wb, summarySheet, "00_Resumo");
-  // Reordena para deixar o resumo primeiro.
-  wb.SheetNames = ["00_Resumo", ...wb.SheetNames.filter((n) => n !== "00_Resumo")];
-
-  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
-  const filename = `backup-plataforma-${stamp}.xlsx`;
-  XLSX.writeFile(wb, filename, { bookType: "xlsx" });
-
-  toast.success(
-    erros > 0
-      ? `Backup gerado com ${erros} aviso(s). Veja a aba 00_Resumo.`
-      : `Backup completo gerado: ${totalRegistros} registros em ${totalTables} tabelas.`,
-    { id: tId }
-  );
 }
