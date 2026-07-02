@@ -999,13 +999,19 @@ function FilterChip({ label, onClear }: { label: string; onClear: () => void }) 
   );
 }
 
+const STATUS_META: Record<string, { label: string; cls: string }> = {
+  ativo: { label: "Ativo", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  prospecto: { label: "Prospecto", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  novo_cliente: { label: "Novo cliente", cls: "bg-sky-50 text-sky-700 border-sky-200" },
+  inativo: { label: "Inativo", cls: "bg-slate-100 text-slate-600 border-slate-200" },
+};
+
+function statusLabel(status: string) {
+  return STATUS_META[status]?.label ?? (status ? status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "—");
+}
+
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    ativo: { label: "Ativo", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-    prospecto: { label: "Prospecto", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-    inativo: { label: "Inativo", cls: "bg-slate-100 text-slate-600 border-slate-200" },
-  };
-  const m = map[status] || { label: status || "—", cls: "bg-slate-100 text-slate-600 border-slate-200" };
+  const m = STATUS_META[status] || { label: statusLabel(status), cls: "bg-slate-100 text-slate-600 border-slate-200" };
   return (
     <span className={cn("inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-semibold", m.cls)}>
       <span className="size-1.5 rounded-full bg-current mr-1.5 opacity-80" />
