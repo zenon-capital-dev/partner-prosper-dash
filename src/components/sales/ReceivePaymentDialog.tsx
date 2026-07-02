@@ -341,7 +341,8 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
                       Excluir
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
