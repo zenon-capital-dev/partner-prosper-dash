@@ -28,11 +28,18 @@ export function isVoidedPaymentStatus(status: any) {
 
 export function isPaymentPaidInFuture(payment: any) {
   // Um pagamento "quitado" com data futura ainda NÃO foi recebido — é um agendamento.
-  const paidAt = payment?.paid_at ? new Date(payment.paid_at) : null;
-  if (!paidAt || Number.isNaN(paidAt.getTime())) return false;
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-  return paidAt.getTime() > today.getTime();
+  // Comparação por YMD em America/Sao_Paulo, evitando problemas de timezone.
+  const raw = payment?.paid_at;
+  if (!raw) return false;
+  const s = String(raw);
+  const ymd = /^(\d{4}-\d{2}-\d{2})/.exec(s)?.[1];
+  if (!ymd) return false;
+  try {
+    const todayYmd = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    return ymd > todayYmd;
+  } catch {
+    return false;
+  }
 }
 
 export function paymentReceivedAmount(payment: any) {
