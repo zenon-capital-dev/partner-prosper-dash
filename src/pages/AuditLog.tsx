@@ -226,6 +226,11 @@ export default function AuditLog() {
         ))}
       </div>
 
+      {/* Auditoria Financeira (payments + commissions) */}
+      <FinancialAuditPanel />
+
+
+
       {/* Filtros */}
       <div className="vx-card p-6 space-y-4">
         <div className="flex flex-wrap items-end gap-3">
