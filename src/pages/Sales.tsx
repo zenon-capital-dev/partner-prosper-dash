@@ -1445,7 +1445,7 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
         return { title: "Total de registros — detalhamento", subtitle: "Todas as vendas do período filtrado.", rows, isMoney: false };
       }
     }
-  }, [kind, filtered, allReceipts, splitsBySale, receiptsBySale]);
+  }, [kind, filtered, allReceipts, splitsBySale, receiptsBySale, monthYm]);
 
   const sorted = useMemo(() => (config?.rows ?? []).slice().sort((a, b) => b.contribution - a.contribution), [config]);
   const total = useMemo(() => sorted.reduce((s, r) => s + r.contribution, 0), [sorted]);
