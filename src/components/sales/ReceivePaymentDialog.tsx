@@ -12,7 +12,7 @@ import { formatBRL } from "@/lib/format";
 import { ymdBR, nowBR } from "@/lib/datetime";
 import { Wallet, TrendingUp, Receipt, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { saleIsFinalized } from "@/lib/financial";
+import { saleIsFinalized, paymentReceivedAmount, isPaymentPaidInFuture } from "@/lib/financial";
 
 interface Props {
   open: boolean;
@@ -25,6 +25,7 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
   const qc = useQueryClient();
   const [amount, setAmount] = useState("");
   const [paidAt, setPaidAt] = useState(ymdBR(nowBR()));
+  const [competenceMonth, setCompetenceMonth] = useState(ymdBR(nowBR()).slice(0, 7));
   const [method, setMethod] = useState("pix");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
@@ -37,7 +38,7 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")
-        .select("id, amount, amount_paid, paid_at, due_date, status, payment_method, notes, description")
+        .select("id, amount, amount_paid, paid_at, due_date, status, payment_method, notes, description, competence_month")
         .eq("sale_id", saleId)
         .order("paid_at", { ascending: false, nullsFirst: false });
       if (error) throw error;
@@ -48,21 +49,26 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
   useEffect(() => {
     if (open) {
       setAmount("");
-      setPaidAt(ymdBR(nowBR()));
+      const today = ymdBR(nowBR());
+      setPaidAt(today);
+      setCompetenceMonth(today.slice(0, 7));
       setMethod("pix");
       setNotes("");
     }
   }, [open, saleId]);
 
+
   if (!sale) return null;
 
   const gross = Number(sale.amount || 0);
   const canReceive = saleIsFinalized(sale);
-  const received = receipts.reduce(
-    (s: number, r: any) => s + Number(r.amount_paid ?? (r.status === "pago" ? r.amount : 0) ?? 0),
+  // Recebido efetivo = somente pagamentos já quitados até hoje (agendamentos futuros NÃO contam).
+  const received = receipts.reduce((s: number, r: any) => s + paymentReceivedAmount(r), 0);
+  const scheduled = receipts.reduce(
+    (s: number, r: any) => s + (isPaymentPaidInFuture(r) ? Number(r.amount_paid || r.amount || 0) : 0),
     0
   );
-  const remaining = Math.max(gross - received, 0);
+  const remaining = Math.max(gross - received - scheduled, 0);
   const pct = gross > 0 ? Math.min(100, (received / gross) * 100) : 0;
 
   const submit = async () => {
@@ -81,8 +87,10 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
     }
     setSaving(true);
     try {
-      const newReceived = received + v;
-      const isFull = newReceived >= gross - 0.009;
+      const today = ymdBR(nowBR());
+      const isFuture = paidAt > today;
+      const newReceived = received + (isFuture ? 0 : v);
+      const isFull = !isFuture && newReceived >= gross - 0.009;
       const { error } = await supabase.from("payments").insert({
         sale_id: sale.id,
         client_id: sale.client_id,
@@ -91,14 +99,17 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
         amount_paid: v,
         paid_at: `${paidAt}T12:00:00`,
         due_date: paidAt,
-        status: "pago" as any,
+        competence_month: `${competenceMonth}-01`,
+        status: (isFuture ? "pendente" : "pago") as any,
         payment_method: method,
-        description: `Recebimento parcial — Venda ${sale.id.slice(0, 8)}`,
+        description: isFuture
+          ? `Recebimento agendado — Venda ${sale.id.slice(0, 8)}`
+          : `Recebimento parcial — Venda ${sale.id.slice(0, 8)}`,
         notes: notes || null,
       } as any);
       if (error) throw error;
 
-      toast.success(isFull ? "Venda quitada integralmente!" : "Recebimento registrado");
+      toast.success(isFuture ? "Recebimento agendado para o futuro" : (isFull ? "Venda quitada integralmente!" : "Recebimento registrado"));
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["sale-receipts", sale.id] }),
         qc.invalidateQueries({ queryKey: ["sales-receipts-by-sale"] }),
@@ -220,13 +231,33 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Data</Label>
+                  <Label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Data do recebimento</Label>
                   <Input
                     type="date"
                     value={paidAt}
-                    onChange={(e) => setPaidAt(e.target.value)}
+                    onChange={(e) => {
+                      setPaidAt(e.target.value);
+                      if (e.target.value) setCompetenceMonth(e.target.value.slice(0, 7));
+                    }}
                     className="h-10 bg-white"
                   />
+                  {paidAt > ymdBR(nowBR()) && (
+                    <p className="text-[10px] font-semibold text-amber-700">
+                      Data futura — registrado como <strong>agendado</strong>. Não entra no caixa até chegar a data.
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Competência (mês de referência)</Label>
+                  <Input
+                    type="month"
+                    value={competenceMonth}
+                    onChange={(e) => setCompetenceMonth(e.target.value)}
+                    className="h-10 bg-white"
+                  />
+                  <p className="text-[10px] text-slate-500">
+                    Mês em que este valor entra no fluxo (mesmo que pago em outro mês).
+                  </p>
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Forma</Label>
@@ -284,17 +315,22 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
               <p className="text-[12px] text-slate-400 italic">Nenhum recebimento registrado ainda.</p>
             ) : (
               <div className="rounded-lg border border-slate-200/70 overflow-hidden divide-y divide-slate-100">
-                {receipts.map((r: any) => (
-                  <div key={r.id} className="flex items-center gap-3 px-3 py-2.5 bg-white hover:bg-slate-50/60">
-                    <div className="size-7 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center text-[10px] font-bold uppercase">
+                {receipts.map((r: any) => {
+                  const future = isPaymentPaidInFuture(r);
+                  const comp = r.competence_month ? String(r.competence_month).slice(0, 7) : null;
+                  return (
+                  <div key={r.id} className={cn("flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50/60", future ? "bg-amber-50/40" : "bg-white")}>
+                    <div className={cn("size-7 rounded-md flex items-center justify-center text-[10px] font-bold uppercase", future ? "bg-amber-100 text-amber-700" : "bg-emerald-50 text-emerald-700")}>
                       {(r.payment_method || "—").slice(0, 3)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[12.5px] font-bold font-mono tabular-nums text-slate-900">
+                      <p className={cn("text-[12.5px] font-bold font-mono tabular-nums", future ? "text-amber-800" : "text-slate-900")}>
                         {formatBRL(Number(r.amount_paid ?? r.amount ?? 0))}
+                        {future && <span className="ml-2 text-[9.5px] font-semibold uppercase tracking-wider text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5">Agendado</span>}
                       </p>
                       <p className="text-[10.5px] text-slate-500 truncate">
                         {r.paid_at ? new Date(r.paid_at).toLocaleDateString("pt-BR") : "Sem data"} · {r.payment_method || "—"}
+                        {comp ? ` · comp. ${comp.slice(5,7)}/${comp.slice(0,4)}` : ""}
                         {r.notes ? ` · ${r.notes}` : ""}
                       </p>
                     </div>
@@ -305,7 +341,8 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
                       Excluir
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

@@ -33,7 +33,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { usePageSize } from "@/hooks/usePageSize";
-import { saleIsFinalized } from "@/lib/financial";
+import { saleIsFinalized, paymentReceivedAmount, paymentCompetenceYm, isPaymentPaidInFuture } from "@/lib/financial";
 
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
 type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status" | "liquido" | "recebido";
@@ -62,12 +62,8 @@ const norm = (s: any) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 const onlyDigits = (s: any) => String(s ?? "").replace(/\D+/g, "");
-const isPaymentReceived = (status: any) => ["pago", "parcial", "parcialmente_pago"].includes(String(status || ""));
-const receivedPaymentAmount = (p: any) => {
-  const paidAmount = Number(p.amount_paid || 0);
-  if (paidAmount > 0) return paidAmount;
-  return isPaymentReceived(p.status) ? Number(p.amount || 0) : 0;
-};
+const isPaymentReceived = (p: any) => paymentReceivedAmount(p) > 0;
+const receivedPaymentAmount = (p: any) => paymentReceivedAmount(p);
 const saleReceived = (saleId: string, receiptsBySale: Map<string, any>) => Number(receiptsBySale.get(saleId)?.received || 0);
 const saleRatio = (s: any, receiptsBySale: Map<string, any>) => {
   const amount = Number(s.amount || 0);
@@ -224,7 +220,7 @@ export default function Sales() {
       if (val <= 0) return;
       const cur = m.get(r.sale_id) ?? { received: 0, receivedThisMonth: 0, lastPaidAt: null, count: 0 };
       cur.received += val;
-      if (r.paid_at && String(r.paid_at).startsWith(ym)) cur.receivedThisMonth += val;
+      if (paymentCompetenceYm(r) === ym) cur.receivedThisMonth += val;
       cur.count += 1;
       if (r.paid_at && (!cur.lastPaidAt || r.paid_at > cur.lastPaidAt)) cur.lastPaidAt = r.paid_at;
       m.set(r.sale_id, cur);
@@ -372,12 +368,15 @@ export default function Sales() {
       ? monthRange(selectedMonth)
       : { start: startOfMonth(today), end: endOfDay(today) };
     return allReceipts.reduce((sum: number, r: any) => {
-      if (!r.paid_at) return sum;
       if (!r.sale_id || !finalizedSaleIds.has(r.sale_id)) return sum;
-      const d = new Date(r.paid_at);
-      if (d < range.start || d > range.end) return sum;
       const val = receivedPaymentAmount(r);
-      return sum + (val > 0 ? val : 0);
+      if (val <= 0) return sum;
+      // Usa competência (competence_month || due_date) para posicionar no mês certo
+      const ymRaw = paymentCompetenceYm(r);
+      if (!ymRaw) return sum;
+      const d = new Date(`${ymRaw}-15T12:00:00`);
+      if (d < range.start || d > range.end) return sum;
+      return sum + val;
     }, 0);
   }, [allReceipts, rangeKey, selectedMonth, usingManualRange, finalizedSaleIds]);
 
@@ -1460,7 +1459,7 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
 
         const bySale = new Map<string, number>();
         allReceipts.forEach((r: any) => {
-          if (!r.paid_at || !String(r.paid_at).startsWith(ym)) return;
+          if (paymentCompetenceYm(r) !== ym) return;
           const val = receivedPaymentAmount(r);
           if (val <= 0 || !r.sale_id) return;
           bySale.set(r.sale_id, (bySale.get(r.sale_id) || 0) + val);
