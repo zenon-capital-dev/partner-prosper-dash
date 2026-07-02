@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { endOfDay, startOfDay, startOfToday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { FilterPresets } from "@/components/filters/FilterPresets";
 import { DateRange } from "react-day-picker";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { PageHero } from "@/components/PageHero";
