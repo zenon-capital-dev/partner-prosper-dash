@@ -37,7 +37,17 @@ type Material = {
   created_at: string;
 };
 
-export default function PartnerMaterialsAdmin() {
+type Audience = "partner" | "provider" | "client" | "general";
+
+const AUDIENCE_LABELS: Record<Audience, { titulo: string; subtitulo: string; publico: string }> = {
+  partner:  { titulo: "Materiais para parceiros",  subtitulo: "Institucional, treinamentos, argumentos de vendas e gatilhos para parceiros.", publico: "parceiros" },
+  provider: { titulo: "Materiais para prestadores", subtitulo: "Manuais, padrões de entrega, treinamentos e checklists para prestadores.", publico: "prestadores" },
+  client:   { titulo: "Materiais para clientes",   subtitulo: "Onboarding, tutoriais, guias e conteúdos institucionais para clientes.", publico: "clientes" },
+  general:  { titulo: "Materiais gerais",          subtitulo: "Conteúdos visíveis para todos os públicos da plataforma.", publico: "todos" },
+};
+
+export default function PartnerMaterialsAdmin({ audience = "partner" }: { audience?: Audience } = {}) {
+  const meta = AUDIENCE_LABELS[audience];
   const { pageSize: __ps, setPageSize } = usePageSize();
   const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const { user } = useAuth() as any;
@@ -51,9 +61,14 @@ export default function PartnerMaterialsAdmin() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: materials = [], isLoading } = useQuery({
-    queryKey: ["partner-materials-admin"],
+    queryKey: ["partner-materials-admin", audience],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("partner_materials").select("*").order("created_at", { ascending: false }).limit(300);
+      const { data, error } = await (supabase as any)
+        .from("partner_materials")
+        .select("*")
+        .eq("audience", audience)
+        .order("created_at", { ascending: false })
+        .limit(300);
       if (error) throw error;
       return (data || []) as Material[];
     },
@@ -102,6 +117,7 @@ export default function PartnerMaterialsAdmin() {
         external_url: form.external_url.trim() || null,
         active: form.active,
         file_path,
+        audience,
       };
 
       if (editing) {
@@ -115,7 +131,7 @@ export default function PartnerMaterialsAdmin() {
     },
     onSuccess: () => {
       toast.success(editing ? "Material atualizado" : "Material adicionado");
-      qc.invalidateQueries({ queryKey: ["partner-materials-admin"] });
+      qc.invalidateQueries({ queryKey: ["partner-materials-admin", audience] });
       setOpen(false);
       reset();
     },
@@ -130,7 +146,7 @@ export default function PartnerMaterialsAdmin() {
     },
     onSuccess: () => {
       toast.success("Material removido");
-      qc.invalidateQueries({ queryKey: ["partner-materials-admin"] });
+      qc.invalidateQueries({ queryKey: ["partner-materials-admin", audience] });
     },
     onError: (e: any) => toast.error(e.message || "Erro"),
   });
@@ -140,9 +156,9 @@ export default function PartnerMaterialsAdmin() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <BookOpen className="size-6 text-indigo-600" /> Materiais para parceiros
+            <BookOpen className="size-6 text-indigo-600" /> {meta.titulo}
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Disponibilize institucional, treinamentos, argumentos de vendas e gatilhos para os seus parceiros.</p>
+          <p className="text-sm text-slate-500 mt-1">{meta.subtitulo}</p>
         </div>
         <Button onClick={openCreate} className="bg-indigo-600 hover:bg-indigo-700 gap-2">
           <Plus className="size-4" /> Novo material
@@ -232,7 +248,7 @@ export default function PartnerMaterialsAdmin() {
               <Input value={form.external_url} onChange={(e) => setForm({ ...form, external_url: e.target.value })} placeholder="https://..." />
             </div>
             <div className="flex items-center justify-between">
-              <Label>Ativo (visível para parceiros)</Label>
+              <Label>Ativo (visível para {meta.publico})</Label>
               <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
             </div>
           </div>
