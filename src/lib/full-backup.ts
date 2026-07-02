@@ -493,6 +493,70 @@ export async function exportFullBackup(): Promise<void> {
     }));
     XLSX.utils.book_append_sheet(wb, buildSheet(assinaturas), sheetName("14_Assinaturas_Recorr"));
 
+    // ---------- DUMP COMPLETO DE TODAS AS TABELAS (raw) ----------
+    // Garante que, em caso de perda do site, TUDO que existe no banco
+    // esteja preservado no arquivo — inclusive tabelas técnicas.
+    const ALL_TABLES = [
+      "activities","activity_logs","audit_logs","automation_logs","automation_rules",
+      "chat_messages","client_collaborators","client_document_folder_providers",
+      "client_document_folders","client_document_requests","client_interactions",
+      "client_journey_stages","client_partners","client_product_delays",
+      "client_product_pauses","client_product_providers","client_product_quality_checks",
+      "client_product_status_reports","client_product_steps","client_products",
+      "client_providers","client_referrers","client_stage_history","client_subscriptions",
+      "client_support_ticket_messages","client_support_tickets","client_timeline",
+      "clients","collaborator_products","commission_audit_log","commission_rules",
+      "commission_splits","commissions","companies","company_contacts","contract_folders",
+      "contract_history","contract_templates","contracts","daily_actions","demand_comments",
+      "demand_deliveries","demand_request_messages","demand_requests","demand_shares",
+      "document_history","document_requests","document_versions","documents","employees",
+      "expenses","financial_alerts","lead_history","leads","message_templates","notes",
+      "notification_preferences","notifications","nps_responses","onboarding_documents",
+      "onboarding_history","partner_contracts","partner_materials","partner_products",
+      "partner_support_ticket_messages","partner_support_tickets","partners",
+      "payment_audit_log","payments","product_document_files","product_document_folders",
+      "product_required_documents","product_steps","products","profiles","profit_reserves",
+      "projects","proposal_items","proposals","provider_interactions","provider_schedule",
+      "referrers","resource_pool_movements","resource_pools","sales","sales_goals",
+      "service_assignments","service_provider_products","service_providers",
+      "system_settings","task_checklist_items","task_comments","tasks","user_permissions",
+      "user_roles",
+    ];
+
+    // Reuso do cache pra não refazer fetch das tabelas já baixadas
+    const preFetched: Record<string, any[]> = {
+      clients, employees, profiles, partners, service_providers: providers, referrers,
+      products, client_products: clientProducts, sales, payments, commissions,
+      commission_splits: splits, expenses, leads, tasks, client_subscriptions: subscriptions,
+      client_journey_stages: journeyStages,
+    };
+
+    const flatten = (rows: any[]) => rows.map((r) => {
+      const out: Record<string, any> = {};
+      for (const k of Object.keys(r || {})) {
+        const v = (r as any)[k];
+        if (v === null || v === undefined) out[k] = "";
+        else if (typeof v === "object") out[k] = JSON.stringify(v);
+        else out[k] = v;
+      }
+      return out;
+    });
+
+    const rawSummary: { tabela: string; registros: number | string; status: string }[] = [];
+    let idx = 0;
+    for (const table of ALL_TABLES) {
+      idx++;
+      toast.loading(`Backup completo: ${table} (${idx}/${ALL_TABLES.length})...`, { id: tId });
+      try {
+        const rows = preFetched[table] ?? (await fetchAll(table));
+        const ws = buildSheet(flatten(rows), "(vazia)");
+        XLSX.utils.book_append_sheet(wb, ws, sheetName(`RAW_${table}`));
+        rawSummary.push({ tabela: table, registros: rows.length, status: rows.length ? "ok" : "vazia" });
+      } catch (e: any) {
+        rawSummary.push({ tabela: table, registros: "—", status: `erro: ${e?.message || e}` });
+      }
+    }
+
     // ---------- 00 RESUMO EXECUTIVO ----------
     toast.loading("Gerando resumo...", { id: tId });
     const totalVendas = vendas.reduce((s, v) => s + (v["Valor (R$)"] as number), 0);
@@ -548,6 +612,14 @@ export async function exportFullBackup(): Promise<void> {
       ["12_Leads", "Leads no funil"],
       ["13_Tarefas", "Tarefas da equipe"],
       ["14_Assinaturas_Recorr", "Assinaturas / receita recorrente"],
+      [],
+      ["═══ DUMP COMPLETO (RAW_*) ═══"],
+      ["Total de tabelas exportadas", rawSummary.length],
+      ["Total de registros (raw)", rawSummary.reduce((s, r) => s + (typeof r.registros === "number" ? r.registros : 0), 0)],
+      ["Tabelas com erro/sem permissão", rawSummary.filter((r) => r.status.startsWith("erro")).length],
+      [],
+      ["Tabela", "Registros", "Status"],
+      ...rawSummary.map((r) => [r.tabela, r.registros, r.status]),
     ];
     const resumoWs = XLSX.utils.aoa_to_sheet(resumo);
     resumoWs["!cols"] = [{ wch: 45 }, { wch: 45 }];
