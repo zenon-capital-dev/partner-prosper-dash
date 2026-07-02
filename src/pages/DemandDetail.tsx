@@ -64,6 +64,7 @@ export default function DemandDetail() {
   const [savingNotes, setSavingNotes] = useState(false);
   const { user, isAdmin, isAdminSecondary, isColaborador, isVendedor, isPrestador, isCliente, isParceiro } = useAuth();
   const canManage = isAdmin || isAdminSecondary || isColaborador || isVendedor;
+  const canReport = canManage || isPrestador;
   const canAdminActions = canManage;
   const currentRole = isCliente ? "cliente" : isPrestador ? "prestador" : isParceiro ? "parceiro" : isColaborador ? "colaborador" : "admin";
   const [taskOpen, setTaskOpen] = useState(false);
