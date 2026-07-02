@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useClientsRef } from "@/hooks/useReferenceData";
 import { useAuth } from "@/hooks/useAuth";
@@ -163,6 +163,7 @@ function SortableTh({ label, k, sortKey, sortDir, onSort, align = "left" }: any)
 
 export default function FinanceCenter() {
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   const tab = params.get("tab") || "fluxo";
   const setTab = (t: string) => {
     const next = new URLSearchParams(params);
@@ -717,10 +718,10 @@ export default function FinanceCenter() {
               <p className="font-mono text-base font-semibold text-indigo-800 mt-1 tabular-nums">{formatBRL(kpis.commissionsOthersPaid)}</p>
               <p className="text-[10px] text-indigo-600/80 mt-0.5">Parceiros, colaboradores e prestadores</p>
             </button>
-            <button type="button" onClick={() => setTab("relatorios")} className="text-left rounded-md border border-rose-200/70 bg-rose-50/60 p-3 hover:border-rose-300 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-rose-200">
-              <p className="text-[10px] uppercase tracking-wider font-semibold text-rose-700">− Variáveis</p>
+            <button type="button" onClick={() => navigate("/despesas-operacionais")} className="text-left rounded-md border border-rose-200/70 bg-rose-50/60 p-3 hover:border-rose-300 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-rose-200">
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-rose-700">− Despesas</p>
               <p className="font-mono text-base font-semibold text-rose-800 mt-1 tabular-nums">{formatBRL(kpis.variableExpenses)}</p>
-              <p className="text-[10px] text-rose-600/80 mt-0.5">Despesas operacionais</p>
+              <p className="text-[10px] text-rose-600/80 mt-0.5">Operacionais do período · abrir gestão →</p>
             </button>
             <button type="button" onClick={() => setTab("relatorios")} className="text-left rounded-md border border-slate-200/70 bg-slate-50 p-3 hover:border-slate-300 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-slate-200">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-600">− Impostos</p>
