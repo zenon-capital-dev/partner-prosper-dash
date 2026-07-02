@@ -29,6 +29,8 @@ import { endOfDay, startOfDay, startOfToday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FilterPresets } from "@/components/filters/FilterPresets";
+import { StageFilterBar } from "@/components/filters/StageFilterBar";
+import { useSharedStageFilter } from "@/hooks/useSharedStageFilter";
 import { DateRange } from "react-day-picker";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { PageHero } from "@/components/PageHero";
@@ -71,6 +73,7 @@ export default function Clients() {
   const [paymentFilter, setPaymentFilter] = useState<string>(saved.paymentFilter ?? "all");
   const [riskFilter, setRiskFilter] = useState<string>(saved.riskFilter ?? "all");
   const [salesFilter, setSalesFilter] = useState<string>(saved.salesFilter ?? "all");
+  const { stageIds } = useSharedStageFilter();
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     if (!saved.dateRange) return undefined;
     return {
@@ -110,6 +113,7 @@ export default function Clients() {
           id, full_name, company, email, phone, document, status, source, birth_date,
           address_street, address_number, address_complement, address_neighborhood, address_zip_code,
           city, state, notes, tags, partner_id, referrer_id, collaborator_id, service_provider_id, created_at,
+          journey_stage_id,
           partners(id, full_name)
         `);
 
@@ -267,6 +271,7 @@ export default function Clients() {
         if (!matchText && !matchDoc) return false;
       }
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
+      if (stageIds.length > 0 && !stageIds.includes(c.journey_stage_id)) return false;
       if (productFilter === "_none") {
         if ((c.client_products?.length || 0) > 0) return false;
       } else if (productFilter !== "all") {
@@ -297,7 +302,7 @@ export default function Clients() {
       }
       return true;
     });
-  }, [enriched, debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, dateRange]);
+  }, [enriched, debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, dateRange, stageIds]);
 
   const sorted = useMemo(() => {
     if (view !== "table") return filtered;
@@ -457,6 +462,7 @@ export default function Clients() {
                 className={cn("h-9 px-4 rounded-lg text-xs font-bold transition-all", view === "table" ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-900")}
               >Tabela</button>
             </div>
+            <StageFilterBar />
             <FilterPresets
               scope="clients"
               getState={() => ({

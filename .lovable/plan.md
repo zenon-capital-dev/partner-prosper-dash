@@ -1,38 +1,99 @@
-## Auditoria dos 9 pontos do painel parceiro + ajustes globais
 
-### 1. Materiais — botão Baixar não baixa (print 1)
-`src/pages/PartnerPanel.tsx` (aba Materiais) — botão chama `window.open` direto da URL do storage. Trocar pelo `downloadFile()` de `src/lib/download.ts` (mesmo helper já usado nos contratos) para forçar `Content-Disposition: attachment`. Aplicar também em qualquer outro botão "Baixar" do painel parceiro (extratos, comissões, contratos, documentos do cliente).
+## Objetivo
 
-### 2. Contratos parceiro — área para assinar (prints 2 e 5)
-`src/pages/PartnerPanel.tsx` aba Contratos hoje só mostra "Aguardando envio pela nossa equipe". Vou ler `partner_contracts` (campos `signed_contract_url`, `signed_nda_url`, `contract_file_url`, `nda_file_url`) e renderizar:
-- Quando admin enviou o original → botão **Baixar original** + bloco **Enviar assinado** (upload p/ bucket `partner-contracts`, grava `signed_*_url`).
-- Quando parceiro já enviou assinado → status "Enviado para análise" + botão baixar a versão assinada + permitir reenvio.
-- Status sincronizado com print 5 (já existe parcialmente, mas falta o input de upload).
+Unificar a linguagem de "fase do cliente" em toda a plataforma usando **um único campo já existente** (`clients.journey_stage_id` → tabela `client_journey_stages`), e permitir que **filtros salvos** por estágio funcionem de forma idêntica em Clientes, Esteira, Vendas, Metas Comerciais, Central Financeira, Dashboard e Painel do Parceiro. Também introduzir "Caixinhas" (reservas de lucro por mês) para debitar do lucro mensal.
 
-### 3. Abrir chamado de suporte erro "Parceiro não encontrado" (print 3)
-`src/pages/PartnerPanel.tsx` linha 319/396 lança esse erro quando o `partner` da query inicial não foi carregado ainda (ou quando o registro em `partners` não está ligado ao `auth.uid()`). Corrigir:
-- Resolver o `partner_id` via `partners.user_id = auth.uid()` antes do submit (await direto, não depender de cache).
-- Se realmente não houver registro, criar fallback claro (ticket fica com `partner_id = null` + `created_by_user_id`) ou exibir erro amigável com instruções, não toast genérico.
+---
 
-### 4. Rota da solicitação Zenon → Parceiro (print 4 e 6)
-Hoje o dialog "Nova solicitação de documento" só tem destinatários Cliente/Colab/Prestador. Falta **Parceiro**. Em `DocumentDialog` (Central de Documentos):
-- Adicionar 4ª aba "Parceiro" no seletor de destinatário, com combo de parceiros.
-- Gravar `document_requests` com `partner_id` (criar coluna se não existir; verificar schema).
-- Parceiro vê em `PartnerPanel` aba Documentos — adicionar listagem + upload.
-- Corrigir também por que a solicitação para Cliente não chegou (print 6): provavelmente filtragem por `client_id` ↔ `clients.user_id` no portal do cliente está quebrada. Auditar query do `ClientPanel` aba documentos e RLS de `document_requests` para `auth.uid() = clients.user_id`.
+## Parte 1 — Estágio da jornada como fonte única
 
-### 5. Parceiro Documentos — sem onde anexar (print 5/parceiro)
-Em `PartnerPanel.tsx` aba "Documentos dos clientes" hoje só lista. Adicionar:
-- Bloco "Meus documentos solicitados" (lista de `document_requests` direcionadas a este parceiro) com botão **Enviar arquivo** (upload para `documents` bucket + atualiza request para `enviado`).
+Hoje já existe `client_journey_stages` (Prospecção, Captação, Diagnóstico, Proposta enviada, Venda finalizada, Em atendimento, Inativo — configurável pelo usuário em `/esteira`). O campo `clients.journey_stage_id` já existe e a Esteira já usa. Vou **eliminar o campo "status" solto** como filtro de fase e centralizar tudo em `journey_stage_id`.
 
-### 6. Aba Zenon (admin Central Documentos) — layout + opção Parceiro + erro upload do cliente (prints 7 e 8)
-- `DocumentDialog`: redesenhar o seletor de destinatário (4 cards limpos: Cliente, Colab, Prestador, Parceiro com ícone + descrição) e melhorar densidade do form (grid 2-col, espaçamento, cards agrupados "Destinatário / Documento / Prazo / Arquivo").
-- Corrigir erro de upload na aba Clientes (print 8): provavelmente path do storage usa `client.id` mas RLS espera `clients.user_id`. Verificar `client_document_requests` upload em `ClientDocumentsTab` e ajustar path/policy.
+### 1.1 Clientes (`src/pages/Clients.tsx`)
+- Trocar o filtro "Status" atual (ativo/prospecto/novo_cliente/inativo — hardcoded) por **filtro por Estágio da Jornada**, populado dinamicamente de `client_journey_stages`.
+- Na ficha do cliente (`ClientDetail`), o `ClientJourneyBadge` já permite mudar o estágio — mudança grava em `clients.journey_stage_id` e invalida cache de todas as telas.
+- Manter o campo `status` legado só para retrocompatibilidade (não mais exposto como filtro principal).
 
-### 7. Editar Venda — receita mensal não aparece + layout (print 9)
-`src/components/sales/SaleFormDialog.tsx`:
-- O toggle Avulso/Recorrente existe (linha 562/576) mas só aparece em modo criação; verificar condição e habilitar também na edição (`if (sale) form.revenue_type` é carregado mas o bloco visual pode estar oculto por flag). Garantir que aparece sempre.
-- Refinar o layout do form: cabeçalho com Bruto/Líquido fica desalinhado, grid de campos com colunas desbalanceadas. Alinhar com `grid-cols-2` consistente, padding uniforme, separar seções com `Card` + título único, mover campo "Meses de recorrência" para logo abaixo do toggle.
+### 1.2 Esteira (`src/pages/ClientJourney.tsx`)
+- Já usa `journey_stage_id`. Sem mudança de dados — só passa a compartilhar o mesmo `FilterPresets` scope="journey-shared" com Clientes/Vendas/Metas para que filtros salvos por estágio funcionem de forma cruzada.
 
-### Entrega
-Implementação direta após aprovação, em um único passe, sem migrações arriscadas (apenas verificar/ajustar RLS de `document_requests` se necessário e potencialmente adicionar coluna `partner_id` em `document_requests` se ainda não existir).
+### 1.3 Vendas (`src/pages/Sales.tsx`)
+- Adicionar filtro "Estágio do cliente" (join `sales.client_id → clients.journey_stage_id`).
+- Novo KPI: "Receita por estágio" (soma `amount` agrupado por estágio do cliente vinculado).
+
+### 1.4 Metas Comerciais (`src/pages/SalesGoals.tsx`)
+- Adicionar filtro por estágio para calcular "vendas realizadas no período contam apenas de clientes em X estágio(s)".
+- Mostrar composição da meta por estágio.
+
+### 1.5 Central Financeira (`src/pages/FinanceCenter.tsx`)
+- Adicionar filtro por estágio: filtra receitas (pagamentos → vendas → clientes → estágio).
+- Novo bloco "Receita por estágio do cliente": Prospecção, Captação, Proposta, Finalizada, Em atendimento, Inativo — com valor recebido + a receber.
+
+### 1.6 Dashboard (`src/pages/DashboardAdmin.tsx` / `Dashboard.tsx`)
+- Novo widget "Receita por estágio" (barras) usando o mesmo pipeline.
+- O `JourneyMiniWidget` que já existe passa a mostrar também soma financeira ao lado da contagem.
+
+### 1.7 Painel do Parceiro (`src/pages/PartnerPanel.tsx`)
+- Aba "Meus clientes" ganha coluna "Estágio" (read-only, mesmo select estilizado) e filtro por estágio.
+- Aba "Comissões/Receita" ganha o mesmo bloco "Receita por estágio" restrito aos clientes do parceiro (RLS já garante).
+
+---
+
+## Parte 2 — Filtros salvos compartilhados
+
+Hoje `FilterPresets` guarda em `localStorage` por scope isolado. Vou:
+
+- Criar scope compartilhado **`"stage-shared"`** que salva **apenas o subconjunto de filtros comuns** (estágios selecionados + range de datas + parceiro).
+- Cada página mantém seu próprio scope local (filtros específicos) + lê/escreve no `stage-shared` para o que é universal.
+- No dropdown de filtros salvos, marcar com ícone "🔗 Compartilhado" os presets do escopo global — aplicá-los em qualquer página traz automaticamente estágios + datas + parceiro; filtros específicos daquela página ficam como estavam.
+
+Fluxo: usuário cria em Clientes o preset "Prospecção Q2" (estágios: Prospecção+Captação, datas: abr–jun). Ao abrir Esteira, Vendas, Metas, Financeira, Dashboard ou Painel do Parceiro, esse mesmo preset aparece no dropdown e aplica os filtros equivalentes.
+
+---
+
+## Parte 3 — Caixinhas (reservas de lucro por mês)
+
+Nova funcionalidade dentro da Central Financeira.
+
+### 3.1 Banco (migração)
+Tabela `profit_reserves` (Caixinhas):
+- `name` (ex.: "Escritório", "Reserva de emergência")
+- `amount` (valor a debitar)
+- `reference_month` (mês de competência — ex.: 2026-05-01)
+- `description`, `category`, `created_by`
+- + timestamps padrão + GRANTs + RLS (admin/finance role gerencia).
+
+### 3.2 UI (`src/pages/FinanceCenter.tsx`)
+- Novo bloco "Caixinhas" com botão "+ Nova caixinha": abre dialog para criar (nome, valor, mês de competência, descrição).
+- Lucro do mês passa a ser calculado como: `receita_recebida - despesas - Σ caixinhas do mês`.
+- Card "Lucro líquido" mostra tooltip com breakdown das caixinhas descontadas naquele mês.
+- Lista abaixo mostra todas as caixinhas com filtro por mês, edição e exclusão.
+
+---
+
+## Parte 4 — Ordem de execução
+
+1. Migração `profit_reserves` (aguarda aprovação).
+2. Refatorar `Clients.tsx`: filtro Status → Estágio da jornada (dinâmico).
+3. Adicionar filtro por Estágio em `Sales.tsx`, `SalesGoals.tsx`, `FinanceCenter.tsx`, `PartnerPanel.tsx`.
+4. Adaptar `FilterPresets.tsx` para suportar scope compartilhado `stage-shared` + scope local.
+5. Adicionar bloco "Receita por estágio" em Financeira, Dashboard, Painel do Parceiro.
+6. Implementar Caixinhas: dialog + lista + integrar no cálculo de lucro.
+7. Verificar por Playwright: mudar estágio de um cliente em `/clientes/:id` → confirmar reflete em `/esteira`, `/vendas` (KPI), `/metas`, `/financeiro/central`, `/dashboard`, `/parceiro`.
+
+---
+
+## Detalhes técnicos
+
+- Nenhuma alteração em `clients.status` (mantido para retrocompat).
+- Toda leitura de estágio usa `client_journey_stages` (já existe hook `useQuery(["journey-stages-mini"])`).
+- Filtros salvos compartilhados usam chave `localStorage: filter-presets:stage-shared:v1` com forma `{ stageIds: string[], from?: string, to?: string, partnerId?: string }`.
+- Caixinhas: função Postgres `monthly_profit(month date)` retorna `receita - despesas - reservas` para uso no Dashboard.
+- RLS de `profit_reserves`: apenas usuários com role admin/finance (via `has_role`).
+
+---
+
+## Fora do escopo (não farei agora)
+
+- Renomear/remover campo legado `clients.status` (só deixa de ser filtro).
+- Migrar dados históricos de `status` para `journey_stage_id` automaticamente — usuário faz manualmente ou pedimos um passo de mapeamento depois se quiser.

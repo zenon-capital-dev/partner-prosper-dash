@@ -28,6 +28,9 @@ import { RevenueMap } from "@/components/finance/RevenueMap";
 import { PaymentFormDialog } from "@/components/payments/PaymentFormDialog";
 import { Plus } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
+import { StageFilterBar } from "@/components/filters/StageFilterBar";
+import { useStageMatcher } from "@/hooks/useSharedStageFilter";
+import { ProfitReservesPanel } from "@/components/finance/ProfitReservesPanel";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -219,6 +222,7 @@ export default function FinanceCenter() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   };
+  const { matchesClientId } = useStageMatcher();
   const [kpiRange, setKpiRange] = useState<RangeMode>(
     (typeof window !== "undefined" && (localStorage.getItem("fin:kpiRange") as any)) || "specific"
   );
@@ -403,7 +407,10 @@ export default function FinanceCenter() {
   });
 
   const today = todayIsoStr();
-  const effectivePayments = useMemo(() => (payments as any[]).filter(paymentSaleIsFinalized), [payments]);
+  const effectivePayments = useMemo(
+    () => (payments as any[]).filter(paymentSaleIsFinalized).filter((p: any) => matchesClientId(p.client_id)),
+    [payments, matchesClientId]
+  );
   const effectiveSalesCosts = useMemo(() => (salesCosts as any[]).filter(saleIsFinalized), [salesCosts]);
   const rawCommissionRows = loadCommissionDetails && commissions.length ? commissions : commissionSummary;
   const commissionRows = useMemo(
@@ -414,6 +421,23 @@ export default function FinanceCenter() {
     () => (commissions as any[]).filter((c: any) => !c.sale_id || saleIsFinalized(c.sale)),
     [commissions]
   );
+
+  const { data: profitReserves = [] } = useQuery({
+    queryKey: ["profit-reserves-all"],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("profit_reserves")
+        .select("id, amount, reference_month");
+      return data ?? [];
+    },
+    staleTime: 60_000,
+  });
+  const reservesInRange = useMemo(() => {
+    return (profitReserves as any[])
+      .filter((r) => r.reference_month >= rangeStartIso && r.reference_month < rangeEndIso)
+      .reduce((s, r) => s + Number(r.amount || 0), 0);
+  }, [profitReserves, rangeStartIso, rangeEndIso]);
+
 
   const kpis = useMemo(() => {
     const now = new Date();
@@ -484,7 +508,7 @@ export default function FinanceCenter() {
       .reduce((a, s) => a + Number(s.provider_cost || 0) * salesCostRatio(s), 0);
     // Imposto incide APENAS sobre o que efetivamente entrou em caixa no período.
     const taxesTotal = totalReceived * (Number(taxRate) || 0) / 100;
-    const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal - taxesTotal;
+    const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal - taxesTotal - reservesInRange;
 
     return {
       totalReceived,
@@ -502,8 +526,9 @@ export default function FinanceCenter() {
       taxesTotal,
       taxRate: Number(taxRate) || 0,
       netRevenue,
+      reservesInRange,
     };
-  }, [effectivePayments, commissionRows, expenses, effectiveSalesCosts, today, rangeStartIso, rangeEndIso, taxRate]);
+  }, [effectivePayments, commissionRows, expenses, effectiveSalesCosts, today, rangeStartIso, rangeEndIso, taxRate, reservesInRange]);
 
   const counts = useMemo(() => {
     const recebidos = effectivePayments.filter((p: any) => isPaid(p.status)).length;
@@ -602,6 +627,7 @@ export default function FinanceCenter() {
         icon={<Banknote className="h-5 w-5" />}
         actions={
           <div className="flex items-center gap-2 flex-wrap">
+            <StageFilterBar />
             <Select value={kpiRange} onValueChange={(v) => setKpiRange(v as any)}>
               <SelectTrigger className="h-9 w-[190px] bg-white border-slate-200">
                 <SelectValue />
@@ -657,7 +683,7 @@ export default function FinanceCenter() {
             value: formatBRL(kpis.netRevenue),
             tone: "primary",
             onClick: () => setTab("relatorios"),
-            hint: `Bruto ${formatBRL(kpis.totalReceived)} − Custos ${formatBRL(kpis.salesCostsTotal)} − Indicadores ${formatBRL(kpis.indicatorsPaid)} − Comissões ${formatBRL(kpis.commissionsOthersPaid)} − Variáveis ${formatBRL(kpis.variableExpenses)} − Impostos ${formatBRL(kpis.taxesTotal)}${kpis.taxRate ? ` (${kpis.taxRate}%)` : ""}`,
+            hint: `Bruto ${formatBRL(kpis.totalReceived)} − Custos ${formatBRL(kpis.salesCostsTotal)} − Indicadores ${formatBRL(kpis.indicatorsPaid)} − Comissões ${formatBRL(kpis.commissionsOthersPaid)} − Variáveis ${formatBRL(kpis.variableExpenses)} − Impostos ${formatBRL(kpis.taxesTotal)}${kpis.taxRate ? ` (${kpis.taxRate}%)` : ""} − Caixinhas ${formatBRL(kpis.reservesInRange)}`,
           } as any,
           {
             label: "A receber",
@@ -757,6 +783,10 @@ export default function FinanceCenter() {
             </div>
           </div>
         )}
+
+        <ProfitReservesPanel monthKey={kpiRange === "specific" ? specificMonth : nowMonthKey()} canManage={canManage} />
+
+
 
         <Tabs value={tab} onValueChange={setTab}>
           <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-1 overflow-x-auto">
@@ -897,6 +927,7 @@ function PaymentsTable({
     () => payments.map((p: any) => ({ ...p, _status: effectiveStatus(p, today) })),
     [payments, today]
   );
+
 
   const filtered = useMemo(() => {
     const q = norm(search);

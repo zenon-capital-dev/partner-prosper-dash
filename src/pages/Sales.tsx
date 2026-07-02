@@ -19,6 +19,8 @@ import { formatBRDate, formatBR, nowBR, toBR } from "@/lib/datetime";
 import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
 import { ReceivePaymentDialog } from "@/components/sales/ReceivePaymentDialog";
 import { FilterPresets } from "@/components/filters/FilterPresets";
+import { StageFilterBar } from "@/components/filters/StageFilterBar";
+import { useStageMatcher } from "@/hooks/useSharedStageFilter";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -243,6 +245,8 @@ export default function Sales() {
 
   const usingManualRange = !!dateFrom || !!dateTo;
 
+  const { matchesClientId, stageIds: sharedStageIds } = useStageMatcher();
+
   const filtered = useMemo(() => {
     const today = nowBR();
     let start: Date = startOfToday();
@@ -277,6 +281,7 @@ export default function Sales() {
       if (partnerFilter !== "todos" && partnerFilter !== "sem" && s.partner_id !== partnerFilter) return false;
       if (productFilter !== "todos" && s.product_id !== productFilter) return false;
       if (clientFilter !== "todos" && s.client_id !== clientFilter) return false;
+      if (!matchesClientId(s.client_id)) return false;
       if (q) {
         const hay = norm(
           `${s.id ?? ""} ${s.clients?.full_name ?? ""} ${s.clients?.company ?? ""} ${s.clients?.email ?? ""} ${s.products?.name ?? ""} ${s.partners?.full_name ?? ""}`
@@ -287,7 +292,7 @@ export default function Sales() {
       }
       return true;
     });
-  }, [sales, status, revenueFilter, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, selectedMonth, usingManualRange]);
+  }, [sales, status, revenueFilter, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, selectedMonth, usingManualRange, matchesClientId, sharedStageIds]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -968,6 +973,8 @@ export default function Sales() {
               title="Filtrar por mês fechado"
             />
           </div>
+
+          <StageFilterBar />
 
           <FilterPresets
             scope="sales"
