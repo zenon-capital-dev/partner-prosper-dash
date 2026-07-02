@@ -1373,16 +1373,19 @@ export default function Sales() {
         allReceipts={allReceipts}
         splitsBySale={splitsBySale}
         receiptsBySale={receiptsBySale}
+        monthYm={!usingManualRange && rangeKey === "MÊS" ? selectedMonth : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`}
       />
+
     </div>
   );
 }
 
-function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, receiptsBySale }: {
+function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, receiptsBySale, monthYm }: {
   kind: null | "bruto" | "recebido_mes" | "a_receber" | "liquido" | "custos" | "comissoes" | "count";
   onClose: () => void;
   filtered: any[]; allReceipts: any[];
   splitsBySale: Map<string, any[]>; receiptsBySale: Map<string, any>;
+  monthYm: string;
 }) {
   const config = useMemo(() => {
     if (!kind) return null;
@@ -1393,8 +1396,8 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
         return { title: "Volume Bruto — detalhamento", subtitle: "Soma do valor de todas as vendas ativas do período.", rows, isMoney: true };
       }
       case "recebido_mes": {
-        const now = new Date();
-        const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        const ym = monthYm;
+
         const bySale = new Map<string, number>();
         allReceipts.forEach((r: any) => {
           if (!r.paid_at || !String(r.paid_at).startsWith(ym)) return;
@@ -1407,7 +1410,7 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
           const s = filtered.find((x) => x.id === id) || { id, clients: null, products: null, partners: null, amount: 0, sale_date: null };
           return rowFor(s, v);
         });
-        return { title: "Recebido no mês — detalhamento", subtitle: "Pagamentos confirmados dentro do mês atual, por venda.", rows, isMoney: true };
+        return { title: `Recebido em ${ym} — detalhamento`, subtitle: "Pagamentos confirmados dentro do mês selecionado, por venda.", rows, isMoney: true };
       }
       case "a_receber": {
         const rows = filtered.filter(s => s.status !== "cancelada").map(s => {
@@ -1442,7 +1445,7 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
         return { title: "Total de registros — detalhamento", subtitle: "Todas as vendas do período filtrado.", rows, isMoney: false };
       }
     }
-  }, [kind, filtered, allReceipts, splitsBySale, receiptsBySale]);
+  }, [kind, filtered, allReceipts, splitsBySale, receiptsBySale, monthYm]);
 
   const sorted = useMemo(() => (config?.rows ?? []).slice().sort((a, b) => b.contribution - a.contribution), [config]);
   const total = useMemo(() => sorted.reduce((s, r) => s + r.contribution, 0), [sorted]);
