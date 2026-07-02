@@ -604,7 +604,7 @@ export default function DashboardAdmin() {
                         label="Receita Líquida"
                         value={formatBRL(stats.netRevenue)}
                         accent={stats.netRevenue < 0 ? "rose" : undefined}
-                        hint={`−${formatBRL(stats.periodSalesCosts)} custos · −${formatBRL(stats.periodCommissions)} com. · −${formatBRL(stats.periodTaxes)} imp.${stats.taxRate ? ` (${stats.taxRate}%)` : ""}`}
+                        hint={`Recebido ${formatBRL(stats.periodReceived)} · −${formatBRL(stats.periodSalesCosts)} custos · −${formatBRL(stats.periodCommissions)} com. · −${formatBRL(stats.periodTaxes)} imp.${stats.taxRate ? ` (${stats.taxRate}%)` : ""}`}
                       />
                     </Link>
                     <Link to="/financeiro/central?tab=a_receber" className="block hover:bg-amber-50/40 rounded-lg -m-1 p-1 transition-colors">
