@@ -9,17 +9,20 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
-import { Plus, GripVertical, Settings, ChevronRight, Search, ExternalLink, Filter } from "lucide-react";
-import { initials } from "@/lib/format";
+import { Plus, GripVertical, Settings, ChevronRight, Search, ExternalLink, Filter, History, TrendingUp, Wallet, Users } from "lucide-react";
+import { initials, formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { FilterPresets } from "@/components/filters/FilterPresets";
 import { StageFilterBar } from "@/components/filters/StageFilterBar";
 import { useSharedStageFilter } from "@/hooks/useSharedStageFilter";
 import { deriveClientStatusFromStageName, invalidateJourneyStageCaches } from "@/lib/journey-stage-sync";
+import { paymentReceivedAmount, paymentOutstandingAmount, saleIsFinalized } from "@/lib/financial";
 
 
 interface Stage { id: string; name: string; position: number; color: string; description?: string | null; }
 interface Client { id: string; full_name: string; status: string; journey_stage_id: string | null; company?: string | null; }
+interface StageHistoryRow { id: string; from_stage_name: string | null; to_stage_name: string | null; changed_at: string; changed_by: string | null; }
+
 
 export default function ClientJourney() {
   const qc = useQueryClient();
