@@ -926,7 +926,7 @@ function PaymentsTable({
       }
       return true;
     });
-  }, [enriched, filterFn, statusFilter, methodFilter, recurringFilter, dateFrom, dateTo, search, matchesClientId]);
+  }, [enriched, filterFn, statusFilter, methodFilter, recurringFilter, dateFrom, dateTo, search]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
