@@ -583,7 +583,13 @@ export default function Clients() {
               <FilterChip label={`Busca: "${search}"`} onClear={() => setSearch("")} />
             )}
             {statusFilter !== "all" && (
-              <FilterChip label={`Status: ${statusFilter}`} onClear={() => setStatusFilter("all")} />
+              <FilterChip label={`Status: ${statusLabel(statusFilter)}`} onClear={() => setStatusFilter("all")} />
+            )}
+            {salesFilter !== "all" && (
+              <FilterChip
+                label={`Vendas: ${({ com_venda_ativa: "com venda ativa", com_venda_concluida: "concluídas", com_pendencia: "com pendência", sem_venda: "sem venda" } as any)[salesFilter] || salesFilter}`}
+                onClear={() => setSalesFilter("all")}
+              />
             )}
             {riskFilter !== "all" && (
               <FilterChip label={`Risco: ${riskFilter}`} onClear={() => setRiskFilter("all")} />
