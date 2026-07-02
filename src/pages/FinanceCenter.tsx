@@ -405,7 +405,10 @@ export default function FinanceCenter() {
   });
 
   const today = todayIsoStr();
-  const effectivePayments = useMemo(() => (payments as any[]).filter(paymentSaleIsFinalized), [payments]);
+  const effectivePayments = useMemo(
+    () => (payments as any[]).filter(paymentSaleIsFinalized).filter((p: any) => matchesClientId(p.client_id)),
+    [payments, matchesClientId]
+  );
   const effectiveSalesCosts = useMemo(() => (salesCosts as any[]).filter(saleIsFinalized), [salesCosts]);
   const rawCommissionRows = loadCommissionDetails && commissions.length ? commissions : commissionSummary;
   const commissionRows = useMemo(
