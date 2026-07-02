@@ -361,6 +361,36 @@ export function PartnerDetailDrawer({ partnerId, open, onOpenChange }: Props) {
                              </div>
                           </div>
                           {c.notes && <p className="mt-2 text-[10px] text-muted-foreground bg-muted/10 p-1.5 rounded border-l-2 border-primary/30 italic">"{c.notes}"</p>}
+                          <div className="mt-2 flex items-center justify-end gap-1.5">
+                            {c.status !== "paga" && c.status !== "cancelada" && (
+                              <Button size="sm" variant="default" className="h-7 text-[11px]" onClick={async () => {
+                                const method = window.prompt("Forma de pagamento (ex.: PIX, TED):", c.payment_method || "PIX");
+                                if (method === null) return;
+                                const { error } = await supabase.from("commissions").update({
+                                  status: "paga",
+                                  paid_at: new Date().toISOString(),
+                                  payment_date: new Date().toISOString(),
+                                  payment_method: method || null,
+                                } as any).eq("id", c.id);
+                                if (error) return toast.error(error.message);
+                                toast.success("Comissão marcada como paga");
+                                qc.invalidateQueries({ queryKey: ["partner-commissions", partnerId] });
+                              }}>
+                                <CheckCircle2 className="size-3.5 mr-1" /> Marcar como paga
+                              </Button>
+                            )}
+                            {c.status === "paga" && (
+                              <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={async () => {
+                                if (!(await confirmAction({ title: "Reverter pagamento?", description: "A comissão voltará para pendente." }))) return;
+                                const { error } = await supabase.from("commissions").update({
+                                  status: "pendente", paid_at: null, payment_date: null,
+                                } as any).eq("id", c.id);
+                                if (error) return toast.error(error.message);
+                                toast.success("Pagamento revertido");
+                                qc.invalidateQueries({ queryKey: ["partner-commissions", partnerId] });
+                              }}>Reverter</Button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
