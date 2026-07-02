@@ -42,6 +42,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { usePageSize } from "@/hooks/usePageSize";
+import { FinancialAuditPanel } from "@/components/audit/FinancialAuditPanel";
 
 export default function AuditLog() {
   const { pageSize: __ps, setPageSize } = usePageSize();
@@ -224,6 +225,11 @@ export default function AuditLog() {
           </div>
         ))}
       </div>
+
+      {/* Auditoria Financeira (payments + commissions) */}
+      <FinancialAuditPanel />
+
+
 
       {/* Filtros */}
       <div className="vx-card p-6 space-y-4">
