@@ -302,7 +302,7 @@ export default function Clients() {
       }
       return true;
     });
-  }, [enriched, debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, dateRange]);
+  }, [enriched, debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, dateRange, stageIds]);
 
   const sorted = useMemo(() => {
     if (view !== "table") return filtered;
@@ -462,6 +462,7 @@ export default function Clients() {
                 className={cn("h-9 px-4 rounded-lg text-xs font-bold transition-all", view === "table" ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-900")}
               >Tabela</button>
             </div>
+            <StageFilterBar />
             <FilterPresets
               scope="clients"
               getState={() => ({
