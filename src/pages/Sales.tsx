@@ -1422,8 +1422,7 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
         const bySale = new Map<string, number>();
         allReceipts.forEach((r: any) => {
           if (!r.paid_at || !String(r.paid_at).startsWith(ym)) return;
-          const isPaid = r.status === "pago" || r.status === "parcialmente_pago" || r.status === "parcial";
-          const val = Number(r.amount_paid ?? (isPaid ? r.amount : 0) ?? 0);
+          const val = receivedPaymentAmount(r);
           if (val <= 0 || !r.sale_id) return;
           bySale.set(r.sale_id, (bySale.get(r.sale_id) || 0) + val);
         });
@@ -1443,23 +1442,31 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
       }
       case "liquido": {
         const rows = filtered.map(s => {
-          const v = Number(s.amount || 0);
-          const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
-          const liq = v - Number(s.zenon_cost || 0) - Number(s.provider_cost || 0) - comm;
-          return rowFor(s, liq, `Comissão ${formatBRL(comm)} · Custos ${formatBRL(Number(s.zenon_cost||0)+Number(s.provider_cost||0))}`);
+          const rec = saleReceived(s.id, receiptsBySale);
+          const comm = saleReleasedCommission(s, splitsBySale, receiptsBySale);
+          const costs = saleReleasedCosts(s, receiptsBySale);
+          const liq = rec - costs - comm;
+          return rowFor(s, liq, `Recebido ${formatBRL(rec)} · Comissão ${formatBRL(comm)} · Custos ${formatBRL(costs)}`);
         });
-        return { title: "Líquido — detalhamento", subtitle: "Valor − custos (Zenon + prestador) − comissões, por venda.", rows, isMoney: true };
+        return { title: "Líquido — detalhamento", subtitle: "Recebido do cliente − custos proporcionais − comissões proporcionais.", rows, isMoney: true };
       }
       case "custos": {
-        const rows = filtered.map(s => rowFor(s, Number(s.zenon_cost || 0) + Number(s.provider_cost || 0), `Zenon ${formatBRL(Number(s.zenon_cost||0))} · Prestador ${formatBRL(Number(s.provider_cost||0))}`)).filter(r => r.contribution > 0);
-        return { title: "Custos — detalhamento", subtitle: "Custos operacionais Zenon + Prestador.", rows, isMoney: true };
+        const rows = filtered.map(s => {
+          const ratio = saleRatio(s, receiptsBySale);
+          const zenon = Number(s.zenon_cost || 0) * ratio;
+          const provider = Number(s.provider_cost || 0) * ratio;
+          const full = Number(s.zenon_cost || 0) + Number(s.provider_cost || 0);
+          return rowFor(s, zenon + provider, `Zenon ${formatBRL(zenon)} · Prestador ${formatBRL(provider)} · Total previsto ${formatBRL(full)}`);
+        }).filter(r => r.contribution > 0);
+        return { title: "Custos — detalhamento", subtitle: "Custos Zenon + Prestador proporcionais ao valor recebido do cliente.", rows, isMoney: true };
       }
       case "comissoes": {
         const rows = filtered.map(s => {
-          const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
-          return rowFor(s, comm);
+          const comm = saleReleasedCommission(s, splitsBySale, receiptsBySale);
+          const full = saleFullCommission(s, splitsBySale);
+          return rowFor(s, comm, full > comm + 0.01 ? `Total previsto ${formatBRL(full)}` : undefined);
         }).filter(r => r.contribution > 0);
-        return { title: "Comissões — detalhamento", subtitle: "Soma das comissões (splits) por venda.", rows, isMoney: true };
+        return { title: "Comissões — detalhamento", subtitle: "Comissões liberadas proporcionalmente ao valor recebido do cliente.", rows, isMoney: true };
       }
       case "count": {
         const rows = filtered.map(s => rowFor(s, 1));
