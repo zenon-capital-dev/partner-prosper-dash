@@ -677,6 +677,13 @@ export default function DashboardAdmin() {
 
         </section>
 
+        {/* ============ REVENUE BY STAGE ============ */}
+        <section className="grid grid-cols-1">
+          <RevenueByStage payments={payments as any[]} />
+        </section>
+
+
+
         {/* ============ CHART + STATUS PIE ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <Card className="lg:col-span-2">
