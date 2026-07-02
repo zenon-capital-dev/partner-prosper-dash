@@ -287,7 +287,22 @@ export default function ClientPanel() {
         if (error) throw error;
       }
       toast.success(`${files.length} arquivo(s) enviado(s) para análise`);
-      qc.invalidateQueries({ queryKey: ["client-docs", clientId] });
+      // Optimistically mark this document as sent so it disappears from "Pendências"
+      // immediately, without waiting for the refetch.
+      const patchCachedList = (old: unknown) => Array.isArray(old)
+        ? old.map((item: any) => item?.id === doc.id ? {
+            ...item,
+            status: "enviado",
+            file_path: doc._source === "documents" ? path : item.file_path,
+            file_url: path,
+            uploaded_at: now,
+            updated_at: now,
+            rejection_reason: null,
+          } : item)
+        : old;
+      (qc as any).setQueriesData({ queryKey: ["client-docs"] }, patchCachedList);
+      await qc.invalidateQueries({ queryKey: ["client-docs", clientId] });
+      await qc.refetchQueries({ queryKey: ["client-docs", clientId] });
     } catch (e: any) {
       toast.error(uploadErrorMessage(e) ?? "Falha ao enviar documento");
     } finally {
