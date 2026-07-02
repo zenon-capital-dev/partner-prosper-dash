@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -59,6 +59,20 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
       return (data ?? []) as any[];
     },
   });
+
+  // Auto-cria pasta fixa "Contratos" quando o master abre e ela ainda não existe.
+  useEffect(() => {
+    if (!isAdmin || isLoading || !clientId) return;
+    const hasContratos = (folders as any[]).some((f) => (f.name || "").trim().toLowerCase() === "contratos");
+    if (hasContratos) return;
+    (async () => {
+      const { error } = await supabase
+        .from("client_document_folders" as any)
+        .insert({ client_id: clientId, name: "Contratos", created_by: user?.id });
+      if (!error) qc.invalidateQueries({ queryKey: ["cdf-folders", clientId] });
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, isLoading, clientId, folders.length]);
 
   const ALL_ID = "__all__";
   const currentFolderId = activeId ?? ALL_ID;
