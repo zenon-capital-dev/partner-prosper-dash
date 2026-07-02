@@ -1373,7 +1373,9 @@ export default function Sales() {
         allReceipts={allReceipts}
         splitsBySale={splitsBySale}
         receiptsBySale={receiptsBySale}
+        monthYm={!usingManualRange && rangeKey === "MÊS" ? selectedMonth : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`}
       />
+
     </div>
   );
 }
