@@ -91,7 +91,7 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
       const isFuture = paidAt > today;
       const newReceived = received + (isFuture ? 0 : v);
       const isFull = !isFuture && newReceived >= gross - 0.009;
-      const { error } = await supabase.from("payments").insert({
+      const { data: paymentInserted, error } = await supabase.from("payments").insert({
         sale_id: sale.id,
         client_id: sale.client_id,
         product_id: sale.product_id,
@@ -106,8 +106,38 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
           ? `Recebimento agendado — Venda ${sale.id.slice(0, 8)}`
           : `Recebimento parcial — Venda ${sale.id.slice(0, 8)}`,
         notes: notes || null,
-      } as any);
+      } as any).select("id").single();
       if (error) throw error;
+
+      // Gerar comissões por parcela (parceiro / indicador / colaborador) ao registrar o recebimento.
+      const grossSale = Number(sale.amount || 0);
+      const share = grossSale > 0 ? v / grossSale : 0;
+      const rows: any[] = [];
+      const baseNote = `Comissão referente à parcela de ${formatBRL(v)} (comp. ${competenceMonth}) — pagamento ${paymentInserted?.id?.slice(0, 8) ?? ""}`;
+      const mkRow = (extra: any) => ({
+        sale_id: sale.id,
+        client_id: sale.client_id,
+        product_id: sale.product_id,
+        sale_value: v,
+        percent: extra.percent,
+        amount: Number(((v * Number(extra.percent || 0)) / 100).toFixed(2)),
+        status: "pendente",
+        workflow_status: isFuture ? "aguardando_confirmacao" : "liberada",
+        expected_date: paidAt,
+        notes: baseNote,
+        ...extra.ids,
+      });
+      const partnerPct = Number(sale.commission_percent || 0);
+      if (sale.partner_id && partnerPct > 0 && share > 0) rows.push(mkRow({ percent: partnerPct, ids: { partner_id: sale.partner_id } }));
+      const referrerPct = Number(sale.referrer_percent || 0);
+      if (sale.referrer_id && referrerPct > 0 && share > 0) rows.push(mkRow({ percent: referrerPct, ids: { referrer_id: sale.referrer_id } }));
+      const collabPct = Number(sale.collaborator_percent || 0);
+      if (sale.collaborator_id && collabPct > 0 && share > 0) rows.push(mkRow({ percent: collabPct, ids: { collaborator_id: sale.collaborator_id } }));
+      if (rows.length) {
+        const { error: cErr } = await supabase.from("commissions").insert(rows as any);
+        if (cErr) console.warn("Falha ao gerar comissões da parcela:", cErr.message);
+        else qc.invalidateQueries({ queryKey: ["partner-commissions"] });
+      }
 
       toast.success(isFuture ? "Recebimento agendado para o futuro" : (isFull ? "Venda quitada integralmente!" : "Recebimento registrado"));
       await Promise.all([
