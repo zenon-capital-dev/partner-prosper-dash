@@ -292,6 +292,18 @@ export default function FinanceCenter() {
     staleTime: 60_000,
   });
 
+  // Alíquota de imposto configurável (system_settings.tax_rate_percent). Aplicada sobre o RECEBIDO.
+  const { data: taxRate = 0 } = useQuery({
+    queryKey: ["fin-tax-rate"],
+    queryFn: async () => {
+      const { data } = await supabase.from("system_settings").select("value").eq("key", "tax_rate_percent").maybeSingle();
+      const v: any = (data as any)?.value;
+      const n = Number(typeof v === "object" ? v?.value : v);
+      return Number.isFinite(n) ? n : 0;
+    },
+    staleTime: 5 * 60_000,
+  });
+
   const loadCommissionDetails = ["comissoes", "relatorios"].includes(tab);
 
   const { data: commissionSummary = [] } = useQuery({
