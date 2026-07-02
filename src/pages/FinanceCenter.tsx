@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 
 import { RevenueMap } from "@/components/finance/RevenueMap";
-import { ExpensesTab } from "@/components/finance/ExpensesTab";
+
 
 import { PaymentFormDialog } from "@/components/payments/PaymentFormDialog";
 import { Plus } from "lucide-react";
@@ -543,7 +543,6 @@ export default function FinanceCenter() {
     { id: "a_receber", label: "A receber", icon: Receipt, count: counts.a_receber },
     { id: "comissoes", label: "Comissões", icon: Wallet, count: counts.comissoes },
     { id: "inadimplencia", label: "Inadimplência", icon: AlertTriangle, count: counts.inadimplencia },
-    { id: "despesas", label: "Despesas", icon: TrendingDown, count: (expenses as any[]).length },
     { id: "por_cliente", label: "Por cliente", icon: BarChart3 },
     { id: "relatorios", label: "Relatórios", icon: BarChart3 },
   ];
@@ -827,9 +826,6 @@ export default function FinanceCenter() {
               }
               canManage={canManage}
             />
-          </TabsContent>
-          <TabsContent value="despesas" className="mt-6">
-            <ExpensesTab expenses={expenses as any[]} canManage={canManage} />
           </TabsContent>
           <TabsContent value="por_cliente" className="mt-6">
             <ByClient payments={effectivePayments} canManage={canManage} />

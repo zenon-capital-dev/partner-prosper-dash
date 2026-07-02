@@ -6,6 +6,7 @@ import {
   CircleDollarSign, ClipboardList, History, UserCircle, Truck, Target,
   PanelLeftClose, PanelLeftOpen, Activity, Zap, MessageSquare, ChevronDown,
   Building2, Sparkles, Box, CalendarClock, Search, UserPlus, BookOpen,
+  TrendingDown,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ const SECTIONS: NavSection[] = [
     // { title: "Propostas", url: "/propostas", icon: FileText, staffOnly: true },
     { title: "Vendas", url: "/vendas", icon: CircleDollarSign, staffOnly: true },
     { title: "Metas Comerciais", url: "/metas-comerciais", icon: Target, staffOnly: true },
+    { title: "Despesas Operacionais", url: "/despesas-operacionais", icon: TrendingDown, adminOnly: true },
   ]},
   { label: "Catálogo", staffOnly: true, items: [
     { title: "Serviços", url: "/produtos", icon: Package },
