@@ -368,12 +368,15 @@ export default function Sales() {
       ? monthRange(selectedMonth)
       : { start: startOfMonth(today), end: endOfDay(today) };
     return allReceipts.reduce((sum: number, r: any) => {
-      if (!r.paid_at) return sum;
       if (!r.sale_id || !finalizedSaleIds.has(r.sale_id)) return sum;
-      const d = new Date(r.paid_at);
-      if (d < range.start || d > range.end) return sum;
       const val = receivedPaymentAmount(r);
-      return sum + (val > 0 ? val : 0);
+      if (val <= 0) return sum;
+      // Usa competência (competence_month || due_date) para posicionar no mês certo
+      const ymRaw = paymentCompetenceYm(r);
+      if (!ymRaw) return sum;
+      const d = new Date(`${ymRaw}-15T12:00:00`);
+      if (d < range.start || d > range.end) return sum;
+      return sum + val;
     }, 0);
   }, [allReceipts, rangeKey, selectedMonth, usingManualRange, finalizedSaleIds]);
 
