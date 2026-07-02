@@ -338,7 +338,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                         <p className="text-[11px] text-slate-500">{formatDate(f.uploaded_at ?? f.created_at)}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        {f.file_path ? (
+                        {f.file_path && (
                           <>
                             <Button size="sm" variant="ghost" onClick={() => viewFile(f.file_path)}>
                               <Eye className="size-3.5" />
@@ -347,10 +347,11 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                               <Download className="size-3.5" />
                             </Button>
                           </>
-                        ) : canUpload && (
+                        )}
+                        {canUpload && (
                           <Button size="sm" variant="outline" disabled={uploading} onClick={() => { setAttachingDoc(f); setTimeout(() => attachRef.current?.click(), 0); }}>
                             {uploading ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Upload className="size-3.5 mr-1" />}
-                            Anexar
+                            {isRequest ? "Anexar" : "Adicionar"}
                           </Button>
                         )}
                         {(isAdmin || f.uploaded_by === user?.id) && (
