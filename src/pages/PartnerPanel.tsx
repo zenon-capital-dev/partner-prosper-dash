@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StageFilterBar } from "@/components/filters/StageFilterBar";
 import { useStageMatcher, useJourneyStages } from "@/hooks/useSharedStageFilter";
+import { RevenueByStage } from "@/components/finance/RevenueByStage";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -394,13 +395,14 @@ export default function PartnerPanel() {
     queryFn: async () => {
       const { data } = await supabase
         .from("commission_splits")
-        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(client_product_id, clients(full_name), products(name))")
+        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(client_product_id, client_id, clients(id, full_name), products(name))")
         .eq("beneficiary_type", "partner")
         .eq("beneficiary_id", partner!.id)
         .order("created_at", { ascending: false });
       return (data ?? []).map((c: any) => ({
         ...c,
         client_product_id: c.sales?.client_product_id ?? null,
+        client_id: c.sales?.client_id ?? null,
         clients: c.sales?.clients,
         products: c.sales?.products,
       }));
@@ -417,8 +419,54 @@ export default function PartnerPanel() {
     return map;
   }, [commissions]);
 
+  const clientIdByService = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const service of services as any[]) {
+      if (service.id && service.client_id) map.set(service.id, service.client_id);
+    }
+    return map;
+  }, [services]);
+
+  const filteredClients = useMemo(
+    () => (clients as any[]).filter((c) => stageMatcher.matchesClientId(c.id)),
+    [clients, stageMatcher.matchesClientId],
+  );
+
+  const filteredServices = useMemo(
+    () => (services as any[]).filter((service) => stageMatcher.matchesClientId(service.client_id)),
+    [services, stageMatcher.matchesClientId],
+  );
+
+  const filteredDocuments = useMemo(
+    () => (documents as any[]).filter((doc) => stageMatcher.matchesClientId(doc.client_id)),
+    [documents, stageMatcher.matchesClientId],
+  );
+
+  const filteredCommissions = useMemo(
+    () =>
+      (commissions as any[]).filter((c) =>
+        stageMatcher.matchesClientId(c.client_id || clientIdByService.get(c.client_product_id)),
+      ),
+    [commissions, clientIdByService, stageMatcher.matchesClientId],
+  );
+
+  const commissionStageRows = useMemo(
+    () =>
+      filteredCommissions
+        .filter((c) => !["cancelado", "cancelada"].includes(String(c.status || "").toLowerCase()))
+        .map((c) => ({
+          id: c.id,
+          client_id: c.client_id || clientIdByService.get(c.client_product_id) || null,
+          amount: Number(c.amount || 0),
+          status: c.status,
+          paid_at: c.paid_at,
+          created_at: c.created_at,
+        })),
+    [filteredCommissions, clientIdByService],
+  );
+
   const kpis = useMemo(() => {
-    const all = commissions as any[];
+    const all = filteredCommissions as any[];
     const paid = all.filter((c) => c.status === "pago");
     const pending = all.filter((c) => c.status === "pendente");
     const totalPaid = paid.reduce((s, c) => s + Number(c.amount || 0), 0);
@@ -430,12 +478,12 @@ export default function PartnerPanel() {
 
     return {
       totalPaid, totalPending, monthPaid,
-      clients: (clients as any[]).length,
-      activeClients: (clients as any[]).filter((c) => c.status === "ativo").length,
-      services: (services as any[]).length,
-      pendingDocs: (documents as any[]).filter((d) => ["pendente", "solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length,
+      clients: filteredClients.length,
+      activeClients: filteredClients.filter((c) => c.status === "ativo").length,
+      services: filteredServices.length,
+      pendingDocs: filteredDocuments.filter((d) => ["pendente", "solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length,
     };
-  }, [commissions, clients, services, documents]);
+  }, [filteredCommissions, filteredClients, filteredServices, filteredDocuments]);
 
   const firstName = (partner?.full_name || user?.user_metadata?.full_name || user?.email || "Parceiro").split(" ")[0];
 
@@ -648,6 +696,7 @@ export default function PartnerPanel() {
               eyebrow="Painel do parceiro"
               title={<>Olá, {firstName} 👋</>}
               subtitle="Veja seus clientes, comissões e desempenho em tempo real."
+              actions={<StageFilterBar />}
               stats={[
                 { label: "Comissão neste mês", value: formatBRL(kpis.monthPaid) },
                 { label: "Comissões pagas", value: formatBRL(kpis.totalPaid) },
@@ -657,9 +706,9 @@ export default function PartnerPanel() {
             />
             <div className="grid lg:grid-cols-3 gap-5">
               <SectionCard className="lg:col-span-2" title="Últimos clientes" icon={Users}>
-                {clients.length === 0 ? <EmptyState icon={Inbox} title="Nenhum cliente ainda" /> :
+                {filteredClients.length === 0 ? <EmptyState icon={Inbox} title="Nenhum cliente ainda" /> :
                   <ul className="divide-y divide-slate-100 -mx-1">
-                    {(clients as any[]).slice(0, 6).map((c) => (
+                    {filteredClients.slice(0, 6).map((c) => (
                       <li key={c.id} className="flex items-center gap-3 px-3 py-2.5">
                         <div className="size-9 rounded-full bg-violet-50 text-violet-700 flex items-center justify-center text-[11px] font-semibold">{initials(c.full_name)}</div>
                         <div className="min-w-0 flex-1">
@@ -676,9 +725,9 @@ export default function PartnerPanel() {
               </SectionCard>
 
               <SectionCard title="Comissões recentes" icon={Wallet}>
-                {commissions.length === 0 ? <EmptyState icon={Clock} title="Sem comissões" /> :
+                {filteredCommissions.length === 0 ? <EmptyState icon={Clock} title="Sem comissões" /> :
                   <ul className="divide-y divide-slate-100 -mx-1">
-                    {(commissions as any[]).slice(0, 5).map((c) => (
+                    {filteredCommissions.slice(0, 5).map((c) => (
                       <li key={c.id} className="px-3 py-2.5">
                         <div className="flex items-center justify-between">
                           <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(c.amount)}</p>
@@ -690,15 +739,16 @@ export default function PartnerPanel() {
                   </ul>}
               </SectionCard>
             </div>
+            <RevenueByStage payments={commissionStageRows} onlyReceived={false} title="Comissões por estágio" />
           </>
         )}
 
         {activeKey === "clientes" && (
           <>
-            <PanelHero role="parceiro" eyebrow="Carteira" title="Meus clientes" subtitle={`${clients.length} cliente(s) ativos sob sua parceria.`} actions={<StageFilterBar />} />
+            <PanelHero role="parceiro" eyebrow="Carteira" title="Meus clientes" subtitle={`${filteredClients.length} cliente(s) na sua carteira.`} actions={<StageFilterBar />} />
             <SectionCard title="">
               {(() => {
-                const list = (clients as any[]).filter((c) => stageMatcher.matchesClientId(c.id));
+                const list = filteredClients;
                 if (list.length === 0) return <EmptyState icon={Users} title="Sem clientes" />;
                 return (
                   <ul className="divide-y divide-slate-100 -mx-1">
@@ -732,15 +782,15 @@ export default function PartnerPanel() {
 
         {activeKey === "servicos" && (
           <>
-            <PanelHero role="parceiro" eyebrow="Operação" title="Serviços dos clientes" subtitle={`${services.length} serviço(s) em acompanhamento na sua carteira.`} stats={[
-              { label: "Ativos", value: (services as any[]).filter((s) => !["concluido", "concluida", "cancelado", "cancelada"].includes(s.status)).length },
-              { label: "Concluídos", value: (services as any[]).filter((s) => ["concluido", "concluida"].includes(s.status)).length },
-              { label: "Minha comissão", value: formatBRL((services as any[]).reduce((sum, s) => sum + (commissionByService.get(s.id) || 0), 0)) },
+            <PanelHero role="parceiro" eyebrow="Operação" title="Serviços dos clientes" subtitle={`${filteredServices.length} serviço(s) em acompanhamento na sua carteira.`} actions={<StageFilterBar />} stats={[
+              { label: "Ativos", value: filteredServices.filter((s) => !["concluido", "concluida", "cancelado", "cancelada"].includes(s.status)).length },
+              { label: "Concluídos", value: filteredServices.filter((s) => ["concluido", "concluida"].includes(s.status)).length },
+              { label: "Minha comissão", value: formatBRL(filteredServices.reduce((sum, s) => sum + (commissionByService.get(s.id) || 0), 0)) },
               { label: "Docs pendentes", value: kpis.pendingDocs },
             ]} />
-            {services.length === 0 ? <SectionCard title=""><EmptyState icon={Briefcase} title="Nenhum serviço vinculado" description="Quando seus clientes tiverem serviços/demandas, eles aparecerão aqui." /></SectionCard> :
+            {filteredServices.length === 0 ? <SectionCard title=""><EmptyState icon={Briefcase} title="Nenhum serviço vinculado" description="Quando seus clientes tiverem serviços/demandas, eles aparecerão aqui." /></SectionCard> :
               <div className="grid sm:grid-cols-2 gap-3">
-                {(services as any[]).map((service) => {
+                {filteredServices.map((service) => {
                   const meta = SERVICE_TONE[service.status] || { label: service.status || "—", tone: "bg-slate-100 text-slate-700 border-slate-200" };
                   const myCommission = commissionByService.get(service.id) || 0;
                   return (
@@ -773,11 +823,11 @@ export default function PartnerPanel() {
 
         {activeKey === "documentos" && (
           <>
-            <PanelHero role="parceiro" eyebrow="Arquivos" title="Documentos dos clientes" subtitle={`${documents.length} documento(s) e solicitação(ões) da sua carteira.`} stats={[
+            <PanelHero role="parceiro" eyebrow="Arquivos" title="Documentos dos clientes" subtitle={`${filteredDocuments.length} documento(s) e solicitação(ões) da sua carteira.`} actions={<StageFilterBar />} stats={[
               { label: "Pendentes", value: kpis.pendingDocs },
-              { label: "Em análise", value: (documents as any[]).filter((d) => ["enviado", "em_analise"].includes(d.status)).length },
-              { label: "Aprovados", value: (documents as any[]).filter((d) => d.status === "aprovado").length },
-              { label: "Clientes", value: clients.length },
+              { label: "Em análise", value: filteredDocuments.filter((d) => ["enviado", "em_analise"].includes(d.status)).length },
+              { label: "Aprovados", value: filteredDocuments.filter((d) => d.status === "aprovado").length },
+              { label: "Clientes", value: filteredClients.length },
             ]} />
 
             <SectionCard title="Meus documentos solicitados" subtitle="Documentos que a equipe pediu para você enviar.">
@@ -837,7 +887,7 @@ export default function PartnerPanel() {
 
             <ClientDocumentsTab
               clientId={partner?.id || "partner"}
-              requests={documents as any[]}
+              requests={filteredDocuments as any[]}
               products={(services as any[]).map((service) => ({ id: service.product_id || service.id, name: service.products?.name || service.custom_product_name || "Serviço" }))}
               getUploadFolder={(req) => req.client_product_id || req.client_id || partner?.id}
               invalidateKeys={[["partner-docs", partner?.id, clientIds.join(","), serviceIds.join(",")]]}
@@ -859,17 +909,18 @@ export default function PartnerPanel() {
             <PanelHero role="parceiro" eyebrow="Financeiro" title="Comissões" subtitle="Histórico completo das suas comissões." stats={[
               { label: "Pagas", value: formatBRL(kpis.totalPaid) },
               { label: "Pendentes", value: formatBRL(kpis.totalPending) },
-              { label: "Total", value: commissions.length },
+              { label: "Total", value: filteredCommissions.length },
               { label: "Mês atual", value: formatBRL(kpis.monthPaid) },
-            ]} />
+            ]} actions={<StageFilterBar />} />
             <div className="flex items-center justify-end gap-2 mb-3">
               <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-500 px-2 py-1 rounded-md border border-slate-200 bg-white">
                 {showProductName ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
                 {showProductName ? "Nome do produto visível" : "Nome do produto oculto (definido pelo admin)"}
               </span>
             </div>
+            <RevenueByStage payments={commissionStageRows} onlyReceived={false} title="Comissões por estágio" className="mb-4" />
             <SectionCard title="">
-              {commissions.length === 0 ? <EmptyState icon={Wallet} title="Sem comissões" /> :
+              {filteredCommissions.length === 0 ? <EmptyState icon={Wallet} title="Sem comissões" /> :
                 <div className="overflow-x-auto -mx-2">
                   <table className="w-full text-[13px]">
                     <thead>
@@ -882,7 +933,7 @@ export default function PartnerPanel() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(commissions as any[]).map((c) => (
+                      {filteredCommissions.map((c) => (
                         <tr key={c.id} className="border-b border-slate-50 hover:bg-slate-50/60">
                           <td className="px-3 py-2.5 text-slate-900 font-medium">{c.clients?.full_name || "—"}</td>
                           {showProductName && <td className="px-3 py-2.5 text-slate-600">{c.products?.name || "—"}</td>}
@@ -900,11 +951,11 @@ export default function PartnerPanel() {
 
         {activeKey === "extrato" && (
           <>
-            <PanelHero role="parceiro" eyebrow="Atividade" title="Extrato" subtitle="Linha do tempo das suas comissões." />
+            <PanelHero role="parceiro" eyebrow="Atividade" title="Extrato" subtitle="Linha do tempo das suas comissões." actions={<StageFilterBar />} />
             <SectionCard title="">
-              {commissions.length === 0 ? <EmptyState icon={FileText} title="Sem movimentações" /> :
+              {filteredCommissions.length === 0 ? <EmptyState icon={FileText} title="Sem movimentações" /> :
                 <ol className="relative border-l border-slate-200 ml-4 space-y-4 py-2">
-                  {(commissions as any[]).map((c) => {
+                  {filteredCommissions.map((c) => {
                     const paid = c.status === "pago" || c.status === "paga";
                     return (
                       <li key={c.id} className="pl-5 relative">
