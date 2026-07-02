@@ -694,7 +694,7 @@ export default function DashboardAdmin() {
 
         {/* ============ REVENUE BY STAGE ============ */}
         <section className="grid grid-cols-1">
-          <RevenueByStage payments={payments as any[]} />
+          <RevenueByStage payments={(_rawPayments as any[]).filter((p: any) => matchesClientId(p.client_id))} />
         </section>
 
 
