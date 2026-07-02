@@ -170,32 +170,57 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   }
 
   async function onAttachToRequest(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
     const doc = attachingDoc;
     setAttachingDoc(null);
-    if (!file || !doc) return;
+    if (!files.length || !doc) return;
     try {
       setUploading(true);
-      const safe = sanitizeStorageFileName(file.name);
-      const path = `${clientId}/folder/${currentFolderId}/${Date.now()}_${safe}`;
-      const up = await supabase.storage.from("documents").upload(path, file);
-      if (up.error) throw up.error;
-      const oldPath = doc.file_path as string | undefined;
-      const { error } = await supabase.from("documents").update({
-        file_path: path,
-        file_size: file.size,
-        mime_type: file.type,
-        status: "em_analise",
-        uploaded_at: new Date().toISOString(),
-        uploaded_by: user?.id ?? null,
-        source: viewerRole === "client" ? "client_upload" : "admin_upload",
-      } as any).eq("id", doc.id);
-      if (error) throw error;
-      if (oldPath && oldPath !== path) {
-        await supabase.storage.from("documents").remove([oldPath]).catch(() => {});
+      const now = new Date().toISOString();
+      const source = viewerRole === "client" ? "client_upload" : "admin_upload";
+      const extraRows: any[] = [];
+
+      for (const [index, file] of files.entries()) {
+        const safe = sanitizeStorageFileName(file.name);
+        const path = `${clientId}/folder/${currentFolderId}/${Date.now()}_${index}_${safe}`;
+        const up = await supabase.storage.from("documents").upload(path, file);
+        if (up.error) throw up.error;
+
+        if (index === 0 && !doc.file_path) {
+          const { error } = await supabase.from("documents").update({
+            file_path: path,
+            file_size: file.size,
+            mime_type: file.type,
+            status: "em_analise",
+            uploaded_at: now,
+            uploaded_by: user?.id ?? null,
+            source,
+          } as any).eq("id", doc.id);
+          if (error) throw error;
+        } else {
+          extraRows.push({
+            client_id: clientId,
+            folder_id: currentFolderId,
+            product_id: doc.product_id ?? null,
+            name: `${doc.name} — ${file.name}`,
+            description: `Arquivo adicional de "${doc.name}"`,
+            file_path: path,
+            file_size: file.size,
+            mime_type: file.type,
+            status: "em_analise",
+            source,
+            uploaded_by: user?.id ?? null,
+            uploaded_at: now,
+            is_required: false,
+          });
+        }
       }
-      toast.success("Arquivo anexado à solicitação");
+      if (extraRows.length) {
+        const { error } = await supabase.from("documents").insert(extraRows as any);
+        if (error) throw error;
+      }
+      toast.success(`${files.length} arquivo(s) enviado(s)`);
       qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
     } catch (err: any) {
       toast.error(uploadErrorMessage(err));
@@ -203,6 +228,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
       setUploading(false);
     }
   }
+
 
 
   return (
