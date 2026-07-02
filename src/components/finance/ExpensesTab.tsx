@@ -370,97 +370,271 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
         )}
       </div>
 
-      {/* Dialog */}
+      {/* Dialog premium */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{editing ? "Editar despesa" : "Nova despesa"}</DialogTitle>
-            <DialogDescription>Controle avulsas e recorrentes. Entra no saldo líquido da Zenon no mês de referência.</DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2">
-              <Label className="text-xs">Descrição *</Label>
-              <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Ex: Aluguel escritório" className="h-9 mt-1" />
-            </div>
-            <div>
-              <Label className="text-xs">Categoria *</Label>
-              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
-                <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs">Subcategoria</Label>
-              <Input value={form.subcategory} onChange={(e) => setForm({ ...form, subcategory: e.target.value })} className="h-9 mt-1" />
-            </div>
-            <div>
-              <Label className="text-xs">Valor (R$) *</Label>
-              <Input type="number" step="0.01" min="0" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="h-9 mt-1 font-mono text-right" />
-            </div>
-            <div>
-              <Label className="text-xs">Fornecedor</Label>
-              <Input value={form.vendor} onChange={(e) => setForm({ ...form, vendor: e.target.value })} className="h-9 mt-1" />
-            </div>
-            <div>
-              <Label className="text-xs">Mês de competência</Label>
-              <Input type="month" value={form.reference_month} onChange={(e) => setForm({ ...form, reference_month: e.target.value })} className="h-9 mt-1" />
-            </div>
-            <div>
-              <Label className="text-xs">Vencimento</Label>
-              <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="h-9 mt-1" />
-            </div>
-            <div>
-              <Label className="text-xs">Data do lançamento</Label>
-              <Input type="date" value={form.expense_date} onChange={(e) => setForm({ ...form, expense_date: e.target.value })} className="h-9 mt-1" />
-            </div>
-            <div>
-              <Label className="text-xs">Forma de pagamento</Label>
-              <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
-                <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pix">PIX</SelectItem>
-                  <SelectItem value="boleto">Boleto</SelectItem>
-                  <SelectItem value="ted">TED</SelectItem>
-                  <SelectItem value="cartao">Cartão</SelectItem>
-                  <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                  <SelectItem value="debito_automatico">Débito automático</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="col-span-2 flex items-center gap-3 rounded-md border border-slate-200 p-2.5">
-              <Switch checked={form.paid} onCheckedChange={(v) => setForm({ ...form, paid: v, paid_at: v ? (form.paid_at || form.expense_date) : "" })} />
-              <div className="flex-1">
-                <p className="text-xs font-semibold">Já foi paga</p>
-                <p className="text-[10px] text-slate-500">Marque para lançar como paga na data abaixo.</p>
+        <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden">
+          <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 text-white px-6 py-5">
+            <div className="flex items-start gap-3">
+              <div className="size-10 rounded-lg bg-white/15 backdrop-blur flex items-center justify-center shrink-0">
+                {editing ? <Pencil className="size-5" /> : <Plus className="size-5" />}
               </div>
-              {form.paid && (
-                <Input type="date" value={form.paid_at} onChange={(e) => setForm({ ...form, paid_at: e.target.value })} className="h-8 w-[150px]" />
+              <div className="flex-1 min-w-0">
+                <DialogTitle className="text-lg font-bold tracking-tight text-white">
+                  {editing ? "Editar despesa" : "Nova despesa operacional"}
+                </DialogTitle>
+                <DialogDescription className="text-indigo-100 text-[12.5px] mt-0.5">
+                  Toda despesa entra no cálculo do saldo líquido da Zenon no mês de referência.
+                </DialogDescription>
+              </div>
+              {form.amount && Number(form.amount) > 0 && (
+                <div className="text-right shrink-0 bg-white/10 rounded-lg px-3 py-2 backdrop-blur">
+                  <p className="text-[9.5px] uppercase tracking-widest text-indigo-200 font-bold">Valor</p>
+                  <p className="font-mono text-lg font-bold tabular-nums">{formatBRL(Number(form.amount))}</p>
+                </div>
               )}
             </div>
-            {!editing && (
-              <div className="col-span-2 rounded-md border border-indigo-100 bg-indigo-50/50 p-2.5">
-                <Label className="text-xs font-semibold text-indigo-900">Recorrência (meses)</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <Input type="number" min={1} max={36} value={form.recurringMonths}
-                    onChange={(e) => setForm({ ...form, recurringMonths: Number(e.target.value) || 1 })}
-                    className="h-9 w-24 font-mono text-right" />
-                  <p className="text-[11px] text-slate-600">Cria uma cópia por mês a partir da competência (ex.: 12 = ano inteiro).</p>
+          </div>
+
+          <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+            {/* 1. Identificação */}
+            <section>
+              <SectionTitle icon={<FileText className="size-3.5" />} label="Identificação" />
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-[11px] font-semibold text-slate-700">Descrição *</Label>
+                  <Input
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    placeholder="Ex.: Aluguel escritório abril"
+                    className="h-10 mt-1"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1">
+                      <Building2 className="size-3" /> Fornecedor
+                    </Label>
+                    <Input
+                      value={form.vendor}
+                      onChange={(e) => setForm({ ...form, vendor: e.target.value })}
+                      placeholder="Empresa / pessoa"
+                      className="h-10 mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] font-semibold text-slate-700">Subcategoria</Label>
+                    <Input
+                      value={form.subcategory}
+                      onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
+                      placeholder="Opcional"
+                      className="h-10 mt-1"
+                    />
+                  </div>
                 </div>
               </div>
+            </section>
+
+            {/* 2. Categoria (chips) */}
+            <section>
+              <SectionTitle icon={<Tag className="size-3.5" />} label="Categoria *" />
+              <div className="flex flex-wrap gap-1.5">
+                {CATEGORIES.map((c) => {
+                  const active = form.category === c.value;
+                  return (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setForm({ ...form, category: c.value })}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg border text-[12px] font-medium transition-all",
+                        active
+                          ? "bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-500/20"
+                          : "bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40",
+                      )}
+                    >
+                      {c.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* 3. Financeiro */}
+            <section>
+              <SectionTitle icon={<Coins className="size-3.5" />} label="Financeiro" />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <Label className="text-[11px] font-semibold text-slate-700">Valor (R$) *</Label>
+                  <div className="relative mt-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-mono font-bold text-slate-400 pointer-events-none">R$</span>
+                    <Input
+                      type="number" step="0.01" min="0"
+                      value={form.amount}
+                      onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                      placeholder="0,00"
+                      className="h-11 pl-10 font-mono text-right text-lg font-bold tabular-nums"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1">
+                    <Calendar className="size-3" /> Competência
+                  </Label>
+                  <Input
+                    type="month"
+                    value={form.reference_month}
+                    onChange={(e) => setForm({ ...form, reference_month: e.target.value })}
+                    className="h-10 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[11px] font-semibold text-slate-700">Vencimento</Label>
+                  <Input
+                    type="date"
+                    value={form.due_date}
+                    onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                    className="h-10 mt-1"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-[11px] font-semibold text-slate-700">Data do lançamento</Label>
+                  <Input
+                    type="date"
+                    value={form.expense_date}
+                    onChange={(e) => setForm({ ...form, expense_date: e.target.value })}
+                    className="h-10 mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-3">
+                <Label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1 mb-1.5">
+                  <CreditCard className="size-3" /> Forma de pagamento
+                </Label>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                  {[
+                    { value: "pix", label: "PIX", icon: Zap },
+                    { value: "boleto", label: "Boleto", icon: Receipt },
+                    { value: "ted", label: "TED", icon: Landmark },
+                    { value: "cartao", label: "Cartão", icon: CreditCard },
+                    { value: "debito_automatico", label: "Débito", icon: RotateCcw },
+                    { value: "dinheiro", label: "Dinheiro", icon: Banknote },
+                  ].map((m) => {
+                    const Icon = m.icon;
+                    const active = form.payment_method === m.value;
+                    return (
+                      <button
+                        key={m.value}
+                        type="button"
+                        onClick={() => setForm({ ...form, payment_method: m.value })}
+                        className={cn(
+                          "flex flex-col items-center justify-center gap-1 py-2 rounded-lg border text-[10.5px] font-semibold transition-all",
+                          active
+                            ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                            : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40",
+                        )}
+                      >
+                        <Icon className="size-4" />
+                        {m.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+
+            {/* 4. Status */}
+            <section>
+              <SectionTitle icon={<CheckCircle2 className="size-3.5" />} label="Status de pagamento" />
+              <div className={cn(
+                "flex items-center gap-3 rounded-xl border p-3 transition-colors",
+                form.paid ? "border-emerald-200 bg-emerald-50/40" : "border-slate-200 bg-slate-50/40",
+              )}>
+                <Switch
+                  checked={form.paid}
+                  onCheckedChange={(v) => setForm({ ...form, paid: v, paid_at: v ? (form.paid_at || form.expense_date) : "" })}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold text-slate-900">
+                    {form.paid ? "Marcada como paga" : "Ainda não foi paga"}
+                  </p>
+                  <p className="text-[10.5px] text-slate-500">
+                    {form.paid ? "Vai entrar imediatamente no saldo líquido do mês." : "Fica em pendências até você marcar como paga."}
+                  </p>
+                </div>
+                {form.paid && (
+                  <Input
+                    type="date"
+                    value={form.paid_at}
+                    onChange={(e) => setForm({ ...form, paid_at: e.target.value })}
+                    className="h-9 w-[150px] bg-white"
+                  />
+                )}
+              </div>
+            </section>
+
+            {/* 5. Recorrência */}
+            {!editing && (
+              <section>
+                <SectionTitle icon={<Repeat className="size-3.5" />} label="Recorrência (opcional)" />
+                <div className="rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50/60 to-white p-3">
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="number" min={1} max={36}
+                      value={form.recurringMonths}
+                      onChange={(e) => setForm({ ...form, recurringMonths: Number(e.target.value) || 1 })}
+                      className="h-10 w-24 font-mono text-center text-lg font-bold tabular-nums bg-white"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-semibold text-slate-900">
+                        {form.recurringMonths > 1 ? `${form.recurringMonths} meses consecutivos` : "Sem recorrência"}
+                      </p>
+                      <p className="text-[10.5px] text-slate-600">
+                        Cria uma cópia por mês a partir da competência (ex.: 12 = ano inteiro).
+                      </p>
+                    </div>
+                  </div>
+                  {form.recurringMonths > 1 && Number(form.amount) > 0 && (
+                    <div className="mt-2 pt-2 border-t border-indigo-100 flex items-center justify-between text-[11.5px]">
+                      <span className="text-slate-600">Impacto total ao longo do período:</span>
+                      <span className="font-mono font-bold text-indigo-700 tabular-nums">
+                        {formatBRL(Number(form.amount) * form.recurringMonths)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </section>
             )}
-            <div className="col-span-2">
-              <Label className="text-xs">Observações</Label>
-              <Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-            </div>
+
+            {/* 6. Observações */}
+            <section>
+              <SectionTitle icon={<StickyNote className="size-3.5" />} label="Observações (opcional)" />
+              <Textarea
+                rows={2}
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                placeholder="Notas internas, comprovante, contrato…"
+              />
+            </section>
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={save}>{editing ? "Salvar" : "Criar"}</Button>
+            <Button onClick={save} className="bg-indigo-600 hover:bg-indigo-700 gap-1.5">
+              {editing ? <><Pencil className="size-4" /> Salvar alterações</> : <><Plus className="size-4" /> Criar despesa</>}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function SectionTitle({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <div className="flex items-center gap-1.5 mb-2 text-[10.5px] uppercase tracking-[0.15em] font-bold text-slate-500">
+      <span className="text-indigo-500">{icon}</span>
+      {label}
     </div>
   );
 }
