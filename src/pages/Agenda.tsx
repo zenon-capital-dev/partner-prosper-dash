@@ -532,8 +532,6 @@ function EmptyHint({ text }: { text: string }) {
 }
 
 function ItemList({
-  const { pageSize: __ps, setPageSize } = usePageSize();
-  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   items, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus, onRequestReschedule,
 }: {
   items: AgendaItem[];
@@ -545,7 +543,10 @@ function ItemList({
   onSetStatus?: (id: string, s: Status) => void;
   onRequestReschedule?: (item: AgendaItem) => void;
 }) {
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const [page, setPage] = useState(1);
+
   const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageItems = useMemo(
