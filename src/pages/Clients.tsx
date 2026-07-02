@@ -180,6 +180,13 @@ export default function Clients() {
     return Array.from(set).sort();
   }, [clients]);
 
+  // Status dinâmico: reflete o que realmente existe no banco (inclui "novo_cliente" etc.)
+  const statusOptions = useMemo(() => {
+    const base = ["ativo", "prospecto", "novo_cliente", "inativo"];
+    const fromData = (clients as any[]).map((c) => c.status).filter(Boolean);
+    return Array.from(new Set([...base, ...fromData]));
+  }, [clients]);
+
   const enriched = useMemo(() => {
     const today = startOfToday();
     const productsByClient = new Map<string, any[]>();
