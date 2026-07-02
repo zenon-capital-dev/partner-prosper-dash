@@ -60,19 +60,22 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
     },
   });
 
-  const currentFolderId = activeId ?? folders[0]?.id ?? null;
+  const ALL_ID = "__all__";
+  const currentFolderId = activeId ?? ALL_ID;
+  const isAllView = currentFolderId === ALL_ID;
 
   const { data: files = [] } = useQuery({
-    queryKey: ["cdf-files", currentFolderId],
+    queryKey: ["cdf-files", clientId, currentFolderId],
     enabled: !!currentFolderId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("documents")
-        .select("*")
-        .eq("folder_id", currentFolderId!)
-        .order("created_at", { ascending: false });
+      let q = supabase.from("documents").select("*").eq("client_id", clientId);
+      if (!isAllView) q = q.eq("folder_id", currentFolderId!);
+      const { data, error } = await q.order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
+    },
+  });
+
     },
   });
 
