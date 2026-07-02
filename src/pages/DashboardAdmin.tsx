@@ -23,6 +23,9 @@ import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { paymentSaleIsFinalized, saleIsFinalized } from "@/lib/financial";
+import { RevenueByStage } from "@/components/finance/RevenueByStage";
+import { StageFilterBar } from "@/components/filters/StageFilterBar";
+import { useStageMatcher } from "@/hooks/useSharedStageFilter";
 ;
 import { ptBR } from "date-fns/locale";
 import {
@@ -197,7 +200,7 @@ export default function DashboardAdmin() {
     staleTime: STALE,
     enabled: false,
     queryFn: async () => {
-      const data = (await supabase.from("payments").select("id, sale_id, status, amount, amount_paid, due_date, paid_at, sales(id, status)").in("status", ["pendente", "em_aberto", "parcialmente_pago", "atrasado", "vencido", "pago"]).limit(500)).data ?? [];
+      const data = (await supabase.from("payments").select("id, sale_id, client_id, status, amount, amount_paid, due_date, paid_at, sales(id, status)").in("status", ["pendente", "em_aberto", "parcialmente_pago", "atrasado", "vencido", "pago"]).limit(500)).data ?? [];
       return (data as any[]).filter(paymentSaleIsFinalized);
     }
   });
@@ -506,6 +509,7 @@ export default function DashboardAdmin() {
           </div>
 
           <div className="flex items-center gap-3 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 scrollbar-none">
+            <StageFilterBar />
             <div className="inline-flex items-center bg-white border border-slate-200/80 rounded-xl p-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)] shrink-0">
               {(["HOJE", "7D", "30D", "MÊS"] as const).map((k) => (
                 <button
@@ -672,6 +676,13 @@ export default function DashboardAdmin() {
             <MiniStat label="Comissões" value={isGlobalLoading ? "-" : formatBRL(stats.commissionsToPay)} hint={isGlobalLoading ? "..." : `${stats.commissionsCount} lançamentos`} icon={Wallet} to="/comissoes" />
 
         </section>
+
+        {/* ============ REVENUE BY STAGE ============ */}
+        <section className="grid grid-cols-1">
+          <RevenueByStage payments={payments as any[]} />
+        </section>
+
+
 
         {/* ============ CHART + STATUS PIE ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">

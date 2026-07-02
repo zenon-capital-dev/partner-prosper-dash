@@ -31,6 +31,7 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { StageFilterBar } from "@/components/filters/StageFilterBar";
 import { useStageMatcher } from "@/hooks/useSharedStageFilter";
 import { ProfitReservesPanel } from "@/components/finance/ProfitReservesPanel";
+import { RevenueByStage } from "@/components/finance/RevenueByStage";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -784,7 +785,13 @@ export default function FinanceCenter() {
           </div>
         )}
 
-        <ProfitReservesPanel monthKey={kpiRange === "specific" ? specificMonth : nowMonthKey()} canManage={canManage} />
+        <div className="grid gap-4 lg:grid-cols-2">
+          <ProfitReservesPanel monthKey={kpiRange === "specific" ? specificMonth : nowMonthKey()} canManage={canManage} />
+          <RevenueByStage payments={effectivePayments.filter((p: any) => {
+            const d = (p.paid_at || p.payment_date || "") as string;
+            return d >= rangeStartIso && d < rangeEndIso;
+          })} />
+        </div>
 
 
 
