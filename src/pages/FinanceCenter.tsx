@@ -19,8 +19,10 @@ import { confirmAction } from "@/lib/confirm";
 import {
   Banknote, TrendingUp, TrendingDown, AlertTriangle, Wallet, Receipt, BarChart3,
   Search, RefreshCw, CheckCircle2, AlertCircle, X, Download, ArrowUp, ArrowDown, ArrowUpDown,
-  Filter, FileX, CalendarRange,
+  Filter, FileX, CalendarRange, ShieldCheck,
 } from "lucide-react";
+
+import { ConsistencyReport } from "@/components/finance/ConsistencyReport";
 
 import { RevenueMap } from "@/components/finance/RevenueMap";
 
