@@ -27,6 +27,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { usePageSize } from "@/hooks/usePageSize";
+import { saleIsFinalized } from "@/lib/financial";
 
 type RangeKey = "HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO";
 type SortDir = "asc" | "desc";
@@ -134,6 +135,7 @@ export default function Finance() {
     queryFn: async () => {
       let q = supabase.from("sales")
         .select("id, amount, zenon_cost, provider_cost, status, sale_date, paid_at, payment_method, clients(full_name), products(name)")
+        .eq("status", "concluida")
         .order("sale_date", { ascending: false })
         .limit(300);
       if (from) q = q.gte("sale_date", from);
@@ -164,7 +166,7 @@ export default function Finance() {
       const { data, error } = await supabase.from("commissions")
         .select(`
           *,
-          sales:sale_id(sale_date, clients(full_name), products(name)),
+          sales:sale_id(status, sale_date, clients(full_name), products(name)),
           partners:partner_id(full_name),
           referrers:referrer_id(full_name),
           collaborator:profiles!collaborator_id(full_name)
@@ -177,7 +179,7 @@ export default function Finance() {
         return [];
       }
       
-      let rows = data ?? [];
+      let rows = (data ?? []).filter((c: any) => !c.sale_id || saleIsFinalized(c.sales));
       if (from && to) {
         rows = rows.filter((c: any) => {
           const date = (c.paid_at || c.created_at || "").slice(0, 10);
@@ -197,7 +199,7 @@ export default function Finance() {
       .filter((s: any) => s.status === "pendente")
       .reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
     const salesCosts = sales
-      .filter((s: any) => s.status !== "cancelada")
+      .filter((s: any) => saleIsFinalized(s))
       .reduce((a: number, s: any) => a + Number(s.zenon_cost || 0) + Number(s.provider_cost || 0), 0);
     const expensesTotal = expenses.reduce((a: number, e: any) => a + Number(e.amount || 0), 0);
     const commissionsPaid = splits

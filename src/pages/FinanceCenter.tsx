@@ -35,6 +35,7 @@ import {
   BarChart, Bar, Legend,
 } from "recharts";
 import { usePageSize } from "@/hooks/usePageSize";
+import { paymentSaleIsFinalized, saleIsFinalized } from "@/lib/financial";
 
 
 const norm = (s: any) =>
@@ -273,7 +274,7 @@ export default function FinanceCenter() {
       (
         await supabase
           .from("payments")
-          .select("*, clients(id, full_name, company), products(name), client_products(custom_product_name)")
+          .select("*, clients(id, full_name, company), products(name), client_products(custom_product_name), sales(id, status)")
           .order("due_date", { ascending: false })
           .limit(300)
       ).data ?? [],
@@ -312,7 +313,7 @@ export default function FinanceCenter() {
       (
         await supabase
           .from("commission_splits")
-          .select("id, sale_id, amount, status, beneficiary_type, paid_at, created_at")
+          .select("id, sale_id, amount, status, beneficiary_type, paid_at, created_at, sale:sales(id, status, amount)")
           .order("created_at", { ascending: false })
           .limit(300)
       ).data ?? [],
@@ -329,7 +330,7 @@ export default function FinanceCenter() {
           .select("*")
           .order("created_at", { ascending: false })
           .limit(300),
-        supabase.from("sales").select("id, client_id, product_id, amount, sale_date").limit(300),
+        supabase.from("sales").select("id, client_id, product_id, amount, sale_date, status").limit(300),
         supabase.from("partners").select("id, full_name").limit(500),
         supabase.from("profiles").select("id, full_name").limit(500),
         supabase.from("referrers").select("id, full_name").limit(500),
@@ -401,7 +402,17 @@ export default function FinanceCenter() {
   });
 
   const today = todayIsoStr();
-  const commissionRows = loadCommissionDetails && commissions.length ? commissions : commissionSummary;
+  const effectivePayments = useMemo(() => (payments as any[]).filter(paymentSaleIsFinalized), [payments]);
+  const effectiveSalesCosts = useMemo(() => (salesCosts as any[]).filter(saleIsFinalized), [salesCosts]);
+  const rawCommissionRows = loadCommissionDetails && commissions.length ? commissions : commissionSummary;
+  const commissionRows = useMemo(
+    () => (rawCommissionRows as any[]).filter((c: any) => !c.sale_id || saleIsFinalized(c.sale)),
+    [rawCommissionRows]
+  );
+  const effectiveCommissions = useMemo(
+    () => (commissions as any[]).filter((c: any) => !c.sale_id || saleIsFinalized(c.sale)),
+    [commissions]
+  );
 
   const kpis = useMemo(() => {
     const now = new Date();
@@ -413,28 +424,28 @@ export default function FinanceCenter() {
     const expDate = (e: any) => (e.expense_date || e.created_at || "") as string;
     const inRange = (d: string) => !!d && d >= from && d < to;
 
-    const totalReceived = payments
+    const totalReceived = effectivePayments
       .filter((p: any) => paymentReceivedAmount(p) > 0 && inRange(paidDate(p)))
       .reduce((a: number, p: any) => a + paymentReceivedAmount(p), 0);
-    const receivedThisMonth = payments
+    const receivedThisMonth = effectivePayments
       .filter((p: any) => paymentReceivedAmount(p) > 0 && paidDate(p) >= startOfMonth)
       .reduce((a: number, p: any) => a + paymentReceivedAmount(p), 0);
-    const totalReceivable = payments
+    const totalReceivable = effectivePayments
       .filter((p: any) => isOpen(p.status))
       .reduce((a: number, p: any) => a + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
-    const totalOverdue = payments
+    const totalOverdue = effectivePayments
       .filter((p: any) => isOpen(p.status) && p.due_date && p.due_date < today)
       .reduce((a: number, p: any) => a + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
     // Recebido agregado por venda (dentro do range) — usado para prorratear comissões
     const receivedBySale = new Map<string, number>();
-    for (const p of payments as any[]) {
+    for (const p of effectivePayments as any[]) {
       const received = paymentReceivedAmount(p);
       if (received <= 0 || !inRange(paidDate(p))) continue;
       const sid = p.sale_id;
       if (!sid) continue;
       receivedBySale.set(sid, (receivedBySale.get(sid) || 0) + received);
     }
-    const salesAmountById = new Map((salesCosts as any[]).map((s: any) => [s.id, Number(s.amount || 0)]));
+    const salesAmountById = new Map((effectiveSalesCosts as any[]).map((s: any) => [s.id, Number(s.amount || 0)]));
     // Comissão devida = comissão total * (recebido / valor da venda), limitada ao valor da comissão.
     // Isso reflete a regra: só pagamos comissão sobre o que efetivamente entrou.
     const accruedCommission = (c: any) => {
@@ -464,14 +475,11 @@ export default function FinanceCenter() {
       const rec = receivedBySale.get(s.id) || 0;
       return clampRatio(rec / val);
     };
-    const salesCostsTotal = (salesCosts as any[])
-      .filter((s) => s.status !== "cancelada")
+    const salesCostsTotal = effectiveSalesCosts
       .reduce((a, s) => a + (Number(s.zenon_cost || 0) + Number(s.provider_cost || 0)) * salesCostRatio(s), 0);
-    const zenonCostTotal = (salesCosts as any[])
-      .filter((s) => s.status !== "cancelada")
+    const zenonCostTotal = effectiveSalesCosts
       .reduce((a, s) => a + Number(s.zenon_cost || 0) * salesCostRatio(s), 0);
-    const providerCostTotal = (salesCosts as any[])
-      .filter((s) => s.status !== "cancelada")
+    const providerCostTotal = effectiveSalesCosts
       .reduce((a, s) => a + Number(s.provider_cost || 0) * salesCostRatio(s), 0);
     // Imposto incide APENAS sobre o que efetivamente entrou em caixa no período.
     const taxesTotal = totalReceived * (Number(taxRate) || 0) / 100;
@@ -494,12 +502,12 @@ export default function FinanceCenter() {
       taxRate: Number(taxRate) || 0,
       netRevenue,
     };
-  }, [payments, commissionRows, expenses, salesCosts, today, rangeStartIso, rangeEndIso, taxRate]);
+  }, [effectivePayments, commissionRows, expenses, effectiveSalesCosts, today, rangeStartIso, rangeEndIso, taxRate]);
 
   const counts = useMemo(() => {
-    const recebidos = payments.filter((p: any) => isPaid(p.status)).length;
-    const aReceber = payments.filter((p: any) => isOpen(p.status)).length;
-    const inadimplencia = payments.filter(
+    const recebidos = effectivePayments.filter((p: any) => isPaid(p.status)).length;
+    const aReceber = effectivePayments.filter((p: any) => isOpen(p.status)).length;
+    const inadimplencia = effectivePayments.filter(
       (p: any) =>
         ["vencido", "atrasado"].includes(p.status) ||
         (isOpen(p.status) && p.due_date && p.due_date < today)
@@ -507,7 +515,7 @@ export default function FinanceCenter() {
     const comissoesPend = commissionRows.filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status)).length;
     return {
       fluxo: 0,
-      receitas: payments.length,
+      receitas: effectivePayments.length,
       recebidos,
       a_receber: aReceber,
       comissoes: comissoesPend,
@@ -515,7 +523,7 @@ export default function FinanceCenter() {
       por_cliente: 0,
       relatorios: 0,
     };
-  }, [payments, commissionRows, today]);
+  }, [effectivePayments, commissionRows, today]);
 
   const processAlerts = async () => {
     const { data, error } = await supabase.functions.invoke("process-alerts");
@@ -771,14 +779,14 @@ export default function FinanceCenter() {
           </div>
 
           <TabsContent value="fluxo" className="mt-6">
-            <CashFlow payments={payments} commissions={commissionRows} sales={salesCosts as any[]} />
+            <CashFlow payments={effectivePayments} commissions={commissionRows} sales={effectiveSalesCosts as any[]} />
           </TabsContent>
           <TabsContent value="mapa" className="mt-6">
-            <RevenueMap payments={payments} />
+            <RevenueMap payments={effectivePayments} />
           </TabsContent>
           <TabsContent value="receitas" className="mt-6">
             <PaymentsTable
-              payments={payments}
+              payments={effectivePayments}
               loading={loadingPay}
               title="Receitas"
               initialStatus={statusFromUrl}
@@ -788,7 +796,7 @@ export default function FinanceCenter() {
           </TabsContent>
           <TabsContent value="recebidos" className="mt-6">
             <PaymentsTable
-              payments={payments}
+              payments={effectivePayments}
               loading={loadingPay}
               title="Pagamentos recebidos"
               filterFn={(p) => isPaid(p.status)}
@@ -797,7 +805,7 @@ export default function FinanceCenter() {
           </TabsContent>
           <TabsContent value="a_receber" className="mt-6">
             <PaymentsTable
-              payments={payments}
+              payments={effectivePayments}
               loading={loadingPay}
               title="Contas a receber"
               filterFn={(p) => isOpen(p.status)}
@@ -805,11 +813,11 @@ export default function FinanceCenter() {
             />
           </TabsContent>
           <TabsContent value="comissoes" className="mt-6">
-            <CommissionsTable commissions={commissions} payments={payments as any[]} loading={loadingCom} canManage={canManage} />
+            <CommissionsTable commissions={effectiveCommissions} payments={effectivePayments as any[]} loading={loadingCom} canManage={canManage} />
           </TabsContent>
           <TabsContent value="inadimplencia" className="mt-6">
             <PaymentsTable
-              payments={payments}
+              payments={effectivePayments}
               loading={loadingPay}
               title="Inadimplência"
               initialStatus={statusFromUrl}
@@ -824,10 +832,10 @@ export default function FinanceCenter() {
             <ExpensesTab expenses={expenses as any[]} canManage={canManage} />
           </TabsContent>
           <TabsContent value="por_cliente" className="mt-6">
-            <ByClient payments={payments} canManage={canManage} />
+            <ByClient payments={effectivePayments} canManage={canManage} />
           </TabsContent>
           <TabsContent value="relatorios" className="mt-6">
-            <Reports payments={payments} commissions={commissionRows} sales={salesCosts as any[]} />
+            <Reports payments={effectivePayments} commissions={commissionRows} sales={effectiveSalesCosts as any[]} />
           </TabsContent>
 
         </Tabs>

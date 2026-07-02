@@ -30,6 +30,7 @@ import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { usePageSize } from "@/hooks/usePageSize";
+import { saleIsFinalized } from "@/lib/financial";
 
 type StatusKey =
   | "all" | "aguardando_confirmacao" | "pendente" | "liberada"
@@ -157,14 +158,14 @@ export default function Commissions() {
       const [commsRes, splitsRes, partnersRes, profilesRes, referrersRes, providersRes, salesRes, clientsRes, productsRes] = await Promise.all([
         supabase
           .from("commissions")
-          .select("*, partners(id,full_name,email,pix_key), referrers(id,full_name), profiles:profiles!commissions_collaborator_id_fkey(id,full_name), sales(amount, sale_date, clients(id,full_name), products(id,name))")
+          .select("*, partners(id,full_name,email,pix_key), referrers(id,full_name), profiles:profiles!commissions_collaborator_id_fkey(id,full_name), sales(amount, sale_date, status, clients(id,full_name), products(id,name))")
           .order("created_at", { ascending: false }).limit(300),
         supabase.from("commission_splits").select("*").order("created_at", { ascending: false }).limit(300),
         supabase.from("partners").select("id,full_name,email,pix_key").limit(300),
         supabase.from("profiles").select("id,full_name").limit(300),
         supabase.from("referrers").select("id,full_name").limit(300),
         supabase.from("service_providers").select("id,name").limit(300),
-        supabase.from("sales").select("id, amount, sale_date, client_id, product_id").order("sale_date", { ascending: false }).limit(300),
+        supabase.from("sales").select("id, amount, sale_date, status, client_id, product_id").eq("status", "concluida").order("sale_date", { ascending: false }).limit(300),
         supabase.from("clients").select("id, full_name").limit(300),
         supabase.from("products").select("id, name").limit(300),
       ]);
@@ -178,6 +179,7 @@ export default function Commissions() {
 
       const splitRows = (splitsRes.data ?? []).map((s: any) => {
         const sale: any = salesMap.get(s.sale_id) || {};
+        if (s.sale_id && !saleIsFinalized(sale)) return null;
         const partner = s.beneficiary_type === "partner" ? partnersMap.get(s.beneficiary_id) : null;
         const profile = s.beneficiary_type === "collaborator" ? profilesMap.get(s.beneficiary_id) : null;
         const referrer = s.beneficiary_type === "referrer" ? referrersMap.get(s.beneficiary_id) : null;
@@ -213,11 +215,12 @@ export default function Commissions() {
             products: productsMap.get(sale.product_id) || null,
           } : null,
         };
-      });
+      }).filter(Boolean);
 
       // Avoid showing manual commissions if a split already exists for same sale+beneficiary
       const splitKeys = new Set(splitRows.map((s: any) => `${s.sale_id}|${s.partner_id || s.collaborator_id || s.referrer_id || s.provider_id}`));
       const commRows = (commsRes.data ?? [])
+        .filter((c: any) => !c.sale_id || saleIsFinalized(c.sales))
         .filter((c: any) => !splitKeys.has(`${c.sale_id}|${c.partner_id || c.collaborator_id || c.referrer_id}`))
         .map((c: any) => ({ ...c, _source: "commission" }));
 
@@ -253,7 +256,7 @@ export default function Commissions() {
 
   const { data: sales = [] } = useQuery({
     queryKey: ["sales-simple"],
-    queryFn: async () => (await supabase.from("sales").select("id,amount,sale_date,commission_percent,client_id,product_id,clients(full_name),products(name)").order("sale_date", { ascending: false }).limit(200)).data ?? [],
+    queryFn: async () => (await supabase.from("sales").select("id,amount,sale_date,commission_percent,client_id,product_id,clients(full_name),products(name)").eq("status", "concluida").order("sale_date", { ascending: false }).limit(200)).data ?? [],
   });
 
   // ----- Filtering -----

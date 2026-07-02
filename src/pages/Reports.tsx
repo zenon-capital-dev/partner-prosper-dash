@@ -16,6 +16,7 @@ import { FileDown, FileSpreadsheet, TrendingUp, Users, DollarSign, Award, Clock,
 import { Badge } from "@/components/ui/badge";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { usePageSize } from "@/hooks/usePageSize";
+import { paymentSaleIsFinalized, saleIsFinalized } from "@/lib/financial";
 
 type ReportType = 
   | "clients_status" 
@@ -93,6 +94,7 @@ export default function Reports() {
     queryFn: async () => {
       let q = supabase.from("sales")
         .select("*, clients(full_name), products(name), partners(full_name)")
+        .eq("status", "concluida")
         .gte("sale_date", from).lte("sale_date", to);
       if (filterProduct !== "all") q = q.eq("product_id", filterProduct);
       if (filterPartner !== "all") q = q.eq("partner_id", filterPartner);
@@ -123,11 +125,12 @@ export default function Reports() {
     queryKey: ["report-data-commissions", from, to, filterPartner, filterStatus],
     queryFn: async () => {
       let q = supabase.from("commissions")
-        .select("*, partners(full_name)")
+        .select("*, partners(full_name), sales(id, status)")
         .gte("created_at", from).lte("created_at", to + "T23:59:59");
       if (filterPartner !== "all") q = q.eq("partner_id", filterPartner);
       if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
-      return (await q.limit(REPORT_QUERY_LIMIT)).data ?? [];
+      const data = (await q.limit(REPORT_QUERY_LIMIT)).data ?? [];
+      return data.filter((c: any) => !c.sale_id || saleIsFinalized(c.sales));
     },
     enabled: needsCommissions,
     staleTime: 60_000,
@@ -165,10 +168,11 @@ export default function Reports() {
     queryKey: ["report-data-payments", from, to, filterStatus],
     queryFn: async () => {
       let q = supabase.from("payments")
-        .select("*, clients(full_name), products(name)")
+        .select("*, clients(full_name), products(name), sales(id, status)")
         .gte("due_date", from).lte("due_date", to);
       if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
-      return (await q.limit(REPORT_QUERY_LIMIT)).data ?? [];
+      const data = (await q.limit(REPORT_QUERY_LIMIT)).data ?? [];
+      return data.filter(paymentSaleIsFinalized);
     },
     enabled: needsPayments,
     staleTime: 60_000,
