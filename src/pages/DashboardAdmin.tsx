@@ -23,6 +23,9 @@ import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { paymentSaleIsFinalized, saleIsFinalized } from "@/lib/financial";
+import { RevenueByStage } from "@/components/finance/RevenueByStage";
+import { StageFilterBar } from "@/components/filters/StageFilterBar";
+import { useStageMatcher } from "@/hooks/useSharedStageFilter";
 ;
 import { ptBR } from "date-fns/locale";
 import {
