@@ -24,7 +24,6 @@ const SECTIONS: NavSection[] = [
     { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
     { title: "Alertas", url: "/cockpit", icon: Activity },
     { title: "Demandas", url: "/demandas", icon: ClipboardList },
-    { title: "Solicitações", url: "/solicitacoes", icon: MessageSquare },
     { title: "Agenda", url: "/agenda", icon: CalendarClock },
     { title: "Prazos", url: "/sla", icon: Zap },
   ]},
@@ -32,27 +31,24 @@ const SECTIONS: NavSection[] = [
     { title: "Clientes", url: "/clientes", icon: Users, staffOnly: true },
     { title: "Esteira de atendimento", url: "/esteira", icon: Activity, staffOnly: true },
     { title: "Leads", url: "/leads", icon: UserPlus, staffOnly: true },
-    // { title: "Propostas", url: "/propostas", icon: FileText, staffOnly: true },
     { title: "Vendas", url: "/vendas", icon: CircleDollarSign, staffOnly: true },
     { title: "Metas Comerciais", url: "/metas-comerciais", icon: Target, staffOnly: true },
     { title: "Despesas Operacionais", url: "/despesas-operacionais", icon: TrendingDown, adminOnly: true },
   ]},
   { label: "Catálogo", staffOnly: true, items: [
     { title: "Serviços", url: "/produtos", icon: Package },
-    // { title: "Templates", url: "/templates", icon: MessageSquare, adminOnly: true },
   ]},
   { label: "Rede", items: [
     { title: "Parceiros", url: "/parceiros", icon: Handshake, staffOnly: true },
-    { title: "Materiais p/ Parceiros", url: "/parceiros-materiais", icon: BookOpen, staffOnly: true },
-   { title: "Suporte Parceiros", url: "/parceiros-suporte", icon: LifeBuoy, staffOnly: true },
-   { title: "Suporte Clientes", url: "/clientes-suporte", icon: LifeBuoy, staffOnly: true },
-    { title: "Contratos Parceiros", url: "/parceiros-contratos", icon: FileSignature, staffOnly: true },
     { title: "Prestadores", url: "/prestadores", icon: Truck, staffOnly: true },
     { title: "Indicadores", url: "/indicadores", icon: Sparkles, staffOnly: true },
     { title: "Colaboradores", url: "/colaboradores", icon: UserCircle, adminOnly: true },
   ]},
-  { label: "Documentos", staffOnly: true, items: [
-    { title: "Arquivos", url: "/documentos", icon: FileText },
+  { label: "Central", staffOnly: true, items: [
+    { title: "Suporte", url: "/hub/suporte", icon: LifeBuoy },
+    { title: "Contratos", url: "/hub/contratos", icon: FileSignature },
+    { title: "Documentos", url: "/hub/documentos", icon: FileText },
+    { title: "Materiais", url: "/hub/materiais", icon: BookOpen },
   ]},
   { label: "Financeiro", adminOnly: true, items: [
     { title: "Central Financeira", url: "/financeiro/central", icon: BarChart3 },
@@ -62,10 +58,10 @@ const SECTIONS: NavSection[] = [
     { title: "Relatórios", url: "/relatorios", icon: BarChart3, staffOnly: true },
     { title: "Auditoria", url: "/auditoria", icon: History, adminOnly: true },
     { title: "Usuários", url: "/usuarios", icon: UserCog, adminOnly: true, superAdminOnly: true },
-    // { title: "Automações", url: "/automacoes", icon: Zap, adminOnly: true },
     { title: "Configurações", url: "/configuracoes", icon: Settings, adminOnly: true },
   ]},
 ];
+
 
 interface Props { collapsed: boolean; onToggle: () => void; onNavigate?: () => void; className?: string; }
 
