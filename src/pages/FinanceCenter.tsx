@@ -17,11 +17,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { confirmAction } from "@/lib/confirm";
 import {
-  Banknote, TrendingUp, AlertTriangle, Wallet, Receipt, BarChart3,
+  Banknote, TrendingUp, TrendingDown, AlertTriangle, Wallet, Receipt, BarChart3,
   Search, RefreshCw, CheckCircle2, AlertCircle, X, Download, ArrowUp, ArrowDown, ArrowUpDown,
   Filter, FileX, CalendarRange,
 } from "lucide-react";
+
 import { RevenueMap } from "@/components/finance/RevenueMap";
+import { ExpensesTab } from "@/components/finance/ExpensesTab";
+
 import { PaymentFormDialog } from "@/components/payments/PaymentFormDialog";
 import { Plus } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
@@ -494,9 +497,12 @@ export default function FinanceCenter() {
     { id: "a_receber", label: "A receber", icon: Receipt, count: counts.a_receber },
     { id: "comissoes", label: "Comissões", icon: Wallet, count: counts.comissoes },
     { id: "inadimplencia", label: "Inadimplência", icon: AlertTriangle, count: counts.inadimplencia },
+    { id: "despesas", label: "Despesas", icon: TrendingDown, count: (expenses as any[]).length },
     { id: "por_cliente", label: "Por cliente", icon: BarChart3 },
     { id: "relatorios", label: "Relatórios", icon: BarChart3 },
   ];
+
+
 
   const statusFromUrl = params.get("status") || "todos";
 
@@ -771,12 +777,16 @@ export default function FinanceCenter() {
               canManage={canManage}
             />
           </TabsContent>
+          <TabsContent value="despesas" className="mt-6">
+            <ExpensesTab expenses={expenses as any[]} canManage={canManage} />
+          </TabsContent>
           <TabsContent value="por_cliente" className="mt-6">
             <ByClient payments={payments} canManage={canManage} />
           </TabsContent>
           <TabsContent value="relatorios" className="mt-6">
             <Reports payments={payments} commissions={commissionRows} />
           </TabsContent>
+
         </Tabs>
       </div>
     </div>
