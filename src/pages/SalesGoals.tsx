@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { PageHero } from "@/components/PageHero";
 import { paymentSaleIsFinalized } from "@/lib/financial";
+import { StageFilterBar } from "@/components/filters/StageFilterBar";
+import { useStageMatcher } from "@/hooks/useSharedStageFilter";
 
 type GoalType = "leads" | "proposals" | "sales_count" | "revenue" | "stage_movements" | "clients_closed";
 const TYPES: { value: GoalType; label: string; isCurrency: boolean }[] = [
@@ -58,8 +60,11 @@ export default function SalesGoals() {
   });
 
   // Realizado a partir das tabelas existentes
+  const { matchesClientId, stageIds } = useStageMatcher();
+  const stageKey = stageIds.slice().sort().join(",");
+
   const { data: actual } = useQuery({
-    queryKey: ["sales_goals_actual", month],
+    queryKey: ["sales_goals_actual", month, stageKey],
     queryFn: async () => {
       const start = month;
       const next = new Date(month + "T12:00:00");
@@ -71,20 +76,23 @@ export default function SalesGoals() {
           .gte("created_at", start).lt("created_at", end),
         (supabase as any).from("proposals").select("id", { count: "exact", head: true })
           .gte("created_at", start).lt("created_at", end),
-        (supabase as any).from("sales").select("id", { count: "exact", head: true })
-          .eq("status", "concluida").gte("created_at", start).lt("created_at", end),
-        (supabase as any).from("payments").select("amount, sale_id, sales(id, status)")
+        (supabase as any).from("sales").select("id, client_id")
+          .eq("status", "concluida").gte("created_at", start).lt("created_at", end).limit(2000),
+        (supabase as any).from("payments").select("amount, sale_id, sales(id, status, client_id)")
           .eq("status", "pago").gte("paid_at", start).lt("paid_at", end).limit(1000),
         (supabase as any).from("client_timeline").select("id", { count: "exact", head: true })
           .eq("event_type", "journey_stage_change").gte("created_at", start).lt("created_at", end),
         (supabase as any).from("leads").select("id", { count: "exact", head: true })
           .eq("status", "won").gte("updated_at", start).lt("updated_at", end),
       ]);
-      const payRows = ((paymentsR.data ?? []) as any[]).filter(paymentSaleIsFinalized);
+      const saleRows = ((salesR.data ?? []) as any[]).filter((s) => matchesClientId(s.client_id));
+      const payRows = ((paymentsR.data ?? []) as any[])
+        .filter(paymentSaleIsFinalized)
+        .filter((p) => matchesClientId(p.sales?.client_id));
       return {
         leads: leadsR.count ?? 0,
         proposals: propR.count ?? 0,
-        sales_count: salesR.count ?? 0,
+        sales_count: saleRows.length,
         revenue: payRows.reduce((s, r) => s + Number(r.amount || 0), 0),
         stage_movements: stageR.count ?? 0,
         clients_closed: closedR.count ?? 0,
