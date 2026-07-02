@@ -571,6 +571,7 @@ export default function FinanceCenter() {
     { id: "a_receber", label: "A receber", icon: Receipt, count: counts.a_receber },
     { id: "comissoes", label: "Comissões", icon: Wallet, count: counts.comissoes },
     { id: "inadimplencia", label: "Inadimplência", icon: AlertTriangle, count: counts.inadimplencia },
+    { id: "despesas", label: "Despesas", icon: TrendingDown },
     { id: "por_cliente", label: "Por cliente", icon: BarChart3 },
     { id: "relatorios", label: "Relatórios", icon: BarChart3 },
   ];
