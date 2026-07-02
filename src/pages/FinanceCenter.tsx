@@ -1948,7 +1948,7 @@ function CommissionsTable({
 }
 
 // -------------------- Cash flow --------------------
-function CashFlow({ payments, commissions }: { payments: any[]; commissions: any[] }) {
+function CashFlow({ payments, commissions, sales }: { payments: any[]; commissions: any[]; sales: any[] }) {
   const [days, setDays] = useState(30);
   const data = useMemo(() => {
     const map: Record<string, { label: string; entrada: number; saida: number; saldo: number }> = {};
@@ -1959,23 +1959,34 @@ function CashFlow({ payments, commissions }: { payments: any[]; commissions: any
       map[key] = { label: key.slice(5), entrada: 0, saida: 0, saldo: 0 };
     }
     payments
-      .filter((p: any) => isPaid(p.status))
       .forEach((p: any) => {
+        const received = paymentReceivedAmount(p);
+        if (received <= 0) return;
         const key = (p.paid_at || "").slice(0, 10);
-        if (map[key]) map[key].entrada += Number(p.amount_paid || p.amount || 0);
+        if (map[key]) map[key].entrada += received;
       });
+    const salesAmountById = new Map((sales || []).map((s: any) => [s.id, Number(s.amount || 0)]));
+    const receivedBySaleByDay: Record<string, Map<string, number>> = {};
+    payments.forEach((p: any) => {
+      const received = paymentReceivedAmount(p);
+      if (received <= 0 || !p.sale_id) return;
+      const key = (p.paid_at || "").slice(0, 10);
+      if (!map[key]) return;
+      if (!receivedBySaleByDay[key]) receivedBySaleByDay[key] = new Map();
+      receivedBySaleByDay[key].set(p.sale_id, (receivedBySaleByDay[key].get(p.sale_id) || 0) + received);
+    });
     commissions
       .filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status))
       .forEach((c: any) => {
         const key = (c.paid_at || "").slice(0, 10);
-        if (map[key]) map[key].saida += Number(c.amount || 0);
+        if (map[key]) map[key].saida += accruedCommissionAmount(c, receivedBySaleByDay[key] || new Map(), salesAmountById);
       });
     let acc = 0;
     return Object.values(map).map((d) => {
       acc += d.entrada - d.saida;
       return { ...d, saldo: acc };
     });
-  }, [payments, commissions, days]);
+  }, [payments, commissions, sales, days]);
 
   return (
     <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-6">
@@ -2014,7 +2025,7 @@ function CashFlow({ payments, commissions }: { payments: any[]; commissions: any
 }
 
 // -------------------- Reports --------------------
-function Reports({ payments, commissions }: { payments: any[]; commissions: any[] }) {
+function Reports({ payments, commissions, sales }: { payments: any[]; commissions: any[]; sales: any[] }) {
   const [months, setMonths] = useState(6);
   const monthly = useMemo(() => {
     const map: Record<string, { label: string; receita: number; comissao: number; liquida: number }> = {};
@@ -2025,22 +2036,33 @@ function Reports({ payments, commissions }: { payments: any[]; commissions: any[
       map[key] = { label: key, receita: 0, comissao: 0, liquida: 0 };
     }
     payments
-      .filter((p: any) => isPaid(p.status))
       .forEach((p: any) => {
+        const received = paymentReceivedAmount(p);
+        if (received <= 0) return;
         const key = (p.paid_at || "").slice(0, 7);
-        if (map[key]) map[key].receita += Number(p.amount_paid || p.amount || 0);
+        if (map[key]) map[key].receita += received;
       });
+    const salesAmountById = new Map((sales || []).map((s: any) => [s.id, Number(s.amount || 0)]));
+    const receivedBySaleByMonth: Record<string, Map<string, number>> = {};
+    payments.forEach((p: any) => {
+      const received = paymentReceivedAmount(p);
+      if (received <= 0 || !p.sale_id) return;
+      const key = (p.paid_at || "").slice(0, 7);
+      if (!map[key]) return;
+      if (!receivedBySaleByMonth[key]) receivedBySaleByMonth[key] = new Map();
+      receivedBySaleByMonth[key].set(p.sale_id, (receivedBySaleByMonth[key].get(p.sale_id) || 0) + received);
+    });
     commissions
       .filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status))
       .forEach((c: any) => {
         const key = (c.paid_at || "").slice(0, 7);
-        if (map[key]) map[key].comissao += Number(c.amount || 0);
+        if (map[key]) map[key].comissao += accruedCommissionAmount(c, receivedBySaleByMonth[key] || new Map(), salesAmountById);
       });
     Object.keys(map).forEach((k) => {
       map[k].liquida = map[k].receita - map[k].comissao;
     });
     return Object.values(map);
-  }, [payments, commissions, months]);
+  }, [payments, commissions, sales, months]);
 
   const exportSummary = () => {
     downloadCsv(
