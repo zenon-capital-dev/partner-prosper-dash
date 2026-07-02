@@ -220,7 +220,7 @@ export default function Sales() {
       if (val <= 0) return;
       const cur = m.get(r.sale_id) ?? { received: 0, receivedThisMonth: 0, lastPaidAt: null, count: 0 };
       cur.received += val;
-      if (r.paid_at && String(r.paid_at).startsWith(ym)) cur.receivedThisMonth += val;
+      if (paymentCompetenceYm(r) === ym) cur.receivedThisMonth += val;
       cur.count += 1;
       if (r.paid_at && (!cur.lastPaidAt || r.paid_at > cur.lastPaidAt)) cur.lastPaidAt = r.paid_at;
       m.set(r.sale_id, cur);
