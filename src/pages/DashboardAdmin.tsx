@@ -76,6 +76,11 @@ export default function DashboardAdmin() {
 
   const STALE = 60_000; // 1 min — evita refetch agressivo ao trocar de aba/foco
 
+  // Filtro compartilhado por Estágio da Jornada. Quando ativo, precisamos calcular
+  // as métricas no cliente (o RPC agregado não conhece o filtro), então habilitamos
+  // as queries locais e trocamos a fonte para `computedStats`.
+  const { matchesClientId, isActive: stageActive, stageIds: sharedStageIds } = useStageMatcher();
+
   const { data: dashboardStats, isLoading: isLoadingDashboard } = useQuery({
     queryKey: ["admin-dashboard-snapshot", rangeKey],
     staleTime: 30_000,
