@@ -867,6 +867,9 @@ export default function FinanceCenter() {
               canManage={canManage}
             />
           </TabsContent>
+          <TabsContent value="despesas" className="mt-6">
+            <ExpensesTab canManage={canManage} />
+          </TabsContent>
           <TabsContent value="por_cliente" className="mt-6">
             <ByClient payments={effectivePayments} canManage={canManage} />
           </TabsContent>
