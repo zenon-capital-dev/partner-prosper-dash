@@ -62,11 +62,13 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
 
   const gross = Number(sale.amount || 0);
   const canReceive = saleIsFinalized(sale);
-  const received = receipts.reduce(
-    (s: number, r: any) => s + Number(r.amount_paid ?? (r.status === "pago" ? r.amount : 0) ?? 0),
+  // Recebido efetivo = somente pagamentos já quitados até hoje (agendamentos futuros NÃO contam).
+  const received = receipts.reduce((s: number, r: any) => s + paymentReceivedAmount(r), 0);
+  const scheduled = receipts.reduce(
+    (s: number, r: any) => s + (isPaymentPaidInFuture(r) ? Number(r.amount_paid || r.amount || 0) : 0),
     0
   );
-  const remaining = Math.max(gross - received, 0);
+  const remaining = Math.max(gross - received - scheduled, 0);
   const pct = gross > 0 ? Math.min(100, (received / gross) * 100) : 0;
 
   const submit = async () => {
@@ -85,8 +87,10 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
     }
     setSaving(true);
     try {
-      const newReceived = received + v;
-      const isFull = newReceived >= gross - 0.009;
+      const today = ymdBR(nowBR());
+      const isFuture = paidAt > today;
+      const newReceived = received + (isFuture ? 0 : v);
+      const isFull = !isFuture && newReceived >= gross - 0.009;
       const { error } = await supabase.from("payments").insert({
         sale_id: sale.id,
         client_id: sale.client_id,
@@ -95,14 +99,17 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
         amount_paid: v,
         paid_at: `${paidAt}T12:00:00`,
         due_date: paidAt,
-        status: "pago" as any,
+        competence_month: `${competenceMonth}-01`,
+        status: (isFuture ? "pendente" : "pago") as any,
         payment_method: method,
-        description: `Recebimento parcial — Venda ${sale.id.slice(0, 8)}`,
+        description: isFuture
+          ? `Recebimento agendado — Venda ${sale.id.slice(0, 8)}`
+          : `Recebimento parcial — Venda ${sale.id.slice(0, 8)}`,
         notes: notes || null,
       } as any);
       if (error) throw error;
 
-      toast.success(isFull ? "Venda quitada integralmente!" : "Recebimento registrado");
+      toast.success(isFuture ? "Recebimento agendado para o futuro" : (isFull ? "Venda quitada integralmente!" : "Recebimento registrado"));
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["sale-receipts", sale.id] }),
         qc.invalidateQueries({ queryKey: ["sales-receipts-by-sale"] }),
