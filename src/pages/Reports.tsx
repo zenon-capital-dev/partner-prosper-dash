@@ -15,6 +15,7 @@ import { exportToPDF, exportToExcel } from "@/lib/exports";
 import { FileDown, FileSpreadsheet, TrendingUp, Users, DollarSign, Award, Clock, FileText, CheckCircle2, Search as SearchIcon, Activity, Target, AlertTriangle, Receipt } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { usePageSize } from "@/hooks/usePageSize";
 
 type ReportType = 
   | "clients_status" 
@@ -32,8 +33,6 @@ type ReportType =
   | "avg_completion_time";
 
 const REPORT_QUERY_LIMIT = 300;
-const DETAIL_PAGE_SIZE = 10;
-
 const REPORT_LABELS: Record<ReportType, string> = {
   clients_status: "Clientes por Status",
   clients_partner: "Clientes por Parceiro",
@@ -51,6 +50,8 @@ const REPORT_LABELS: Record<ReportType, string> = {
 };
 
 export default function Reports() {
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const DETAIL_PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const [from, setFrom] = useState(() => {
     const d = nowBR(); d.setMonth(d.getMonth() - 1);
     return formatBR(d, "yyyy-MM-dd");
@@ -756,7 +757,7 @@ export default function Reports() {
             </div>
           )}
         </div>
-        <PaginationControl currentPage={currentPage} totalPages={totalDetailPages} onPageChange={setCurrentPage} totalItems={detailRows.length} itemsPerPage={DETAIL_PAGE_SIZE} className="mt-4 rounded-2xl border border-slate-100" />
+        <PaginationControl currentPage={currentPage} totalPages={totalDetailPages} onPageChange={setCurrentPage} totalItems={detailRows.length} itemsPerPage={DETAIL_PAGE_SIZE} className="mt-4 rounded-2xl border border-slate-100" pageSize={__ps} onPageSizeChange={setPageSize} />
       </div>
     </div>
   );

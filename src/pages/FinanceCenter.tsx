@@ -28,6 +28,7 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
+import { usePageSize } from "@/hooks/usePageSize";
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
   BarChart, Bar, Legend,
 } from "recharts";
@@ -901,7 +902,9 @@ function PaymentsTable({
     [sorted]
   );
 
-  const pageSize = 10;
+  const { pageSize: __ps, setPageSize } = usePageSize();
+
+  const pageSize = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
   const pageRows = sorted.slice((page - 1) * pageSize, page * pageSize);
 
@@ -1329,8 +1332,7 @@ function PaymentsTable({
           totalPages={totalPages}
           onPageChange={setPage}
           totalItems={sorted.length}
-          itemsPerPage={pageSize}
-        />
+          itemsPerPage={pageSize} pageSize={__ps} onPageSizeChange={setPageSize} />
       </div>
 
       <PaymentActionDialog

@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { confirmAction } from "@/lib/confirm";
 import { CredentialsManager } from "@/components/CredentialsManager";
+import { usePageSize } from "@/hooks/usePageSize";
 
 const emptyForm = { active: true, commission_percent: 10, partner_category: "indicador" };
 type SortKey = "recent" | "name" | "commissions" | "pending" | "clients";
@@ -60,7 +61,8 @@ export default function Partners() {
   const [sortBy, setSortBy] = useState<SortKey>("commissions");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const itemsPerPage = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
 
   const [createAccess, setCreateAccess] = useState(false);
   const [accessPwd, setAccessPwd] = useState("");
@@ -490,12 +492,12 @@ export default function Partners() {
               sortDir={sortDir}
               onSort={toggleSort}
             />
-            <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} />
+            <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} pageSize={__ps} onPageSizeChange={setPageSize} />
           </div>
         ) : (
           <div className="space-y-4">
             <GridView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} onDelete={removePartner} onCredentials={setCredRow} canManage={canManage} />
-            <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} />
+            <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} pageSize={__ps} onPageSizeChange={setPageSize} />
           </div>
         )}
       </div>

@@ -15,8 +15,7 @@ import { Plus, Trash2, Pencil, FileText, Link as LinkIcon, Upload, BookOpen } fr
 import { formatDate } from "@/lib/format";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
-
-const PAGE_SIZE = 10;
+import { usePageSize } from "@/hooks/usePageSize";
 
 const CATEGORIES = [
   { value: "institucional", label: "Institucional" },
@@ -39,6 +38,8 @@ type Material = {
 };
 
 export default function PartnerMaterialsAdmin() {
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const { user } = useAuth() as any;
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -197,7 +198,7 @@ export default function PartnerMaterialsAdmin() {
             </tbody>
           </table></div>
         )}
-        <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={materials.length} itemsPerPage={PAGE_SIZE} />
+        <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={materials.length} itemsPerPage={PAGE_SIZE} pageSize={__ps} onPageSizeChange={setPageSize} />
       </div>
 
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>

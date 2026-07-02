@@ -41,10 +41,11 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PaginationControl } from "@/components/ui/PaginationControl";
-
-const PAGE_SIZE = 10;
+import { usePageSize } from "@/hooks/usePageSize";
 
 export default function AuditLog() {
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const [search, setSearch] = useState("");
   const [entityFilter, setEntityFilter] = useState("all");
   const [actionFilter, setActionFilter] = useState("all");
@@ -441,7 +442,7 @@ export default function AuditLog() {
             ))
           )}
         </div>
-        <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} totalItems={filteredLogs.length} itemsPerPage={PAGE_SIZE} />
+        <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} totalItems={filteredLogs.length} itemsPerPage={PAGE_SIZE} pageSize={__ps} onPageSizeChange={setPageSize} />
       </div>
     </div>
   );

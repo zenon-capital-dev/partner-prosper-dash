@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { usePageSize } from "@/hooks/usePageSize";
 
 type StatusKey =
   | "all" | "aguardando_confirmacao" | "pendente" | "liberada"
@@ -100,7 +101,8 @@ export default function Commissions() {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [rulesSearch, setRulesSearch] = useState("");
-  const itemsPerPage = 10;
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const itemsPerPage = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
 
   // sort
   const [sort, setSort] = useState<{k: string; d: SortDir}>({k: "created_at", d: "desc"});
@@ -886,8 +888,7 @@ export default function Commissions() {
                       totalPages={totalPages}
                       onPageChange={setCurrentPage}
                       totalItems={sorted.length}
-                      itemsPerPage={itemsPerPage}
-                    />
+                      itemsPerPage={itemsPerPage} pageSize={__ps} onPageSizeChange={setPageSize} />
                   </div>
                 </>
               )}

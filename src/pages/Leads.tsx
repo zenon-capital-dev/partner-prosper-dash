@@ -29,6 +29,7 @@ import { PageHero } from "@/components/PageHero";
 import { cn } from "@/lib/utils";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { EmptyState } from "@/components/EmptyState";
+import { usePageSize } from "@/hooks/usePageSize";
 
 const STATUS_TONE: Record<string, string> = {
   "Novo": "bg-sky-50 text-sky-700 border-sky-200",
@@ -46,11 +47,12 @@ const OPEN_STATUSES = new Set([
   "Negociação", "Contrato enviado",
 ]);
 
-const PAGE_SIZE = 10;
 type SortKey = "name" | "status" | "source" | "created";
 type SortDir = "asc" | "desc";
 
 export default function Leads() {
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const { isAdmin, isAdminSecondary } = useAuth();
   const canWrite = isAdmin || isAdminSecondary;
   const [search, setSearch] = useState("");
@@ -433,8 +435,7 @@ export default function Leads() {
                 totalPages={totalPages}
                 onPageChange={setPage}
                 totalItems={sortedLeads.length}
-                itemsPerPage={PAGE_SIZE}
-              />
+                itemsPerPage={PAGE_SIZE} pageSize={__ps} onPageSizeChange={setPageSize} />
             )}
           </div>
         )}

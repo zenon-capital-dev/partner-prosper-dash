@@ -29,11 +29,11 @@ import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { usePageSize } from "@/hooks/usePageSize";
 
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
 type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status" | "liquido" | "recebido";
 type SortDir = "asc" | "desc";
-const PAGE_SIZE = 10;
 const currentMonthKey = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -60,6 +60,8 @@ const norm = (s: any) =>
 const onlyDigits = (s: any) => String(s ?? "").replace(/\D+/g, "");
 
 export default function Sales() {
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const { isAdmin, isAdminSecondary } = useAuth();
   const canManage = isAdmin || isAdminSecondary;
   const [open, setOpen] = useState(false);
@@ -1343,8 +1345,7 @@ export default function Sales() {
           totalPages={totalPages}
           onPageChange={setPage}
           totalItems={sorted.length}
-          itemsPerPage={PAGE_SIZE}
-        />
+          itemsPerPage={PAGE_SIZE} pageSize={__ps} onPageSizeChange={setPageSize} />
 
       </div>
 

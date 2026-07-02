@@ -41,6 +41,7 @@ import { DailyAgenda } from "@/components/demands/DailyAgenda";
 import { CalendarDays } from "lucide-react";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { NewDemandDialog } from "@/components/demands/NewDemandDialog";
+import { usePageSize } from "@/hooks/usePageSize";
 
 const STATUS_META: Record<string, { label: string; tone: string }> = {
   aguardando_inicio: { label: "Aguardando início", tone: "bg-slate-100 text-slate-700" },
@@ -117,7 +118,8 @@ export default function Demands() {
   const [partnerFilter, setPartnerFilter] = useState<string>("all");
   const [deadlineFilter, setDeadlineFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const itemsPerPage = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
 
   useEffect(() => {
     setCurrentPage(1);
@@ -755,8 +757,7 @@ export default function Demands() {
             totalPages={totalPages}
             onPageChange={setCurrentPage}
             totalItems={filtered.length}
-            itemsPerPage={itemsPerPage}
-          />
+            itemsPerPage={itemsPerPage} pageSize={__ps} onPageSizeChange={setPageSize} />
         </div>
 
 
@@ -816,8 +817,7 @@ export default function Demands() {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
               totalItems={filtered.length}
-              itemsPerPage={itemsPerPage}
-            />
+              itemsPerPage={itemsPerPage} pageSize={__ps} onPageSizeChange={setPageSize} />
           </div>
         </div>
       )}

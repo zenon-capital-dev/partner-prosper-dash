@@ -39,8 +39,8 @@ import { useEffect, useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { usePageSize } from "@/hooks/usePageSize";
 
-const PAGE_SIZE = 10;
 const ALERT_FETCH_LIMIT = 10;
 
 interface CockpitItem {
@@ -55,6 +55,8 @@ interface CockpitItem {
 }
 
 export default function OperationalCockpit() {
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -778,8 +780,7 @@ export default function OperationalCockpit() {
           totalPages={totalPages}
           onPageChange={setPage}
           totalItems={filteredItems.length}
-          itemsPerPage={PAGE_SIZE}
-        />
+          itemsPerPage={PAGE_SIZE} pageSize={__ps} onPageSizeChange={setPageSize} />
       )}
 
       {/* DETAILS SHEET */}

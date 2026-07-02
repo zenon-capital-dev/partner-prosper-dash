@@ -14,8 +14,7 @@ import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 import { PaginationControl } from "@/components/ui/PaginationControl";
-
-const PAGE_SIZE = 10;
+import { usePageSize } from "@/hooks/usePageSize";
 
 const STATUS_TONE: Record<string, string> = {
   rascunho: "bg-slate-100 text-slate-700 border-slate-200",
@@ -28,6 +27,8 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default function PartnerContractsAdmin() {
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [selected, setSelected] = useState<any | null>(null);
@@ -170,7 +171,7 @@ export default function PartnerContractsAdmin() {
                 </table>
               </div>
             )}
-            <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={(rows as any[]).length} itemsPerPage={PAGE_SIZE} />
+            <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={(rows as any[]).length} itemsPerPage={PAGE_SIZE} pageSize={__ps} onPageSizeChange={setPageSize} />
           </CardContent>
         </Card>
       </div>

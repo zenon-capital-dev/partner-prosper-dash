@@ -47,6 +47,7 @@ import { PaginationControl } from "@/components/ui/PaginationControl";
 import { confirmAction } from "@/lib/confirm";
 import { logAudit } from "@/lib/audit";
 import { cn } from "@/lib/utils";
+import { usePageSize } from "@/hooks/usePageSize";
 
 export type DocumentStatus = "solicitado" | "enviado" | "em_analise" | "aprovado" | "rejeitado" | "reprovado" | "atrasado" | "vencido" | "pendente_correcao";
 
@@ -573,7 +574,9 @@ export default function Documents() {
     setPage(1);
   };
 
-  const pageSize = 10;
+  const { pageSize: __ps, setPageSize } = usePageSize();
+
+  const pageSize = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const totalPages = Math.max(1, Math.ceil(sortedDocs.length / pageSize));
   const pageRows = sortedDocs.slice((page - 1) * pageSize, page * pageSize);
 
@@ -780,7 +783,7 @@ export default function Documents() {
                   </tbody>
                 </table>
               </div>
-              <PaginationControl currentPage={page} totalPages={totalPages} onPageChange={setPage} totalItems={sortedDocs.length} itemsPerPage={pageSize} />
+              <PaginationControl currentPage={page} totalPages={totalPages} onPageChange={setPage} totalItems={sortedDocs.length} itemsPerPage={pageSize} pageSize={__ps} onPageSizeChange={setPageSize} />
             </>
           )}
         </div>

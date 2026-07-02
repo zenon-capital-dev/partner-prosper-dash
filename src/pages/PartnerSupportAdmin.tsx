@@ -11,8 +11,7 @@ import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { SupportThread } from "@/components/partner-support/SupportThread";
-
-const PAGE_SIZE = 10;
+import { usePageSize } from "@/hooks/usePageSize";
 
 type Ticket = {
   id: string;
@@ -29,6 +28,8 @@ type Ticket = {
 type QueueFilter = "fila" | "meus" | "pendentes" | "em_andamento" | "fechado" | "all";
 
 export default function PartnerSupportAdmin() {
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const qc = useQueryClient();
   const { user } = useAuth();
   const [active, setActive] = useState<Ticket | null>(null);
@@ -206,7 +207,7 @@ export default function PartnerSupportAdmin() {
             })}
           </ul>
         )}
-        <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} />
+        <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} pageSize={__ps} onPageSizeChange={setPageSize} />
       </div>
 
       <Dialog open={!!active} onOpenChange={(v) => { if (!v) { setActive(null); qc.invalidateQueries({ queryKey: ["partner-support-admin"] }); } }}>

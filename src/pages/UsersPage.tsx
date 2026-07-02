@@ -30,6 +30,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/use-debounce";
 import { confirmAction } from "@/lib/confirm";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { usePageSize } from "@/hooks/usePageSize";
 
 type Role =
   | "admin" | "admin_secondary" | "colaborador" | "vendedor"
@@ -153,7 +154,8 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "with_access" | "no_access">("all");
   const [sort, setSort] = useState<{k: SortKey; d: SortDir}>({ k: "created_at", d: "desc" });
   const [page, setPage] = useState(1);
-  const perPage = 10;
+  const { pageSize: __ps, setPageSize } = usePageSize();
+  const perPage = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
 
   const [openCreate, setOpenCreate] = useState(false);
   const [createdInfo, setCreatedInfo] = useState<{ email: string; password?: string } | null>(null);
@@ -476,7 +478,7 @@ export default function UsersPage() {
           </div>
           {totalPages > 1 && (
             <div className="border-t border-slate-200/70 px-4 py-3">
-              <PaginationControl currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+              <PaginationControl currentPage={page} totalPages={totalPages} onPageChange={setPage} pageSize={__ps} onPageSizeChange={setPageSize} />
             </div>
           )}
         </div>
