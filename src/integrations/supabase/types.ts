@@ -1167,6 +1167,68 @@ export type Database = {
           },
         ]
       }
+      client_stage_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          client_id: string
+          from_stage_id: string | null
+          from_stage_name: string | null
+          id: string
+          to_stage_id: string | null
+          to_stage_name: string | null
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          client_id: string
+          from_stage_id?: string | null
+          from_stage_name?: string | null
+          id?: string
+          to_stage_id?: string | null
+          to_stage_name?: string | null
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          client_id?: string
+          from_stage_id?: string | null
+          from_stage_name?: string | null
+          id?: string
+          to_stage_id?: string | null
+          to_stage_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_stage_history_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_history_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_stage_history_from_stage_id_fkey"
+            columns: ["from_stage_id"]
+            isOneToOne: false
+            referencedRelation: "client_journey_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_history_to_stage_id_fkey"
+            columns: ["to_stage_id"]
+            isOneToOne: false
+            referencedRelation: "client_journey_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_subscriptions: {
         Row: {
           amount: number
