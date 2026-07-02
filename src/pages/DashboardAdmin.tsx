@@ -509,6 +509,7 @@ export default function DashboardAdmin() {
           </div>
 
           <div className="flex items-center gap-3 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 scrollbar-none">
+            <StageFilterBar />
             <div className="inline-flex items-center bg-white border border-slate-200/80 rounded-xl p-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)] shrink-0">
               {(["HOJE", "7D", "30D", "MÊS"] as const).map((k) => (
                 <button
