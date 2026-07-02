@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 
 import { RevenueMap } from "@/components/finance/RevenueMap";
-import { ExpensesTab } from "@/components/finance/ExpensesTab";
+
 
 import { PaymentFormDialog } from "@/components/payments/PaymentFormDialog";
 import { Plus } from "lucide-react";
