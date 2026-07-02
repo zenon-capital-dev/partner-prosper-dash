@@ -200,7 +200,7 @@ export default function Sales() {
     queryFn: async () => {
       const { data } = await supabase
         .from("payments")
-        .select("sale_id, amount, amount_paid, paid_at, status")
+        .select("sale_id, amount, amount_paid, paid_at, due_date, competence_month, status")
         .not("sale_id", "is", null)
         .limit(600);
       return (data as any[]) ?? [];
