@@ -280,6 +280,15 @@ export default function Clients() {
         if (paymentFilter === "pendente" && c._totalPending === 0) return false;
       }
       if (riskFilter !== "all" && c._risk !== riskFilter) return false;
+      if (salesFilter !== "all") {
+        const cps: any[] = c.client_products || [];
+        const hasAtiva = cps.some((p) => ["ativo", "em_andamento", "ativa"].includes(String(p.status || "").toLowerCase()));
+        const hasConcluida = cps.some((p) => ["concluido", "concluída", "concluida", "finalizado"].includes(String(p.status || "").toLowerCase()));
+        if (salesFilter === "com_venda_ativa" && !hasAtiva) return false;
+        if (salesFilter === "com_venda_concluida" && !hasConcluida) return false;
+        if (salesFilter === "sem_venda" && cps.length > 0) return false;
+        if (salesFilter === "com_pendencia" && c._totalPending <= 0) return false;
+      }
       if (fromStart) {
         const createdAt = new Date(c.created_at);
         if (createdAt < fromStart) return false;
@@ -287,7 +296,7 @@ export default function Clients() {
       }
       return true;
     });
-  }, [enriched, debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, dateRange]);
+  }, [enriched, debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, dateRange]);
 
   const sorted = useMemo(() => {
     if (view !== "table") return filtered;
