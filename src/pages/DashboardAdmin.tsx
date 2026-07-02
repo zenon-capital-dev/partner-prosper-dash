@@ -270,11 +270,6 @@ export default function DashboardAdmin() {
     const todayTasks = tasks.filter((t: any) => isTaskOpen(t) && t.due_date && dateOnly(t.due_date) === todayISO).length;
     const openTasks = tasks.filter(isTaskOpen).length;
 
-    const commissionsToPay = commissions
-      .filter((c: any) => ["pendente", "gerada", "em_analise", "aprovada", "pending"].includes(c.status))
-      .reduce((a, c: any) => a + commissionReleased(c), 0);
-    const commissionsCount = commissions.filter((c: any) => ["pendente", "gerada", "em_analise", "aprovada", "pending"].includes(c.status)).length;
-
     const in7d = new Date(brasiliaToday); in7d.setDate(brasiliaToday.getDate() + 7);
     const in7ISO = toISO(in7d);
     const receivable7d = payments
@@ -306,6 +301,10 @@ export default function DashboardAdmin() {
       return Math.max(0, Math.min(1, (receivedBySale.get(saleId) || 0) / amount));
     };
     const commissionReleased = (c: any) => Number(c.amount || 0) * (c.sale_id ? saleRatio(c.sale_id) : 1);
+    const commissionsToPay = commissions
+      .filter((c: any) => ["pendente", "gerada", "em_analise", "aprovada", "pending"].includes(c.status))
+      .reduce((a, c: any) => a + commissionReleased(c), 0);
+    const commissionsCount = commissions.filter((c: any) => ["pendente", "gerada", "em_analise", "aprovada", "pending"].includes(c.status)).length;
 
     // Receita Bruta = total vendido no período selecionado
     const grossRevenue = rangeRevenue;
