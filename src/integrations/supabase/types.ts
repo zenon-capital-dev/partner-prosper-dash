@@ -3022,7 +3022,9 @@ export type Database = {
           is_required: boolean
           mime_type: string | null
           name: string
+          parent_document_id: string | null
           partner_id: string | null
+          phase_label: string | null
           priority: string | null
           product_id: string | null
           provider_id: string | null
@@ -3065,7 +3067,9 @@ export type Database = {
           is_required?: boolean
           mime_type?: string | null
           name: string
+          parent_document_id?: string | null
           partner_id?: string | null
+          phase_label?: string | null
           priority?: string | null
           product_id?: string | null
           provider_id?: string | null
@@ -3108,7 +3112,9 @@ export type Database = {
           is_required?: boolean
           mime_type?: string | null
           name?: string
+          parent_document_id?: string | null
           partner_id?: string | null
+          phase_label?: string | null
           priority?: string | null
           product_id?: string | null
           provider_id?: string | null
@@ -3163,6 +3169,13 @@ export type Database = {
             columns: ["folder_id"]
             isOneToOne: false
             referencedRelation: "client_document_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_parent_document_id_fkey"
+            columns: ["parent_document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
             referencedColumns: ["id"]
           },
           {

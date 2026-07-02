@@ -41,6 +41,12 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   const [providersFor, setProvidersFor] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [requestingInFolder, setRequestingInFolder] = useState<string | null>(null);
+  const [newContractName, setNewContractName] = useState("");
+  const [creatingContract, setCreatingContract] = useState(false);
+  const [addingPhaseTo, setAddingPhaseTo] = useState<string | null>(null);
+  const [phaseLabel, setPhaseLabel] = useState("");
+  const phaseFileRef = useRef<HTMLInputElement>(null);
+  const phaseUploadCtx = useRef<{ parentId: string; label: string } | null>(null);
 
 
   const isAdmin = viewerRole === "admin";
@@ -244,8 +250,100 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
       setUploading(false);
     }
   }
+  const activeFolder = folders.find((f) => f.id === currentFolderId);
+  const isContratos = !isAllView && (activeFolder?.name || "").trim().toLowerCase() === "contratos";
+  const contractRoots = useMemo(
+    () => (isContratos ? (files as any[]).filter((f) => !f.parent_document_id) : []),
+    [isContratos, files],
+  );
+  const phasesByParent = useMemo(() => {
+    const m = new Map<string, any[]>();
+    if (!isContratos) return m;
+    for (const f of files as any[]) {
+      if (!f.parent_document_id) continue;
+      const arr = m.get(f.parent_document_id) ?? [];
+      arr.push(f);
+      m.set(f.parent_document_id, arr);
+    }
+    for (const arr of m.values()) arr.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    return m;
+  }, [isContratos, files]);
 
+  async function createContract() {
+    const name = newContractName.trim();
+    if (!name || !currentFolderId) return;
+    const { error } = await supabase.from("documents").insert({
+      client_id: clientId,
+      folder_id: currentFolderId,
+      name,
+      status: "em_analise",
+      source: viewerRole === "client" ? "client_upload" : "admin_upload",
+      is_required: false,
+    } as any);
+    if (error) return toast.error(error.message);
+    setNewContractName(""); setCreatingContract(false);
+    toast.success("Contrato criado");
+    qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
+  }
 
+  async function deleteContractOrPhase(row: any) {
+    if (!confirm(`Excluir "${row.phase_label || row.name}"?`)) return;
+    if (row.file_path) await supabase.storage.from("documents").remove([row.file_path]);
+    // children (fases) cascade via FK ON DELETE CASCADE
+    const { error } = await supabase.from("documents").delete().eq("id", row.id);
+    if (error) return toast.error(error.message);
+    toast.success("Excluído");
+    qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
+  }
+
+  function openAddPhase(parentId: string) {
+    setAddingPhaseTo(parentId);
+    setPhaseLabel("");
+  }
+
+  async function confirmAddPhase() {
+    if (!addingPhaseTo || !phaseLabel.trim()) return;
+    phaseUploadCtx.current = { parentId: addingPhaseTo, label: phaseLabel.trim() };
+    setAddingPhaseTo(null);
+    setTimeout(() => phaseFileRef.current?.click(), 0);
+  }
+
+  async function onPhaseFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    const ctx = phaseUploadCtx.current;
+    phaseUploadCtx.current = null;
+    if (!file || !ctx || !currentFolderId) return;
+    try {
+      setUploading(true);
+      const safe = sanitizeStorageFileName(file.name);
+      const path = `${clientId}/folder/${currentFolderId}/contract/${ctx.parentId}/${Date.now()}_${safe}`;
+      const up = await supabase.storage.from("documents").upload(path, file);
+      if (up.error) throw up.error;
+      const { error } = await supabase.from("documents").insert({
+        client_id: clientId,
+        folder_id: currentFolderId,
+        parent_document_id: ctx.parentId,
+        phase_label: ctx.label,
+        name: `${ctx.label} — ${file.name}`,
+        file_path: path,
+        file_size: file.size,
+        mime_type: file.type,
+        status: "em_analise",
+        source: viewerRole === "client" ? "client_upload" : viewerRole === "provider" ? "provider_upload" : "admin_upload",
+        uploaded_by: user?.id,
+        uploaded_at: new Date().toISOString(),
+        is_required: false,
+      } as any);
+      if (error) throw error;
+      toast.success("Fase adicionada");
+      qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
+    } catch (err: any) {
+      toast.error(uploadErrorMessage(err));
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <div className="space-y-3">
@@ -330,7 +428,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                       </Button>
                     </>
                   )}
-                  {canUpload && !isAllView && (
+                  {canUpload && !isAllView && !isContratos && (
                     <>
                       <input ref={fileRef} type="file" multiple hidden onChange={onUpload} />
                       <input ref={attachRef} type="file" multiple hidden onChange={onAttachToRequest} />
@@ -340,11 +438,75 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                       </Button>
                     </>
                   )}
+                  {isContratos && (isAdmin || viewerRole === "client") && (
+                    <Button size="sm" onClick={() => setCreatingContract(true)}>
+                      <FilePlus2 className="size-3.5 mr-1" /> Novo contrato
+                    </Button>
+                  )}
                 </div>
               </div>
 
+              {isContratos && (
+                <input ref={phaseFileRef} type="file" hidden onChange={onPhaseFileSelected} />
+              )}
 
-              {files.length === 0 ? (
+              {isContratos ? (
+                contractRoots.length === 0 ? (
+                  <p className="text-xs text-slate-500 text-center py-6">Nenhum contrato criado ainda.</p>
+                ) : (
+                  <ul className="space-y-3">
+                    {contractRoots.map((c: any) => {
+                      const phases = phasesByParent.get(c.id) ?? [];
+                      return (
+                        <li key={c.id} className="border border-slate-200 rounded-lg bg-slate-50/60 p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <FileText className="size-4 text-indigo-600" />
+                            <p className="text-sm font-semibold text-slate-900 flex-1 truncate">{c.name}</p>
+                            <Badge variant="outline" className="bg-white text-[10px]">{phases.length} fase(s)</Badge>
+                            {(isAdmin || c.uploaded_by === user?.id) && (
+                              <Button size="sm" variant="ghost" className="text-rose-600 hover:text-rose-700" onClick={() => deleteContractOrPhase(c)}>
+                                <Trash2 className="size-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                          {phases.length === 0 ? (
+                            <p className="text-[11px] text-slate-500 pl-6 pb-2">Nenhuma fase ainda. Adicione a primeira (ex.: "Minuta").</p>
+                          ) : (
+                            <ol className="pl-6 space-y-1.5">
+                              {phases.map((p: any, idx: number) => (
+                                <li key={p.id} className="flex items-center gap-2 text-sm bg-white border border-slate-200 rounded px-2 py-1.5">
+                                  <Badge variant="outline" className="text-[10px] shrink-0">Fase {idx + 1}</Badge>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-medium text-slate-800 truncate">{p.phase_label || "—"}</p>
+                                    <p className="text-[11px] text-slate-500 truncate">{p.name?.replace(`${p.phase_label} — `, "")} · {formatDate(p.uploaded_at ?? p.created_at)}</p>
+                                  </div>
+                                  {p.file_path && (
+                                    <>
+                                      <Button size="sm" variant="ghost" onClick={() => viewFile(p.file_path)}><Eye className="size-3.5" /></Button>
+                                      <Button size="sm" variant="ghost" onClick={() => downloadFile(p.file_path, p.name)}><Download className="size-3.5" /></Button>
+                                    </>
+                                  )}
+                                  {(isAdmin || p.uploaded_by === user?.id) && (
+                                    <Button size="sm" variant="ghost" className="text-rose-600 hover:text-rose-700" onClick={() => deleteContractOrPhase(p)}>
+                                      <Trash2 className="size-3.5" />
+                                    </Button>
+                                  )}
+                                </li>
+                              ))}
+                            </ol>
+                          )}
+                          <div className="pl-6 pt-2">
+                            <Button size="sm" variant="outline" disabled={uploading} onClick={() => openAddPhase(c.id)}>
+                              {uploading ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <FilePlus2 className="size-3.5 mr-1" />}
+                              Adicionar fase
+                            </Button>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )
+              ) : files.length === 0 ? (
                 <p className="text-xs text-slate-500 text-center py-6">Nenhum arquivo nesta pasta.</p>
               ) : (
                 <ul className="divide-y divide-slate-100">
@@ -443,6 +605,38 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
           }}
         />
       )}
+
+      {/* Novo contrato */}
+      <Dialog open={creatingContract} onOpenChange={setCreatingContract}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Novo contrato</DialogTitle></DialogHeader>
+          <div className="space-y-2">
+            <Label className="text-xs">Nome do contrato</Label>
+            <Input value={newContractName} onChange={(e) => setNewContractName(e.target.value)} placeholder="Ex: Contrato de prestação — 2026" autoFocus />
+            <p className="text-[11px] text-slate-500">Depois adicione as fases de assinatura (ex.: Minuta → Assinado pelo cliente → Assinado pela Zenon).</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreatingContract(false)}>Cancelar</Button>
+            <Button onClick={createContract} disabled={!newContractName.trim()}>Criar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Adicionar fase */}
+      <Dialog open={!!addingPhaseTo} onOpenChange={(v) => !v && setAddingPhaseTo(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Adicionar fase</DialogTitle></DialogHeader>
+          <div className="space-y-2">
+            <Label className="text-xs">Nome da fase</Label>
+            <Input value={phaseLabel} onChange={(e) => setPhaseLabel(e.target.value)} placeholder="Ex: Minuta / Assinado pelo cliente" autoFocus />
+            <p className="text-[11px] text-slate-500">Ao confirmar, selecione o arquivo dessa fase.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddingPhaseTo(null)}>Cancelar</Button>
+            <Button onClick={confirmAddPhase} disabled={!phaseLabel.trim()}>Escolher arquivo</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
