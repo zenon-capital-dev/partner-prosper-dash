@@ -99,8 +99,8 @@ export function ProfitReservesPanel({ monthKey, canManage = true }: Props) {
     const ok = await confirmAction({
       title: "Excluir caixinha?",
       description: `A caixinha "${r.name}" (${formatBRL(Number(r.amount || 0))}) será removida e voltará ao lucro do mês.`,
-      confirmLabel: "Excluir",
-      variant: "destructive",
+      confirmText: "Excluir",
+      destructive: true,
     });
     if (!ok) return;
     const { error } = await (supabase as any).from("profit_reserves").delete().eq("id", r.id);
