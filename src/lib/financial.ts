@@ -26,12 +26,40 @@ export function isVoidedPaymentStatus(status: any) {
   return VOID_PAYMENT_STATUSES.includes(String(status || ""));
 }
 
+export function isPaymentPaidInFuture(payment: any) {
+  // Um pagamento "quitado" com data futura ainda NÃO foi recebido — é um agendamento.
+  const paidAt = payment?.paid_at ? new Date(payment.paid_at) : null;
+  if (!paidAt || Number.isNaN(paidAt.getTime())) return false;
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  return paidAt.getTime() > today.getTime();
+}
+
 export function paymentReceivedAmount(payment: any) {
   if (isVoidedPaymentStatus(payment?.status)) return 0;
+  // Se a data de pagamento é no futuro, ainda não foi recebido — trata como agendado/pendente.
+  if (isPaymentPaidInFuture(payment)) return 0;
   const paidAmount = Number(payment?.amount_paid || 0);
   if (paidAmount > 0) return paidAmount;
   return isPaidPaymentStatus(payment?.status) ? Number(payment?.amount || 0) : 0;
 }
+
+/**
+ * Retorna o mês de competência (YYYY-MM) do pagamento.
+ * Prioridade: competence_month manual > due_date > paid_at.
+ * Assim, um recebimento pago em julho referente a junho aparece no fluxo de junho.
+ */
+export function paymentCompetenceYm(payment: any): string | null {
+  const raw = payment?.competence_month || payment?.due_date || payment?.paid_at;
+  if (!raw) return null;
+  const s = String(raw);
+  // ISO date/datetime — pega YYYY-MM
+  if (/^\d{4}-\d{2}/.test(s)) return s.slice(0, 7);
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return null;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
 
 export function clampRatio(value: number) {
   return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
