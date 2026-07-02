@@ -974,6 +974,8 @@ export default function Sales() {
             />
           </div>
 
+          <StageFilterBar />
+
           <FilterPresets
             scope="sales"
             getState={() => ({
