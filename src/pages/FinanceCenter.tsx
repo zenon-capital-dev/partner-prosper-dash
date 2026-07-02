@@ -431,16 +431,25 @@ export default function FinanceCenter() {
     const variableExpenses = (expenses as any[])
       .filter((e) => inRange(expDate(e)))
       .reduce((a, e) => a + Number(e.amount || 0), 0);
+    // Custos de venda (Zenon + prestador) prorrateados pelo % efetivamente recebido do cliente.
+    // Regra: só reconhecemos custo proporcional ao que já entrou em caixa.
+    const salesCostRatio = (s: any) => {
+      const val = Number(s.amount || 0);
+      if (val <= 0) return 0;
+      const rec = receivedBySale.get(s.id) || 0;
+      return Math.max(0, Math.min(1, rec / val));
+    };
     const salesCostsTotal = (salesCosts as any[])
-      .filter((s) => s.status !== "cancelada" && inRange((s.sale_date || s.created_at || "") as string))
-      .reduce((a, s) => a + Number(s.zenon_cost || 0) + Number(s.provider_cost || 0), 0);
+      .filter((s) => s.status !== "cancelada")
+      .reduce((a, s) => a + (Number(s.zenon_cost || 0) + Number(s.provider_cost || 0)) * salesCostRatio(s), 0);
     const zenonCostTotal = (salesCosts as any[])
-      .filter((s) => s.status !== "cancelada" && inRange((s.sale_date || s.created_at || "") as string))
-      .reduce((a, s) => a + Number(s.zenon_cost || 0), 0);
+      .filter((s) => s.status !== "cancelada")
+      .reduce((a, s) => a + Number(s.zenon_cost || 0) * salesCostRatio(s), 0);
     const providerCostTotal = (salesCosts as any[])
-      .filter((s) => s.status !== "cancelada" && inRange((s.sale_date || s.created_at || "") as string))
-      .reduce((a, s) => a + Number(s.provider_cost || 0), 0);
+      .filter((s) => s.status !== "cancelada")
+      .reduce((a, s) => a + Number(s.provider_cost || 0) * salesCostRatio(s), 0);
     const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal;
+
     return {
       totalReceived,
       receivedThisMonth,
