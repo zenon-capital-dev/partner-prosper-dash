@@ -343,12 +343,24 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
                         {r.notes ? ` · ${r.notes}` : ""}
                       </p>
                     </div>
-                    <button
-                      onClick={() => removeReceipt(r.id)}
-                      className="text-[10.5px] font-semibold text-rose-600 hover:text-rose-800 px-2 py-1 rounded hover:bg-rose-50"
-                    >
-                      Excluir
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="month"
+                        defaultValue={comp ?? ""}
+                        onBlur={(e) => {
+                          const v = e.target.value;
+                          if (v && v !== comp) updateReceiptCompetence(r.id, v);
+                        }}
+                        title="Competência (mês de referência)"
+                        className="h-7 w-[130px] text-[11px] bg-white"
+                      />
+                      <button
+                        onClick={() => removeReceipt(r.id)}
+                        className="text-[10.5px] font-semibold text-rose-600 hover:text-rose-800 px-2 py-1 rounded hover:bg-rose-50"
+                      >
+                        Excluir
+                      </button>
+                    </div>
                   </div>
                   );
                 })}
