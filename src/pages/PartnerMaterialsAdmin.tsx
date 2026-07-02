@@ -146,7 +146,7 @@ export default function PartnerMaterialsAdmin({ audience = "partner" }: { audien
     },
     onSuccess: () => {
       toast.success("Material removido");
-      qc.invalidateQueries({ queryKey: ["partner-materials-admin"] });
+      qc.invalidateQueries({ queryKey: ["partner-materials-admin", audience] });
     },
     onError: (e: any) => toast.error(e.message || "Erro"),
   });
@@ -156,9 +156,9 @@ export default function PartnerMaterialsAdmin({ audience = "partner" }: { audien
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <BookOpen className="size-6 text-indigo-600" /> Materiais para parceiros
+            <BookOpen className="size-6 text-indigo-600" /> {meta.titulo}
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Disponibilize institucional, treinamentos, argumentos de vendas e gatilhos para os seus parceiros.</p>
+          <p className="text-sm text-slate-500 mt-1">{meta.subtitulo}</p>
         </div>
         <Button onClick={openCreate} className="bg-indigo-600 hover:bg-indigo-700 gap-2">
           <Plus className="size-4" /> Novo material
