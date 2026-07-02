@@ -170,11 +170,11 @@ export default function OperationalExpenses() {
         )}
       </ChartCard>
 
-      {/* Tabela + dialog reutilizados */}
+      {/* Tabela + dialog reutilizados (KPIs internos ocultos p/ não duplicar) */}
       {isLoading ? (
         <div className="bg-white border border-slate-200/70 rounded-lg p-8 text-center text-sm text-slate-500">Carregando despesas…</div>
       ) : (
-        <ExpensesTab expenses={expenses as any[]} canManage={isAdmin} />
+        <ExpensesTab expenses={expenses as any[]} canManage={isAdmin} showKpis={false} />
       )}
     </div>
   );
