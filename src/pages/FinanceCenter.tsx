@@ -508,7 +508,7 @@ export default function FinanceCenter() {
       .reduce((a, s) => a + Number(s.provider_cost || 0) * salesCostRatio(s), 0);
     // Imposto incide APENAS sobre o que efetivamente entrou em caixa no período.
     const taxesTotal = totalReceived * (Number(taxRate) || 0) / 100;
-    const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal - taxesTotal;
+    const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal - taxesTotal - reservesInRange;
 
     return {
       totalReceived,
