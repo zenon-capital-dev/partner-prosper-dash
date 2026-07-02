@@ -879,6 +879,9 @@ export default function FinanceCenter() {
           <TabsContent value="relatorios" className="mt-6">
             <Reports payments={effectivePayments} commissions={commissionRows} sales={effectiveSalesCosts as any[]} />
           </TabsContent>
+          <TabsContent value="auditoria" className="mt-6">
+            <ConsistencyReport />
+          </TabsContent>
 
         </Tabs>
       </div>
