@@ -180,12 +180,14 @@ export function ExpensesTab({ expenses, canManage, showKpis = true }: Props) {
   return (
     <div className="space-y-4">
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiCard label="Total no filtro" value={formatBRL(totals.total)} sub={`${totals.count} registros`} tone="slate" icon={<Receipt className="size-4" />} />
-        <KpiCard label="Pagas" value={formatBRL(totals.paid)} tone="emerald" icon={<CheckCircle2 className="size-4" />} />
-        <KpiCard label="Pendentes" value={formatBRL(totals.pending)} tone="amber" icon={<Clock className="size-4" />} />
-        <KpiCard label="Vencidas" value={formatBRL(totals.overdue)} tone="rose" icon={<TrendingDown className="size-4" />} />
-      </div>
+      {showKpis && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <KpiCard label="Total no filtro" value={formatBRL(totals.total)} sub={`${totals.count} registros`} tone="slate" icon={<Receipt className="size-4" />} />
+          <KpiCard label="Pagas" value={formatBRL(totals.paid)} tone="emerald" icon={<CheckCircle2 className="size-4" />} />
+          <KpiCard label="Pendentes" value={formatBRL(totals.pending)} tone="amber" icon={<Clock className="size-4" />} />
+          <KpiCard label="Vencidas" value={formatBRL(totals.overdue)} tone="rose" icon={<TrendingDown className="size-4" />} />
+        </div>
+      )}
 
       {/* Toolbar */}
       <div className="bg-white border border-slate-200/70 rounded-lg p-3 flex flex-wrap items-center gap-2">
