@@ -715,6 +715,11 @@ export default function FinanceCenter() {
               <p className="font-mono text-base font-semibold text-rose-800 mt-1 tabular-nums">{formatBRL(kpis.variableExpenses)}</p>
               <p className="text-[10px] text-rose-600/80 mt-0.5">Despesas operacionais</p>
             </button>
+            <button type="button" onClick={() => setTab("relatorios")} className="text-left rounded-md border border-slate-200/70 bg-slate-50 p-3 hover:border-slate-300 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-slate-200">
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-600">− Impostos</p>
+              <p className="font-mono text-base font-semibold text-slate-800 mt-1 tabular-nums">{formatBRL(kpis.taxesTotal)}</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">{kpis.taxRate ? `${kpis.taxRate}% sobre recebido` : "Config. em Ajustes"}</p>
+            </button>
           </div>
         </div>
 
