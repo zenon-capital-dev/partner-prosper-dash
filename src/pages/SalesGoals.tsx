@@ -170,6 +170,7 @@ export default function SalesGoals() {
         <Label className="text-xs font-bold uppercase text-slate-600">Período</Label>
         <Input type="month" value={month.slice(0, 7)} onChange={(e) => setMonth(e.target.value + "-01")} className="w-44" />
         <span className="text-sm text-slate-600 capitalize">{monthLabel(month)}</span>
+        <StageFilterBar />
         <div className="flex-1" />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
