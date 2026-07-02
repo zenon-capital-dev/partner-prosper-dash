@@ -473,7 +473,9 @@ export default function FinanceCenter() {
     const providerCostTotal = (salesCosts as any[])
       .filter((s) => s.status !== "cancelada")
       .reduce((a, s) => a + Number(s.provider_cost || 0) * salesCostRatio(s), 0);
-    const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal;
+    // Imposto incide APENAS sobre o que efetivamente entrou em caixa no período.
+    const taxesTotal = totalReceived * (Number(taxRate) || 0) / 100;
+    const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal - taxesTotal;
 
     return {
       totalReceived,
@@ -488,9 +490,11 @@ export default function FinanceCenter() {
       salesCostsTotal,
       zenonCostTotal,
       providerCostTotal,
+      taxesTotal,
+      taxRate: Number(taxRate) || 0,
       netRevenue,
     };
-  }, [payments, commissionRows, expenses, salesCosts, today, rangeStartIso, rangeEndIso]);
+  }, [payments, commissionRows, expenses, salesCosts, today, rangeStartIso, rangeEndIso, taxRate]);
 
   const counts = useMemo(() => {
     const recebidos = payments.filter((p: any) => isPaid(p.status)).length;
