@@ -4808,6 +4808,42 @@ export type Database = {
           },
         ]
       }
+      profit_reserves: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          reference_month: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          reference_month: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          reference_month?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           amount: number
