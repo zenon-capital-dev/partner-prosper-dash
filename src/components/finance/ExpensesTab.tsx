@@ -230,13 +230,14 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
 
   return (
     <div className="space-y-4">
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Kpi label="Total no filtro" value={formatBRL(kpis.total)} icon={TrendingDown} tone="slate" />
-        <Kpi label="Pago" value={formatBRL(kpis.paid)} icon={CheckCircle2} tone="emerald" />
-        <Kpi label="Pendente" value={formatBRL(kpis.pending)} icon={Wallet} tone="amber" />
-        <Kpi label="Vencidas" value={formatBRL(kpis.overdue)} icon={AlertTriangle} tone="rose" />
-      </div>
+      {showKpis && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Kpi label="Total no filtro" value={formatBRL(kpis.total)} icon={TrendingDown} tone="slate" />
+          <Kpi label="Pago" value={formatBRL(kpis.paid)} icon={CheckCircle2} tone="emerald" />
+          <Kpi label="Pendente" value={formatBRL(kpis.pending)} icon={Wallet} tone="amber" />
+          <Kpi label="Vencidas" value={formatBRL(kpis.overdue)} icon={AlertTriangle} tone="rose" />
+        </div>
+      )}
 
       {/* Filtros */}
       <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-3 flex flex-wrap items-end gap-3">
