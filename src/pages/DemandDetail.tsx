@@ -64,6 +64,7 @@ export default function DemandDetail() {
   const [savingNotes, setSavingNotes] = useState(false);
   const { user, isAdmin, isAdminSecondary, isColaborador, isVendedor, isPrestador, isCliente, isParceiro } = useAuth();
   const canManage = isAdmin || isAdminSecondary || isColaborador || isVendedor;
+  const canReport = canManage || isPrestador;
   const canAdminActions = canManage;
   const currentRole = isCliente ? "cliente" : isPrestador ? "prestador" : isParceiro ? "parceiro" : isColaborador ? "colaborador" : "admin";
   const [taskOpen, setTaskOpen] = useState(false);
@@ -724,7 +725,7 @@ export default function DemandDetail() {
                             <p className="text-[11px] text-muted-foreground">Histórico em formato de conversa — andamentos, pendências e próximos passos.</p>
                           </div>
                         </div>
-                        {canManage && (
+                        {canReport && (
                           <Button size="sm" className="gap-2 h-8" onClick={() => setReportOpen(true)}>
                             <Plus className="size-3.5" /> Novo reporte
                           </Button>
@@ -791,7 +792,7 @@ export default function DemandDetail() {
                         })}
                       </div>
 
-                      {canManage && reports.length > 0 && (
+                      {canReport && reports.length > 0 && (
                         <div className="border-t border-slate-100 px-6 py-3 bg-slate-50/60 flex items-center justify-between">
                           <p className="text-[11px] text-muted-foreground">{reports.length} reporte{reports.length > 1 ? "s" : ""} no histórico</p>
                           <Button size="sm" variant="outline" className="h-7 gap-2 text-xs" onClick={() => setReportOpen(true)}>
