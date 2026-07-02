@@ -67,9 +67,10 @@ const monthIso = (d?: string | null) => {
 interface Props {
   expenses: Expense[];
   canManage: boolean;
+  showKpis?: boolean;
 }
 
-export function ExpensesTab({ expenses, canManage }: Props) {
+export function ExpensesTab({ expenses, canManage, showKpis = true }: Props) {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"todos" | "pago" | "pendente" | "vencido">("todos");
