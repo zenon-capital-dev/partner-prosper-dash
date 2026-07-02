@@ -13,6 +13,8 @@ import { Plus, GripVertical, Settings, ChevronRight, Search, ExternalLink, Filte
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { FilterPresets } from "@/components/filters/FilterPresets";
+import { StageFilterBar } from "@/components/filters/StageFilterBar";
+import { useSharedStageFilter } from "@/hooks/useSharedStageFilter";
 
 
 interface Stage { id: string; name: string; position: number; color: string; description?: string | null; }
@@ -73,14 +75,19 @@ export default function ClientJourney() {
     staleTime: 60_000,
   });
 
+  const { stageIds: sharedStageIds } = useSharedStageFilter();
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return clients;
-    return clients.filter((c) =>
+    let list = clients;
+    if (sharedStageIds.length > 0) {
+      list = list.filter((c) => c.journey_stage_id && sharedStageIds.includes(c.journey_stage_id));
+    }
+    if (!q) return list;
+    return list.filter((c) =>
       (c.full_name || "").toLowerCase().includes(q) ||
       (c.company || "").toLowerCase().includes(q),
     );
-  }, [clients, search]);
+  }, [clients, search, sharedStageIds]);
 
   const byStage = useMemo(() => {
     const map = new Map<string, Client[]>();
@@ -164,6 +171,7 @@ export default function ClientJourney() {
                 className="pl-8 h-9 text-sm bg-white"
               />
             </div>
+            <StageFilterBar />
             <FilterPresets
               scope="journey"
               getState={() => ({
