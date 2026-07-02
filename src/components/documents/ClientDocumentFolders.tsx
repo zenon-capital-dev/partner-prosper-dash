@@ -41,6 +41,12 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   const [providersFor, setProvidersFor] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [requestingInFolder, setRequestingInFolder] = useState<string | null>(null);
+  const [newContractName, setNewContractName] = useState("");
+  const [creatingContract, setCreatingContract] = useState(false);
+  const [addingPhaseTo, setAddingPhaseTo] = useState<string | null>(null);
+  const [phaseLabel, setPhaseLabel] = useState("");
+  const phaseFileRef = useRef<HTMLInputElement>(null);
+  const phaseUploadCtx = useRef<{ parentId: string; label: string } | null>(null);
 
 
   const isAdmin = viewerRole === "admin";
