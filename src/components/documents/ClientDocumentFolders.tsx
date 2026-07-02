@@ -19,6 +19,7 @@ import {
   Loader2, FilePlus2,
 } from "lucide-react";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
+import { cn } from "@/lib/utils";
 
 type Role = "admin" | "client" | "provider";
 
