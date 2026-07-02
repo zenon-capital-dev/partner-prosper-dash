@@ -30,6 +30,7 @@ import { Plus } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { StageFilterBar } from "@/components/filters/StageFilterBar";
 import { useStageMatcher } from "@/hooks/useSharedStageFilter";
+import { ProfitReservesPanel } from "@/components/finance/ProfitReservesPanel";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
