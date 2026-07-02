@@ -916,7 +916,6 @@ function PaymentsTable({
       if (recurringFilter === "nao" && p.is_recurring) return false;
       if (dateFrom && (!p.due_date || p.due_date < dateFrom)) return false;
       if (dateTo && (!p.due_date || p.due_date > dateTo)) return false;
-      if (!matchesClientId(p.client_id)) return false;
       if (q) {
         const hay = norm(
           `${p.clients?.full_name ?? ""} ${p.clients?.company ?? ""} ${p.products?.name ?? ""} ${
