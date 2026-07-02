@@ -574,6 +574,7 @@ export default function FinanceCenter() {
     { id: "despesas", label: "Despesas", icon: TrendingDown },
     { id: "por_cliente", label: "Por cliente", icon: BarChart3 },
     { id: "relatorios", label: "Relatórios", icon: BarChart3 },
+    { id: "auditoria", label: "Auditoria", icon: ShieldCheck },
   ];
 
 
