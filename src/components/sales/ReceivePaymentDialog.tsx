@@ -12,7 +12,7 @@ import { formatBRL } from "@/lib/format";
 import { ymdBR, nowBR } from "@/lib/datetime";
 import { Wallet, TrendingUp, Receipt, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { saleIsFinalized } from "@/lib/financial";
+import { saleIsFinalized, paymentReceivedAmount, isPaymentPaidInFuture } from "@/lib/financial";
 
 interface Props {
   open: boolean;
