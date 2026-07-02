@@ -17,10 +17,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { confirmAction } from "@/lib/confirm";
 import {
-  Banknote, TrendingUp, AlertTriangle, Wallet, Receipt, BarChart3,
+  Banknote, TrendingUp, TrendingDown, AlertTriangle, Wallet, Receipt, BarChart3,
   Search, RefreshCw, CheckCircle2, AlertCircle, X, Download, ArrowUp, ArrowDown, ArrowUpDown,
   Filter, FileX, CalendarRange,
 } from "lucide-react";
+
 import { RevenueMap } from "@/components/finance/RevenueMap";
 import { ExpensesTab } from "@/components/finance/ExpensesTab";
 
