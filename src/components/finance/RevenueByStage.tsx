@@ -3,7 +3,7 @@ import { useJourneyStages, useClientStageMap, useSharedStageFilter } from "@/hoo
 import { Route } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const PAID = new Set(["pago", "pago_parcial", "recebido", "concluido"]);
+const PAID = new Set(["pago", "paga", "pago_parcial", "recebido", "recebida", "concluido", "concluida"]);
 const receivedAmount = (p: any) => {
   if (p.amount_paid != null) return Number(p.amount_paid) || 0;
   if (p.received_amount != null) return Number(p.received_amount) || 0;
