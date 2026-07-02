@@ -157,6 +157,26 @@ export default function ClientJourney() {
     return { map, unassigned };
   }, [stages, filtered]);
 
+  const stageKpis = useMemo(() => {
+    const kpi = new Map<string, { salesValue: number; salesCount: number; pending: number; pendingCount: number }>();
+    const aggregate = (list: Client[]) => {
+      const acc = { salesValue: 0, salesCount: 0, pending: 0, pendingCount: 0 };
+      list.forEach((c) => {
+        const a = clientAgg.get(c.id);
+        if (!a) return;
+        acc.salesValue += a.salesValue;
+        acc.salesCount += a.salesCount;
+        acc.pending += a.pending;
+        acc.pendingCount += a.pendingCount;
+      });
+      return acc;
+    };
+    stages.forEach((s) => kpi.set(s.id, aggregate(byStage.map.get(s.id) ?? [])));
+    kpi.set("__unassigned__", aggregate(byStage.unassigned));
+    return kpi;
+  }, [stages, byStage, clientAgg]);
+
+
   const moveClient = useCallback(async (clientId: string, stageId: string | null) => {
     const stageName = stages.find((s) => s.id === stageId)?.name ?? "Sem estágio";
     const derivedStatus = deriveClientStatusFromStageName(stageName);
