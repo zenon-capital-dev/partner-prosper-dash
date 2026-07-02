@@ -18,6 +18,7 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { formatBRDate, formatBR, nowBR, toBR } from "@/lib/datetime";
 import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
 import { ReceivePaymentDialog } from "@/components/sales/ReceivePaymentDialog";
+import { FilterPresets } from "@/components/filters/FilterPresets";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -967,6 +968,30 @@ export default function Sales() {
               title="Filtrar por mês fechado"
             />
           </div>
+
+          <FilterPresets
+            scope="sales"
+            getState={() => ({
+              search, status, revenueFilter, partnerFilter, productFilter, clientFilter,
+              dateFrom, dateTo, selectedMonth, rangeKey,
+            })}
+            applyState={(s) => {
+              setSearch(s.search ?? "");
+              setStatus((s.status ?? "todos") as any);
+              setRevenueFilter((s.revenueFilter ?? "todos") as any);
+              setPartnerFilter(s.partnerFilter ?? "todos");
+              setProductFilter(s.productFilter ?? "todos");
+              setClientFilter(s.clientFilter ?? "todos");
+              setDateFrom(s.dateFrom ?? "");
+              setDateTo(s.dateTo ?? "");
+              if (s.selectedMonth) setSelectedMonth(s.selectedMonth);
+              if (s.rangeKey) setRangeKey(s.rangeKey);
+            }}
+            currentSignature={JSON.stringify({
+              search, status, revenueFilter, partnerFilter, productFilter, clientFilter,
+              dateFrom, dateTo, selectedMonth, rangeKey,
+            })}
+          />
 
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearFilters} className="h-10 text-slate-500 hover:text-slate-900">
