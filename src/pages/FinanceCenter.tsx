@@ -1605,10 +1605,12 @@ function PaymentActionDialog({
 // -------------------- Commissions to pay --------------------
 function CommissionsTable({
   commissions,
+  payments,
   loading,
   canManage,
 }: {
   commissions: any[];
+  payments: any[];
   loading: boolean;
   canManage: boolean;
 }) {
@@ -1652,15 +1654,28 @@ function CommissionsTable({
     });
   }, [commissions, search, statusFilter, typeFilter, beneficiaryFilter]);
 
+  const receivedBySale = useMemo(() => {
+    const map = new Map<string, number>();
+    payments.forEach((p: any) => {
+      if (!p.sale_id) return;
+      const received = paymentReceivedAmount(p);
+      if (received <= 0) return;
+      map.set(p.sale_id, (map.get(p.sale_id) || 0) + received);
+    });
+    return map;
+  }, [payments]);
+
+  const accruedAmount = (c: any) => accruedCommissionAmount(c, receivedBySale);
+
   const pending = filtered.filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status));
   const paid = filtered.filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status));
 
   const totals = useMemo(() => {
-    const totalAll = filtered.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const totalPaid = paid.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const totalPending = pending.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    const totalAll = filtered.reduce((a: number, c: any) => a + accruedAmount(c), 0);
+    const totalPaid = paid.reduce((a: number, c: any) => a + accruedAmount(c), 0);
+    const totalPending = pending.reduce((a: number, c: any) => a + accruedAmount(c), 0);
     return { totalAll, totalPaid, totalPending, count: filtered.length };
-  }, [filtered, paid, pending]);
+  }, [filtered, paid, pending, receivedBySale]);
 
   const byBeneficiary = useMemo(() => {
     const map = new Map<string, { id: string; name: string; type: string; label: string; total: number; pago: number; pendente: number; count: number }>();
@@ -1679,14 +1694,14 @@ function CommissionsTable({
         });
       }
       const row = map.get(key)!;
-      const amt = Number(c.amount || 0);
+      const amt = accruedAmount(c);
       row.total += amt;
       row.count += 1;
       if (isPaid(c.status) || isPaid(c.workflow_status)) row.pago += amt;
       else row.pendente += amt;
     });
     return Array.from(map.values()).sort((a, b) => b.total - a.total);
-  }, [filtered]);
+  }, [filtered, receivedBySale]);
 
   const hasFilter = statusFilter !== "todos" || typeFilter !== "todos" || beneficiaryFilter !== "todos" || !!search;
   const clearFilters = () => {
@@ -1697,7 +1712,12 @@ function CommissionsTable({
   };
 
   const markPaid = async (c: any) => {
-    if (!(await confirmAction(`Marcar comissão de ${formatBRL(c.amount)} para ${c.beneficiary_name} como paga?`))) return;
+    const amountToPay = accruedAmount(c);
+    if (amountToPay <= 0) {
+      toast.error("Ainda não há valor recebido do cliente para liberar essa comissão.");
+      return;
+    }
+    if (!(await confirmAction(`Marcar comissão liberada de ${formatBRL(amountToPay)} para ${c.beneficiary_name} como paga?`))) return;
     const { error } = await supabase
       .from("commission_splits")
       .update({ status: "pago" as any, paid_at: new Date().toISOString() })
@@ -1720,7 +1740,7 @@ function CommissionsTable({
           {title} <span className="text-slate-500 font-mono text-xs">({rows.length})</span>
         </span>
         <span className="font-mono text-xs text-slate-600 tabular-nums">
-          {formatBRL(rows.reduce((a: number, c: any) => a + Number(c.amount || 0), 0))}
+          {formatBRL(rows.reduce((a: number, c: any) => a + accruedAmount(c), 0))}
         </span>
       </div>
       <div className="overflow-x-auto">
@@ -1752,6 +1772,8 @@ function CommissionsTable({
               </tr>
             ) : (
               rows.map((c: any) => {
+                const released = accruedAmount(c);
+                const fullAmount = Number(c.amount || 0);
                 const typeColor =
                   c.beneficiary_type === "partner" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
                   c.beneficiary_type === "collaborator" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
@@ -1768,7 +1790,12 @@ function CommissionsTable({
                     <td className="px-4 py-2.5 text-slate-700">{c.clients?.full_name ?? "—"}</td>
                     <td className="px-4 py-2.5 text-slate-700">{c.products?.name ?? "—"}</td>
                     <td className="px-4 py-2.5 text-right font-mono tabular-nums text-slate-600">{Number(c.percent || 0).toFixed(2)}%</td>
-                    <td className="px-4 py-2.5 text-right font-semibold font-mono tabular-nums">{formatBRL(c.amount)}</td>
+                    <td className="px-4 py-2.5 text-right font-semibold font-mono tabular-nums">
+                      {formatBRL(released)}
+                      {fullAmount > released + 0.01 && (
+                        <div className="text-[10px] font-normal text-slate-400">de {formatBRL(fullAmount)}</div>
+                      )}
+                    </td>
                     <td className="px-4 py-2.5">
                       <Badge variant="outline" className="text-xs">{c.status}</Badge>
                     </td>
