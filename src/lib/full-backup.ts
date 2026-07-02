@@ -614,13 +614,13 @@ export async function exportFullBackup(): Promise<void> {
       ["13_Tarefas", "Tarefas da equipe"],
       ["14_Assinaturas_Recorr", "Assinaturas / receita recorrente"],
       [],
-      ["═══ DUMP COMPLETO (RAW_*) ═══"],
-      ["Total de tabelas exportadas", rawSummary.length],
-      ["Total de registros (raw)", rawSummary.reduce((s, r) => s + (typeof r.registros === "number" ? r.registros : 0), 0)],
-      ["Tabelas com erro/sem permissão", rawSummary.filter((r) => r.status.startsWith("erro")).length],
+      ["═══ VERIFICAÇÃO DE INTEGRIDADE ═══"],
+      ["Categorias verificadas", verificacao.length],
+      ["Categorias completas", verificacao.filter((v) => v.status.startsWith("✓")).length],
+      ["Categorias com divergência", verificacao.filter((v) => !v.status.startsWith("✓")).length],
       [],
-      ["Tabela", "Registros", "Status"],
-      ...rawSummary.map((r) => [r.tabela, r.registros, r.status]),
+      ["Categoria", "No sistema", "Na planilha", "Situação"],
+      ...verificacao.map((v) => [v.categoria, v.noBanco, v.naPlanilha, v.status]),
     ];
     const resumoWs = XLSX.utils.aoa_to_sheet(resumo);
     resumoWs["!cols"] = [{ wch: 45 }, { wch: 45 }];
