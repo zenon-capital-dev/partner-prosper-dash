@@ -105,7 +105,7 @@ export default function DashboardAdmin() {
     },
   });
 
-  const { data: clients = [], isLoading: isLoadingClients } = useQuery({
+  const { data: _rawClients = [], isLoading: isLoadingClients } = useQuery({
     queryKey: ["dash-clients"],
     staleTime: STALE,
     enabled: stageActive,
