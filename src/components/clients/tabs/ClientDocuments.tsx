@@ -157,7 +157,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
         status: "em_analise" as const,
       };
 
-      if (pendingUpload.doc?.id && index === 0) {
+      if (pendingUpload.doc?.id && index === 0 && !pendingUpload.doc.file_path) {
         const oldPath = pendingUpload.doc.file_path as string | undefined;
         const { error } = await supabase.from("documents").update(baseFields as any).eq("id", pendingUpload.doc.id);
         if (error) { toast.error(error.message); setUploading(false); return; }
@@ -169,8 +169,8 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
         rows.push({
           client_id: clientId,
           product_id: pendingUpload.productId ?? null,
-          name: file.name,
-          description: pendingUpload.doc?.id ? `Anexo adicional de ${pendingUpload.doc.name}` : `Anexado pelo admin (${pendingUpload.source})`,
+          name: pendingUpload.doc?.id ? `${pendingUpload.doc.name} · ${file.name}` : file.name,
+          description: pendingUpload.doc?.id ? `Arquivo adicional de ${pendingUpload.doc.name}` : `Anexado pelo admin (${pendingUpload.source})`,
           is_required: false,
           ...baseFields,
         });
