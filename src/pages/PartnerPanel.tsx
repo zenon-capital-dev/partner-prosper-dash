@@ -537,7 +537,7 @@ export default function PartnerPanel() {
     queryKey: ["partner-materials", partner?.id],
     enabled: !!partner?.id,
     queryFn: async () => {
-      const { data } = await (supabase as any).from("partner_materials").select("*").eq("active", true).order("created_at", { ascending: false });
+      const { data } = await (supabase as any).from("partner_materials").select("*").eq("active", true).in("audience", ["partner", "general"]).order("created_at", { ascending: false });
       return data || [];
     },
   });
