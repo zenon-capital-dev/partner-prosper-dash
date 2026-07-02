@@ -604,6 +604,7 @@ export default function FinanceCenter() {
         icon={<Banknote className="h-5 w-5" />}
         actions={
           <div className="flex items-center gap-2 flex-wrap">
+            <StageFilterBar />
             <Select value={kpiRange} onValueChange={(v) => setKpiRange(v as any)}>
               <SelectTrigger className="h-9 w-[190px] bg-white border-slate-200">
                 <SelectValue />
