@@ -270,6 +270,7 @@ export default function Clients() {
         if (!matchText && !matchDoc) return false;
       }
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
+      if (stageIds.length > 0 && !stageIds.includes(c.journey_stage_id)) return false;
       if (productFilter === "_none") {
         if ((c.client_products?.length || 0) > 0) return false;
       } else if (productFilter !== "all") {
