@@ -32,6 +32,7 @@ import { StageFilterBar } from "@/components/filters/StageFilterBar";
 import { useStageMatcher } from "@/hooks/useSharedStageFilter";
 import { ProfitReservesPanel } from "@/components/finance/ProfitReservesPanel";
 import { RevenueByStage } from "@/components/finance/RevenueByStage";
+import { ExpensesTab } from "@/components/finance/ExpensesTab";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -570,6 +571,7 @@ export default function FinanceCenter() {
     { id: "a_receber", label: "A receber", icon: Receipt, count: counts.a_receber },
     { id: "comissoes", label: "Comissões", icon: Wallet, count: counts.comissoes },
     { id: "inadimplencia", label: "Inadimplência", icon: AlertTriangle, count: counts.inadimplencia },
+    { id: "despesas", label: "Despesas", icon: TrendingDown },
     { id: "por_cliente", label: "Por cliente", icon: BarChart3 },
     { id: "relatorios", label: "Relatórios", icon: BarChart3 },
   ];
@@ -864,6 +866,9 @@ export default function FinanceCenter() {
               }
               canManage={canManage}
             />
+          </TabsContent>
+          <TabsContent value="despesas" className="mt-6">
+            <ExpensesTab canManage={canManage} />
           </TabsContent>
           <TabsContent value="por_cliente" className="mt-6">
             <ByClient payments={effectivePayments} canManage={canManage} />
