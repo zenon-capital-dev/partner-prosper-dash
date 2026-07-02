@@ -137,6 +137,15 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
     qc.refetchQueries({ queryKey: ["sales-receipts-by-sale"] });
   };
 
+  const updateReceiptCompetence = async (id: string, ym: string) => {
+    if (!ym) return;
+    const { error } = await supabase.from("payments").update({ competence_month: `${ym}-01` } as any).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Competência atualizada");
+    qc.refetchQueries({ queryKey: ["sale-receipts", sale.id] });
+    qc.refetchQueries({ queryKey: ["sales-receipts-by-sale"] });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl border-slate-200 bg-white">
