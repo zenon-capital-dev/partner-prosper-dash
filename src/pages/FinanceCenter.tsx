@@ -422,6 +422,23 @@ export default function FinanceCenter() {
     [commissions]
   );
 
+  const { data: profitReserves = [] } = useQuery({
+    queryKey: ["profit-reserves-all"],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("profit_reserves")
+        .select("id, amount, reference_month");
+      return data ?? [];
+    },
+    staleTime: 60_000,
+  });
+  const reservesInRange = useMemo(() => {
+    return (profitReserves as any[])
+      .filter((r) => r.reference_month >= rangeStartIso && r.reference_month < rangeEndIso)
+      .reduce((s, r) => s + Number(r.amount || 0), 0);
+  }, [profitReserves, rangeStartIso, rangeEndIso]);
+
+
   const kpis = useMemo(() => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
