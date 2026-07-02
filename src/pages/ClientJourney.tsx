@@ -164,6 +164,24 @@ export default function ClientJourney() {
                 className="pl-8 h-9 text-sm bg-white"
               />
             </div>
+            <FilterPresets
+              scope="journey"
+              getState={() => ({
+                search,
+                visibleStages: visibleStages ? Array.from(visibleStages) : null,
+                showUnassigned,
+              })}
+              applyState={(s) => {
+                setSearch(s.search ?? "");
+                setVisibleStages(s.visibleStages ? new Set(s.visibleStages) : null);
+                setShowUnassigned(s.showUnassigned ?? true);
+              }}
+              currentSignature={JSON.stringify({
+                search,
+                visibleStages: visibleStages ? Array.from(visibleStages) : null,
+                showUnassigned,
+              })}
+            />
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="relative">
