@@ -725,7 +725,7 @@ export default function DemandDetail() {
                             <p className="text-[11px] text-muted-foreground">Histórico em formato de conversa — andamentos, pendências e próximos passos.</p>
                           </div>
                         </div>
-                        {canManage && (
+                        {canReport && (
                           <Button size="sm" className="gap-2 h-8" onClick={() => setReportOpen(true)}>
                             <Plus className="size-3.5" /> Novo reporte
                           </Button>
