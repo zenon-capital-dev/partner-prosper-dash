@@ -1775,6 +1775,63 @@ export type Database = {
           },
         ]
       }
+      commission_audit_log: {
+        Row: {
+          actor_email: string | null
+          actor_id: string | null
+          amount: number | null
+          beneficiary_id: string | null
+          beneficiary_type: string | null
+          created_at: string
+          event: string
+          id: string
+          new_status: string | null
+          old_status: string | null
+          payment_id: string | null
+          percent: number | null
+          sale_id: string | null
+          source: string | null
+          source_id: string
+          source_table: string
+        }
+        Insert: {
+          actor_email?: string | null
+          actor_id?: string | null
+          amount?: number | null
+          beneficiary_id?: string | null
+          beneficiary_type?: string | null
+          created_at?: string
+          event: string
+          id?: string
+          new_status?: string | null
+          old_status?: string | null
+          payment_id?: string | null
+          percent?: number | null
+          sale_id?: string | null
+          source?: string | null
+          source_id: string
+          source_table: string
+        }
+        Update: {
+          actor_email?: string | null
+          actor_id?: string | null
+          amount?: number | null
+          beneficiary_id?: string | null
+          beneficiary_type?: string | null
+          created_at?: string
+          event?: string
+          id?: string
+          new_status?: string | null
+          old_status?: string | null
+          payment_id?: string | null
+          percent?: number | null
+          sale_id?: string | null
+          source?: string | null
+          source_id?: string
+          source_table?: string
+        }
+        Relationships: []
+      }
       commission_rules: {
         Row: {
           created_at: string
@@ -4353,6 +4410,57 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      payment_audit_log: {
+        Row: {
+          actor_email: string | null
+          actor_id: string | null
+          amount: number | null
+          client_id: string | null
+          created_at: string
+          event: string
+          id: string
+          new_amount_paid: number | null
+          new_status: string | null
+          old_amount_paid: number | null
+          old_status: string | null
+          payment_id: string
+          sale_id: string | null
+          source: string | null
+        }
+        Insert: {
+          actor_email?: string | null
+          actor_id?: string | null
+          amount?: number | null
+          client_id?: string | null
+          created_at?: string
+          event: string
+          id?: string
+          new_amount_paid?: number | null
+          new_status?: string | null
+          old_amount_paid?: number | null
+          old_status?: string | null
+          payment_id: string
+          sale_id?: string | null
+          source?: string | null
+        }
+        Update: {
+          actor_email?: string | null
+          actor_id?: string | null
+          amount?: number | null
+          client_id?: string | null
+          created_at?: string
+          event?: string
+          id?: string
+          new_amount_paid?: number | null
+          new_status?: string | null
+          old_amount_paid?: number | null
+          old_status?: string | null
+          payment_id?: string
+          sale_id?: string | null
+          source?: string | null
         }
         Relationships: []
       }
