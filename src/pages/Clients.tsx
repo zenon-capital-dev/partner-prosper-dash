@@ -480,9 +480,21 @@ export default function Clients() {
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="ativo">Ativo</SelectItem>
-                  <SelectItem value="prospecto">Prospecto</SelectItem>
-                  <SelectItem value="inativo">Inativo</SelectItem>
+                  {statusOptions.map((s) => (
+                    <SelectItem key={s} value={s}>{statusLabel(s)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FilterField>
+            <FilterField label="Vendas">
+              <Select value={salesFilter} onValueChange={setSalesFilter}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="com_venda_ativa">Com venda ativa</SelectItem>
+                  <SelectItem value="com_venda_concluida">Com venda concluída</SelectItem>
+                  <SelectItem value="com_pendencia">Com pendência financeira</SelectItem>
+                  <SelectItem value="sem_venda">Sem venda</SelectItem>
                 </SelectContent>
               </Select>
             </FilterField>
