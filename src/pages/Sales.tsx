@@ -1380,11 +1380,12 @@ export default function Sales() {
   );
 }
 
-function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, receiptsBySale }: {
+function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, receiptsBySale, monthYm }: {
   kind: null | "bruto" | "recebido_mes" | "a_receber" | "liquido" | "custos" | "comissoes" | "count";
   onClose: () => void;
   filtered: any[]; allReceipts: any[];
   splitsBySale: Map<string, any[]>; receiptsBySale: Map<string, any>;
+  monthYm: string;
 }) {
   const config = useMemo(() => {
     if (!kind) return null;
@@ -1395,8 +1396,8 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
         return { title: "Volume Bruto — detalhamento", subtitle: "Soma do valor de todas as vendas ativas do período.", rows, isMoney: true };
       }
       case "recebido_mes": {
-        const now = new Date();
-        const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        const ym = monthYm;
+
         const bySale = new Map<string, number>();
         allReceipts.forEach((r: any) => {
           if (!r.paid_at || !String(r.paid_at).startsWith(ym)) return;
