@@ -108,19 +108,19 @@ export default function DashboardAdmin() {
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({
     queryKey: ["dash-clients"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("clients").select("id, full_name, status, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
   const { data: clientProducts = [], isLoading: isLoadingDemands } = useQuery({
     queryKey: ["dash-demands"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("client_products").select("id, status, client_id, custom_product_name, deadline, sla_due_date, end_date, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
   const { data: sales = [], isLoading: isLoadingSales } = useQuery({
     queryKey: ["dash-sales", rangeKey],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => {
       let query = supabase.from("sales").select("id, sale_date, amount, client_id, status, zenon_cost, provider_cost").eq("status", "concluida").order("sale_date", { ascending: false }).limit(300);
 
@@ -143,13 +143,13 @@ export default function DashboardAdmin() {
   const { data: leads = [], isLoading: isLoadingLeads } = useQuery({
     queryKey: ["dash-leads"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("leads").select("id, status, estimated_value, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
   const { data: commissions = [], isLoading: isLoadingCommissions } = useQuery({
     queryKey: ["dash-commissions"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => {
       const [splits, comms] = await Promise.all([
         supabase.from("commission_splits").select("id, sale_id, beneficiary_type, beneficiary_id, percent, amount, status, paid_at, created_at").order("created_at", { ascending: false }).limit(300),
@@ -173,26 +173,26 @@ export default function DashboardAdmin() {
   const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({
     queryKey: ["dash-tasks"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("tasks").select("id, title, status, status_new, due_date, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
   const { data: contracts = [], isLoading: isLoadingContracts } = useQuery({
     queryKey: ["dash-contracts"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("contracts").select("id, status, name, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
   const { data: docRequests = [], isLoading: isLoadingDocs } = useQuery({
     queryKey: ["dash-doc-requests"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("documents").select("id, status, created_at, name, client_id, due_date").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
 
   const { data: agendaInteractions = [], isLoading: isLoadingAgenda } = useQuery({
     queryKey: ["dash-agenda-today"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => {
       const today = toLocalISO(brasiliaToday);
       const { data } = await supabase.from("client_interactions").select("id, client_id, next_action_at, next_action_note, status").eq("next_action_at", today).eq("status", "pendente");
@@ -203,7 +203,7 @@ export default function DashboardAdmin() {
   const { data: payments = [], isLoading: isLoadingPayments } = useQuery({
     queryKey: ["dash-payments"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => {
       const data = (await supabase.from("payments").select("id, sale_id, client_id, status, amount, amount_paid, due_date, paid_at, sales(id, status)").in("status", ["pendente", "em_aberto", "parcialmente_pago", "atrasado", "vencido", "pago"]).limit(500)).data ?? [];
       return (data as any[]).filter(paymentSaleIsFinalized);
@@ -213,7 +213,7 @@ export default function DashboardAdmin() {
   const { data: activityLogs = [], isLoading: isLoadingActivity } = useQuery({
     queryKey: ["dash-activity"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("activity_logs").select("id, action, entity_type, entity_id, created_at, user_id, new_data").order("created_at", { ascending: false }).limit(8)).data ?? [],
   });
 
