@@ -60,6 +60,23 @@ const OPEN_STATUSES = ["em_aberto", "pendente", "parcial", "parcialmente_pago"];
 const PAID_STATUSES = ["pago", "paga"];
 const isOpen = (s: string) => OPEN_STATUSES.includes(s);
 const isPaid = (s: string) => PAID_STATUSES.includes(s);
+const isVoidedPayment = (s: string) => ["cancelado", "cancelada", "reembolsado", "estornado"].includes(s);
+const clampRatio = (value: number) => Math.max(0, Math.min(1, value));
+const paymentReceivedAmount = (p: any) => {
+  if (isVoidedPayment(String(p.status || ""))) return 0;
+  const paidAmount = Number(p.amount_paid || 0);
+  if (paidAmount > 0) return paidAmount;
+  return isPaid(p.status) ? Number(p.amount || 0) : 0;
+};
+const commissionSaleValue = (c: any, salesAmountById?: Map<string, number>) =>
+  Number(c.sale_value || c.sale?.amount || (c.sale_id ? salesAmountById?.get(c.sale_id) : 0) || 0);
+const accruedCommissionAmount = (c: any, receivedBySale: Map<string, number>, salesAmountById?: Map<string, number>) => {
+  const full = Number(c.amount || 0);
+  const saleVal = commissionSaleValue(c, salesAmountById);
+  const sid = c.sale_id;
+  if (!sid || saleVal <= 0) return 0;
+  return full * clampRatio((receivedBySale.get(sid) || 0) / saleVal);
+};
 
 const todayIsoStr = () => new Date().toISOString().slice(0, 10);
 const monthBounds = (monthKey: string) => {
@@ -269,7 +286,7 @@ export default function FinanceCenter() {
       (
         await supabase
           .from("sales")
-          .select("id, zenon_cost, provider_cost, sale_date, status")
+          .select("id, amount, zenon_cost, provider_cost, sale_date, status")
           .limit(500)
       ).data ?? [],
     staleTime: 60_000,
@@ -283,7 +300,7 @@ export default function FinanceCenter() {
       (
         await supabase
           .from("commission_splits")
-          .select("id, amount, status, beneficiary_type, paid_at, created_at")
+          .select("id, sale_id, amount, status, beneficiary_type, paid_at, created_at")
           .order("created_at", { ascending: false })
           .limit(300)
       ).data ?? [],
@@ -385,11 +402,11 @@ export default function FinanceCenter() {
     const inRange = (d: string) => !!d && d >= from && d < to;
 
     const totalReceived = payments
-      .filter((p: any) => isPaid(p.status) && inRange(paidDate(p)))
-      .reduce((a: number, p: any) => a + Number(p.amount_paid || p.amount || 0), 0);
+      .filter((p: any) => paymentReceivedAmount(p) > 0 && inRange(paidDate(p)))
+      .reduce((a: number, p: any) => a + paymentReceivedAmount(p), 0);
     const receivedThisMonth = payments
-      .filter((p: any) => isPaid(p.status) && paidDate(p) >= startOfMonth)
-      .reduce((a: number, p: any) => a + Number(p.amount_paid || p.amount || 0), 0);
+      .filter((p: any) => paymentReceivedAmount(p) > 0 && paidDate(p) >= startOfMonth)
+      .reduce((a: number, p: any) => a + paymentReceivedAmount(p), 0);
     const totalReceivable = payments
       .filter((p: any) => isOpen(p.status))
       .reduce((a: number, p: any) => a + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
@@ -399,28 +416,24 @@ export default function FinanceCenter() {
     // Recebido agregado por venda (dentro do range) — usado para prorratear comissões
     const receivedBySale = new Map<string, number>();
     for (const p of payments as any[]) {
-      if (!isPaid(p.status) || !inRange(paidDate(p))) continue;
+      const received = paymentReceivedAmount(p);
+      if (received <= 0 || !inRange(paidDate(p))) continue;
       const sid = p.sale_id;
       if (!sid) continue;
-      receivedBySale.set(sid, (receivedBySale.get(sid) || 0) + Number(p.amount_paid || p.amount || 0));
+      receivedBySale.set(sid, (receivedBySale.get(sid) || 0) + received);
     }
+    const salesAmountById = new Map((salesCosts as any[]).map((s: any) => [s.id, Number(s.amount || 0)]));
     // Comissão devida = comissão total * (recebido / valor da venda), limitada ao valor da comissão.
     // Isso reflete a regra: só pagamos comissão sobre o que efetivamente entrou.
     const accruedCommission = (c: any) => {
-      const full = Number(c.amount || 0);
-      const saleVal = Number(c.sale_value || 0);
-      const sid = c.sale_id;
-      if (!sid || saleVal <= 0) return isPaid(c.status) || isPaid(c.workflow_status) ? full : 0;
-      const rec = receivedBySale.get(sid) || 0;
-      const ratio = Math.max(0, Math.min(1, rec / saleVal));
-      return full * ratio;
+      return accruedCommissionAmount(c, receivedBySale, salesAmountById);
     };
     const commissionsPending = commissionRows
       .filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status))
-      .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+      .reduce((a: number, c: any) => a + accruedCommission(c), 0);
     const commissionsPaid = commissionRows
       .filter((c: any) => (isPaid(c.status) || isPaid(c.workflow_status)) && inRange(commDate(c)))
-      .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+      .reduce((a: number, c: any) => a + accruedCommission(c), 0);
     // Custo de comissão para o cálculo do saldo líquido: prorrateado pelo recebido no range.
     const indicatorsPaid = commissionRows
       .filter((c: any) => c.beneficiary_type === "referrer")
@@ -437,7 +450,7 @@ export default function FinanceCenter() {
       const val = Number(s.amount || 0);
       if (val <= 0) return 0;
       const rec = receivedBySale.get(s.id) || 0;
-      return Math.max(0, Math.min(1, rec / val));
+      return clampRatio(rec / val);
     };
     const salesCostsTotal = (salesCosts as any[])
       .filter((s) => s.status !== "cancelada")
@@ -737,7 +750,7 @@ export default function FinanceCenter() {
           </div>
 
           <TabsContent value="fluxo" className="mt-6">
-            <CashFlow payments={payments} commissions={commissionRows} />
+            <CashFlow payments={payments} commissions={commissionRows} sales={salesCosts as any[]} />
           </TabsContent>
           <TabsContent value="mapa" className="mt-6">
             <RevenueMap payments={payments} />
@@ -771,7 +784,7 @@ export default function FinanceCenter() {
             />
           </TabsContent>
           <TabsContent value="comissoes" className="mt-6">
-            <CommissionsTable commissions={commissions} loading={loadingCom} canManage={canManage} />
+            <CommissionsTable commissions={commissions} payments={payments as any[]} loading={loadingCom} canManage={canManage} />
           </TabsContent>
           <TabsContent value="inadimplencia" className="mt-6">
             <PaymentsTable
@@ -793,7 +806,7 @@ export default function FinanceCenter() {
             <ByClient payments={payments} canManage={canManage} />
           </TabsContent>
           <TabsContent value="relatorios" className="mt-6">
-            <Reports payments={payments} commissions={commissionRows} />
+            <Reports payments={payments} commissions={commissionRows} sales={salesCosts as any[]} />
           </TabsContent>
 
         </Tabs>
