@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { FilterPresets } from "@/components/filters/FilterPresets";
 import { StageFilterBar } from "@/components/filters/StageFilterBar";
 import { useSharedStageFilter } from "@/hooks/useSharedStageFilter";
+import { deriveClientStatusFromStageName, invalidateJourneyStageCaches } from "@/lib/journey-stage-sync";
 
 
 interface Stage { id: string; name: string; position: number; color: string; description?: string | null; }
@@ -101,19 +102,29 @@ export default function ClientJourney() {
   }, [stages, filtered]);
 
   const moveClient = useCallback(async (clientId: string, stageId: string | null) => {
+    const stageName = stages.find((s) => s.id === stageId)?.name ?? "Sem estágio";
+    const derivedStatus = deriveClientStatusFromStageName(stageName);
     // snapshot para rollback e otimista
     const previous = qc.getQueryData<Client[]>(["journey-clients"]);
+    const previousStageMap = qc.getQueryData<Map<string, string | null>>(["client-stage-map"]);
     qc.setQueryData<Client[]>(["journey-clients"], (old) =>
-      old?.map((c) => (c.id === clientId ? { ...c, journey_stage_id: stageId } : c)),
+      old?.map((c) => (c.id === clientId ? { ...c, journey_stage_id: stageId, status: derivedStatus ?? c.status } : c)),
     );
+    qc.setQueryData<Map<string, string | null>>(["client-stage-map"], (old) => {
+      if (!old) return old;
+      const next = new Map(old);
+      next.set(clientId, stageId);
+      return next;
+    });
     const { error } = await supabase.from("clients").update({ journey_stage_id: stageId } as any).eq("id", clientId);
     if (error) {
       toast.error(error.message);
       if (previous) qc.setQueryData(["journey-clients"], previous);
+      if (previousStageMap) qc.setQueryData(["client-stage-map"], previousStageMap);
       else qc.invalidateQueries({ queryKey: ["journey-clients"] });
     } else {
-      const stageName = stages.find((s) => s.id === stageId)?.name ?? "Sem estágio";
-      toast.success(`Movido para "${stageName}"`);
+      toast.success(`Movido para "${stageName}"${derivedStatus ? ` · status ${statusLabel(derivedStatus)}` : ""}`);
+      invalidateJourneyStageCaches(qc, clientId);
     }
   }, [qc, stages]);
 
@@ -435,6 +446,7 @@ function ClientCard({
           {client.company && (
             <p className="text-[10px] text-slate-500 truncate">{client.company}</p>
           )}
+          <StatusPill status={client.status} />
         </div>
         <Link
           to={`/clientes/${client.id}`}
@@ -468,5 +480,29 @@ function ClientCard({
         )}
       </div>
     </div>
+  );
+}
+
+const STATUS_TONE: Record<string, string> = {
+  ativo: "bg-blue-50 text-blue-700 border-blue-200",
+  prospecto: "bg-amber-50 text-amber-700 border-amber-200",
+  novo_cliente: "bg-sky-50 text-sky-700 border-sky-200",
+  pagamento_pendente: "bg-orange-50 text-orange-700 border-orange-200",
+  pagamento_confirmado: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  em_andamento: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  finalizado: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  inativo: "bg-slate-100 text-slate-600 border-slate-200",
+  cancelado: "bg-red-50 text-red-700 border-red-200",
+};
+
+function statusLabel(status?: string | null) {
+  return status ? status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "Sem status";
+}
+
+function StatusPill({ status }: { status?: string | null }) {
+  return (
+    <span className={cn("mt-1 inline-flex w-fit rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider", STATUS_TONE[status || ""] || "bg-slate-50 text-slate-600 border-slate-200")}>
+      {statusLabel(status)}
+    </span>
   );
 }

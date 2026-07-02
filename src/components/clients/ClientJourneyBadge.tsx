@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { formatBR as format } from "@/lib/datetime";
 import { parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { deriveClientStatusFromStageName, invalidateJourneyStageCaches } from "@/lib/journey-stage-sync";
 
 interface Props {
   clientId: string;
@@ -41,13 +42,23 @@ export function ClientJourneyBadge({ clientId, stageId }: Props) {
   const current = stages.find((s: any) => s.id === stageId);
 
   const onChange = async (newId: string) => {
+    const nextStage = stages.find((s: any) => s.id === newId);
+    const derivedStatus = deriveClientStatusFromStageName(nextStage?.name);
+    qc.setQueryData(["client", clientId], (old: any) => old ? { ...old, journey_stage_id: newId || null, status: derivedStatus ?? old.status } : old);
+    qc.setQueryData<Map<string, string | null>>(["client-stage-map"], (old) => {
+      if (!old) return old;
+      const next = new Map(old);
+      next.set(clientId, newId || null);
+      return next;
+    });
     const { error } = await supabase.from("clients").update({ journey_stage_id: newId || null } as any).eq("id", clientId);
     if (error) toast.error(error.message);
     else {
-      toast.success("Estágio atualizado");
+      toast.success(`Estágio atualizado${derivedStatus ? ` · status ${derivedStatus.replace(/_/g, " ")}` : ""}`);
       qc.invalidateQueries({ queryKey: ["client", clientId] });
       qc.invalidateQueries({ queryKey: ["client-closed-flag", clientId] });
       qc.invalidateQueries({ queryKey: ["client-timeline", clientId] });
+      invalidateJourneyStageCaches(qc, clientId);
     }
   };
 
