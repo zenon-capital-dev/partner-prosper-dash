@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     const u = list?.users.find((x) => x.email === email);
     if (!u) { out[email] = "not_found"; continue; }
     const { error } = await admin.auth.admin.updateUserById(u.id, {
-      password: "Teste@2026",
+      password: "V3ndx!Qa-2026#Zx9",
       email_confirm: true,
     });
     out[email] = error ? `err:${error.message}` : "ok";
