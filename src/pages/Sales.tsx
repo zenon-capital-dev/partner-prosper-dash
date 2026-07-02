@@ -62,12 +62,8 @@ const norm = (s: any) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 const onlyDigits = (s: any) => String(s ?? "").replace(/\D+/g, "");
-const isPaymentReceived = (status: any) => ["pago", "parcial", "parcialmente_pago"].includes(String(status || ""));
-const receivedPaymentAmount = (p: any) => {
-  const paidAmount = Number(p.amount_paid || 0);
-  if (paidAmount > 0) return paidAmount;
-  return isPaymentReceived(p.status) ? Number(p.amount || 0) : 0;
-};
+const isPaymentReceived = (p: any) => paymentReceivedAmount(p) > 0;
+const receivedPaymentAmount = (p: any) => paymentReceivedAmount(p);
 const saleReceived = (saleId: string, receiptsBySale: Map<string, any>) => Number(receiptsBySale.get(saleId)?.received || 0);
 const saleRatio = (s: any, receiptsBySale: Map<string, any>) => {
   const amount = Number(s.amount || 0);
