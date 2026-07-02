@@ -1459,7 +1459,7 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
 
         const bySale = new Map<string, number>();
         allReceipts.forEach((r: any) => {
-          if (!r.paid_at || !String(r.paid_at).startsWith(ym)) return;
+          if (paymentCompetenceYm(r) !== ym) return;
           const val = receivedPaymentAmount(r);
           if (val <= 0 || !r.sale_id) return;
           bySale.set(r.sale_id, (bySale.get(r.sale_id) || 0) + val);
