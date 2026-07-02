@@ -76,6 +76,11 @@ export default function DashboardAdmin() {
 
   const STALE = 60_000; // 1 min — evita refetch agressivo ao trocar de aba/foco
 
+  // Filtro compartilhado por Estágio da Jornada. Quando ativo, precisamos calcular
+  // as métricas no cliente (o RPC agregado não conhece o filtro), então habilitamos
+  // as queries locais e trocamos a fonte para `computedStats`.
+  const { matchesClientId, isActive: stageActive, stageIds: sharedStageIds } = useStageMatcher();
+
   const { data: dashboardStats, isLoading: isLoadingDashboard } = useQuery({
     queryKey: ["admin-dashboard-snapshot", rangeKey],
     staleTime: 30_000,
@@ -100,22 +105,22 @@ export default function DashboardAdmin() {
     },
   });
 
-  const { data: clients = [], isLoading: isLoadingClients } = useQuery({
+  const { data: _rawClients = [], isLoading: isLoadingClients } = useQuery({
     queryKey: ["dash-clients"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("clients").select("id, full_name, status, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
-  const { data: clientProducts = [], isLoading: isLoadingDemands } = useQuery({
+  const { data: _rawClientProducts = [], isLoading: isLoadingDemands } = useQuery({
     queryKey: ["dash-demands"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("client_products").select("id, status, client_id, custom_product_name, deadline, sla_due_date, end_date, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
-  const { data: sales = [], isLoading: isLoadingSales } = useQuery({
+  const { data: _rawSales = [], isLoading: isLoadingSales } = useQuery({
     queryKey: ["dash-sales", rangeKey],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => {
       let query = supabase.from("sales").select("id, sale_date, amount, client_id, status, zenon_cost, provider_cost").eq("status", "concluida").order("sale_date", { ascending: false }).limit(300);
 
@@ -138,13 +143,13 @@ export default function DashboardAdmin() {
   const { data: leads = [], isLoading: isLoadingLeads } = useQuery({
     queryKey: ["dash-leads"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("leads").select("id, status, estimated_value, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
   const { data: commissions = [], isLoading: isLoadingCommissions } = useQuery({
     queryKey: ["dash-commissions"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => {
       const [splits, comms] = await Promise.all([
         supabase.from("commission_splits").select("id, sale_id, beneficiary_type, beneficiary_id, percent, amount, status, paid_at, created_at").order("created_at", { ascending: false }).limit(300),
@@ -168,26 +173,26 @@ export default function DashboardAdmin() {
   const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({
     queryKey: ["dash-tasks"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("tasks").select("id, title, status, status_new, due_date, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
   const { data: contracts = [], isLoading: isLoadingContracts } = useQuery({
     queryKey: ["dash-contracts"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("contracts").select("id, status, name, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
-  const { data: docRequests = [], isLoading: isLoadingDocs } = useQuery({
+  const { data: _rawDocRequests = [], isLoading: isLoadingDocs } = useQuery({
     queryKey: ["dash-doc-requests"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("documents").select("id, status, created_at, name, client_id, due_date").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
 
-  const { data: agendaInteractions = [], isLoading: isLoadingAgenda } = useQuery({
+  const { data: _rawAgendaInteractions = [], isLoading: isLoadingAgenda } = useQuery({
     queryKey: ["dash-agenda-today"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => {
       const today = toLocalISO(brasiliaToday);
       const { data } = await supabase.from("client_interactions").select("id, client_id, next_action_at, next_action_note, status").eq("next_action_at", today).eq("status", "pendente");
@@ -195,10 +200,10 @@ export default function DashboardAdmin() {
     }
   });
 
-  const { data: payments = [], isLoading: isLoadingPayments } = useQuery({
+  const { data: _rawPayments = [], isLoading: isLoadingPayments } = useQuery({
     queryKey: ["dash-payments"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => {
       const data = (await supabase.from("payments").select("id, sale_id, client_id, status, amount, amount_paid, due_date, paid_at, sales(id, status)").in("status", ["pendente", "em_aberto", "parcialmente_pago", "atrasado", "vencido", "pago"]).limit(500)).data ?? [];
       return (data as any[]).filter(paymentSaleIsFinalized);
@@ -208,7 +213,7 @@ export default function DashboardAdmin() {
   const { data: activityLogs = [], isLoading: isLoadingActivity } = useQuery({
     queryKey: ["dash-activity"],
     staleTime: STALE,
-    enabled: false,
+    enabled: stageActive,
     queryFn: async () => (await supabase.from("activity_logs").select("id, action, entity_type, entity_id, created_at, user_id, new_data").order("created_at", { ascending: false }).limit(8)).data ?? [],
   });
 
@@ -240,6 +245,16 @@ export default function DashboardAdmin() {
     const startISO = toISO(rangeStart);
     const endISO = toISO(rangeEnd);
     const todayISO = toISO(brasiliaToday);
+
+    // Aplica o filtro compartilhado de Estágio da Jornada (via client_id) a todos
+    // os conjuntos que serão agregados adiante — shadow os arrays do escopo externo.
+    // Quando o filtro está desativado, matchesClientId() retorna sempre true.
+    const clients = _rawClients.filter((c: any) => matchesClientId(c.id));
+    const clientProducts = _rawClientProducts.filter((p: any) => matchesClientId(p.client_id));
+    const sales = _rawSales.filter((s: any) => matchesClientId(s.client_id));
+    const payments = _rawPayments.filter((p: any) => matchesClientId(p.client_id));
+    const docRequests = _rawDocRequests.filter((d: any) => matchesClientId(d.client_id));
+    const agendaInteractions = _rawAgendaInteractions.filter((i: any) => matchesClientId(i.client_id));
 
     const filteredSales = sales.filter((s: any) => s.sale_date && s.sale_date >= startISO && s.sale_date <= endISO);
     const rangeRevenue = filteredSales.reduce((a, s: any) => a + Number(s.amount || 0), 0);
@@ -459,9 +474,12 @@ export default function DashboardAdmin() {
       salesCount: filteredSales.length,
       todayTasksList, todayDemandsList, todayDocsList, todayContractsList, todayPendingCount, todayAgendaList,
     };
-  }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, brasiliaToday, taxRate]);
+  }, [_rawClients, _rawClientProducts, _rawSales, leads, commissions, tasks, contracts, _rawDocRequests, _rawPayments, _rawAgendaInteractions, rangeKey, brasiliaToday, taxRate, matchesClientId]);
 
-  const stats: any = dashboardStats ?? computedStats;
+  // Quando o filtro de estágio está ativo, as métricas precisam vir do cálculo
+  // local (que já respeita `matchesClientId`), pois o RPC agregado do painel
+  // desconhece o filtro. Fora disso, mantemos o snapshot do servidor.
+  const stats: any = stageActive ? computedStats : (dashboardStats ?? computedStats);
 
   return (
     <div className="min-h-dvh bg-background text-foreground admin-shell overflow-x-hidden">
@@ -679,7 +697,7 @@ export default function DashboardAdmin() {
 
         {/* ============ REVENUE BY STAGE ============ */}
         <section className="grid grid-cols-1">
-          <RevenueByStage payments={payments as any[]} />
+          <RevenueByStage payments={(_rawPayments as any[]).filter((p: any) => matchesClientId(p.client_id))} />
         </section>
 
 
