@@ -221,6 +221,7 @@ export default function FinanceCenter() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   };
+  const { matchesClientId } = useStageMatcher();
   const [kpiRange, setKpiRange] = useState<RangeMode>(
     (typeof window !== "undefined" && (localStorage.getItem("fin:kpiRange") as any)) || "specific"
   );
