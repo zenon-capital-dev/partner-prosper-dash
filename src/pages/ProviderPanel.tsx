@@ -607,10 +607,24 @@ export default function ProviderPanel() {
             <PanelHero role="prestador" eyebrow="Operação" title="Demandas atribuídas" subtitle={`${clientProducts.length} demanda(s) no total.`} />
             {clientProducts.length === 0 ? <SectionCard title=""><EmptyState icon={Briefcase} title="Sem demandas" /></SectionCard> :
               <div className="grid sm:grid-cols-2 gap-3">
-                {(clientProducts as any[]).map((cp) => (
-                  <div key={cp.id} className="bg-white rounded-xl border border-slate-200/70 p-4 shadow-sm hover:shadow-md hover:border-teal-200 transition">
+                {(clientProducts as any[]).map((cp) => {
+                  const u = getDemandUrgency(cp);
+                  return (
+                  <div key={cp.id} className={cn("rounded-xl border p-4 shadow-sm hover:shadow-md transition bg-white", u.border, u.ring)}>
                     <div className="flex items-start justify-between gap-2 mb-3">
-                      <Badge variant="outline" className={cn("text-[10px] border", STATUS_META[cp.status]?.tone || "bg-slate-100")}>{STATUS_META[cp.status]?.label || cp.status}</Badge>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <Badge variant="outline" className={cn("text-[10px] border", STATUS_META[cp.status]?.tone || "bg-slate-100")}>{STATUS_META[cp.status]?.label || cp.status}</Badge>
+                        {u.level === "overdue" && (
+                          <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200 animate-pulse">
+                            <AlertTriangle className="size-3 mr-1" /> {u.label}
+                          </Badge>
+                        )}
+                        {u.level === "stale" && (
+                          <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">
+                            {u.label}
+                          </Badge>
+                        )}
+                      </div>
                       <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(cp.value)}</p>
                     </div>
                     <p className="text-[14.5px] font-semibold text-slate-900 leading-tight">{cp.clients?.full_name || "—"}</p>
@@ -622,11 +636,12 @@ export default function ProviderPanel() {
                         <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setRequestsTarget({ id: cp.id, clientName: cp.clients?.full_name })}>
                           <MessageSquare className="size-3 mr-1" /> Solicitar
                         </Button>
-                        <Button size="sm" className="bg-teal-600 hover:bg-teal-700 h-8 text-[11px]" onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}>Reportar status</Button>
+                        <Button size="sm" className={cn("h-8 text-[11px]", u.level === "overdue" ? "bg-rose-600 hover:bg-rose-700" : "bg-teal-600 hover:bg-teal-700")} onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}>Reportar status</Button>
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>}
           </>
         )}
