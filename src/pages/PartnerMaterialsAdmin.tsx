@@ -248,7 +248,7 @@ export default function PartnerMaterialsAdmin({ audience = "partner" }: { audien
               <Input value={form.external_url} onChange={(e) => setForm({ ...form, external_url: e.target.value })} placeholder="https://..." />
             </div>
             <div className="flex items-center justify-between">
-              <Label>Ativo (visível para parceiros)</Label>
+              <Label>Ativo (visível para {meta.publico})</Label>
               <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
             </div>
           </div>
