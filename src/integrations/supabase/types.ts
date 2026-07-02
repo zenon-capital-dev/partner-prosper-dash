@@ -4279,6 +4279,7 @@ export type Database = {
           client_id: string
           client_product_id: string | null
           collaborator_id: string | null
+          competence_month: string | null
           created_at: string | null
           description: string | null
           due_date: string
@@ -4307,6 +4308,7 @@ export type Database = {
           client_id: string
           client_product_id?: string | null
           collaborator_id?: string | null
+          competence_month?: string | null
           created_at?: string | null
           description?: string | null
           due_date: string
@@ -4335,6 +4337,7 @@ export type Database = {
           client_id?: string
           client_product_id?: string | null
           collaborator_id?: string | null
+          competence_month?: string | null
           created_at?: string | null
           description?: string | null
           due_date?: string
