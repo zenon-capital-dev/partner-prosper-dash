@@ -315,17 +315,22 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
               <p className="text-[12px] text-slate-400 italic">Nenhum recebimento registrado ainda.</p>
             ) : (
               <div className="rounded-lg border border-slate-200/70 overflow-hidden divide-y divide-slate-100">
-                {receipts.map((r: any) => (
-                  <div key={r.id} className="flex items-center gap-3 px-3 py-2.5 bg-white hover:bg-slate-50/60">
-                    <div className="size-7 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center text-[10px] font-bold uppercase">
+                {receipts.map((r: any) => {
+                  const future = isPaymentPaidInFuture(r);
+                  const comp = r.competence_month ? String(r.competence_month).slice(0, 7) : null;
+                  return (
+                  <div key={r.id} className={cn("flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50/60", future ? "bg-amber-50/40" : "bg-white")}>
+                    <div className={cn("size-7 rounded-md flex items-center justify-center text-[10px] font-bold uppercase", future ? "bg-amber-100 text-amber-700" : "bg-emerald-50 text-emerald-700")}>
                       {(r.payment_method || "—").slice(0, 3)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[12.5px] font-bold font-mono tabular-nums text-slate-900">
+                      <p className={cn("text-[12.5px] font-bold font-mono tabular-nums", future ? "text-amber-800" : "text-slate-900")}>
                         {formatBRL(Number(r.amount_paid ?? r.amount ?? 0))}
+                        {future && <span className="ml-2 text-[9.5px] font-semibold uppercase tracking-wider text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5">Agendado</span>}
                       </p>
                       <p className="text-[10.5px] text-slate-500 truncate">
                         {r.paid_at ? new Date(r.paid_at).toLocaleDateString("pt-BR") : "Sem data"} · {r.payment_method || "—"}
+                        {comp ? ` · comp. ${comp.slice(5,7)}/${comp.slice(0,4)}` : ""}
                         {r.notes ? ` · ${r.notes}` : ""}
                       </p>
                     </div>
