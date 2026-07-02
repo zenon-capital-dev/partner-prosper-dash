@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Plus, GripVertical, Settings, ChevronRight, Search, ExternalLink, Filter } from "lucide-react";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { FilterPresets } from "@/components/filters/FilterPresets";
 
 
 interface Stage { id: string; name: string; position: number; color: string; description?: string | null; }
