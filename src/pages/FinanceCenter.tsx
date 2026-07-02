@@ -28,10 +28,11 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
-import { usePageSize } from "@/hooks/usePageSize";
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
   BarChart, Bar, Legend,
 } from "recharts";
+import { usePageSize } from "@/hooks/usePageSize";
+
 
 const norm = (s: any) =>
   String(s ?? "")
