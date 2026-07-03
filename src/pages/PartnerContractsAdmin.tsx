@@ -271,7 +271,7 @@ function Field({ label, value }: { label: string; value?: any }) {
   );
 }
 
-function UploadSlot({ label, path, onPick, onDownload }: { label: string; path?: string | null; onPick: (f: File) => void; onDownload: (p: string) => void }) {
+function UploadSlot({ label, path, onPick, onDownload }: { label: string; path?: string | null; onPick?: (f: File) => void; onDownload: (p: string) => void }) {
   return (
     <div className="border border-slate-200 rounded-lg p-3 bg-slate-50/40">
       <p className="text-[12px] font-bold text-slate-800 mb-2">{label}</p>
@@ -280,16 +280,20 @@ function UploadSlot({ label, path, onPick, onDownload }: { label: string; path?:
           <button onClick={() => onDownload(path)} className="inline-flex items-center gap-1.5 text-emerald-700 text-[12.5px] hover:underline">
             <Download className="size-3.5" /> Baixar atual
           </button>
-          <label className="cursor-pointer text-[11.5px] text-indigo-700 hover:underline">
-            Substituir
-            <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPick(f); e.target.value = ""; }} />
-          </label>
+          {onPick && (
+            <label className="cursor-pointer text-[11.5px] text-indigo-700 hover:underline">
+              Substituir
+              <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPick(f); e.target.value = ""; }} />
+            </label>
+          )}
         </div>
-      ) : (
+      ) : onPick ? (
         <label className="cursor-pointer inline-flex items-center gap-2 text-[12.5px] text-indigo-700 hover:underline">
           <Upload className="size-3.5" /> Enviar PDF
           <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPick(f); e.target.value = ""; }} />
         </label>
+      ) : (
+        <p className="text-[11.5px] text-slate-400 italic">Aguardando envio do parceiro</p>
       )}
     </div>
   );
