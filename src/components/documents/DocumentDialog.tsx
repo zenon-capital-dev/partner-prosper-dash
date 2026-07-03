@@ -10,13 +10,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCircle, Handshake, Plus, FileText, Paperclip, PenLine, Download, CheckCircle2 } from "lucide-react";
+import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCircle, Handshake, Plus, FileText, Paperclip, PenLine, Download, CheckCircle2, ChevronsUpDown, Check, Search } from "lucide-react";
 import { downloadStorageFile } from "@/lib/download";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
-import { useClientsRef, useProvidersRef, useInternalTeamRef } from "@/hooks/useReferenceData";
+import { useClientsRef, useProvidersRef, useCollaboratorsRef } from "@/hooks/useReferenceData";
 import { useMemo } from "react";
 
 
