@@ -649,9 +649,15 @@ export default function ProviderPanel() {
                         )}
                         {u.level === "stale" && (
                           <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">
+                            <AlertTriangle className="size-3 mr-1" /> {u.label}
+                          </Badge>
+                        )}
+                        {u.level === "soon" && (
+                          <Badge variant="outline" className="text-[10px] bg-sky-50 text-sky-700 border-sky-200">
                             {u.label}
                           </Badge>
                         )}
+
                       </div>
                       <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(cp.value)}</p>
                     </div>
