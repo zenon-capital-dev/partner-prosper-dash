@@ -408,7 +408,64 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
               </div>
             )}
           </div>
+
+          {/* Comissões geradas por esta venda */}
+          {saleCommissions.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <HandCoins className="size-3.5 text-indigo-600" />
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-700">Comissões desta venda</p>
+                <span className="text-[10px] font-mono text-slate-400">({saleCommissions.length})</span>
+                <span className="ml-auto text-[10px] text-slate-500">
+                  Geradas automaticamente a cada recebimento. Marque como pagas ao repassar ao beneficiário.
+                </span>
+              </div>
+              <div className="rounded-lg border border-slate-200/70 overflow-hidden divide-y divide-slate-100">
+                {saleCommissions.map((c: any) => {
+                  const isPaid = c.status === "paga";
+                  const who =
+                    c.partners?.full_name ? `Parceiro · ${c.partners.full_name}` :
+                    c.referrers?.full_name ? `Indicador · ${c.referrers.full_name}` :
+                    c.profiles?.full_name ? `Colaborador · ${c.profiles.full_name}` :
+                    c.service_providers?.full_name ? `Prestador · ${c.service_providers.full_name}` :
+                    "Beneficiário";
+                  return (
+                    <div key={c.id} className={cn("flex items-center gap-3 px-3 py-2.5", isPaid ? "bg-emerald-50/40" : "bg-white hover:bg-slate-50/60")}>
+                      <div className={cn("size-7 rounded-md flex items-center justify-center", isPaid ? "bg-emerald-100 text-emerald-700" : "bg-indigo-50 text-indigo-700")}>
+                        <HandCoins className="size-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12.5px] font-bold font-mono tabular-nums text-slate-900">
+                          {formatBRL(Number(c.amount || 0))}
+                          <span className={cn("ml-2 text-[9.5px] font-semibold uppercase tracking-wider rounded px-1.5 py-0.5 border", isPaid ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-amber-100 text-amber-700 border-amber-200")}>
+                            {isPaid ? "Paga" : "A pagar"}
+                          </span>
+                        </p>
+                        <p className="text-[10.5px] text-slate-500 truncate">
+                          {who}
+                          {c.expected_date ? ` · prev. ${new Date(c.expected_date).toLocaleDateString("pt-BR")}` : ""}
+                          {isPaid && c.paid_at ? ` · pago ${new Date(c.paid_at).toLocaleDateString("pt-BR")}` : ""}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => togglePayCommission(c)}
+                        className={cn(
+                          "text-[10.5px] font-semibold px-2.5 py-1 rounded border inline-flex items-center gap-1",
+                          isPaid
+                            ? "text-slate-600 border-slate-200 hover:bg-slate-100"
+                            : "text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
+                        )}
+                      >
+                        {isPaid ? (<><Undo2 className="size-3" /> Desfazer</>) : (<><CheckCircle2 className="size-3" /> Lançar pagamento</>)}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
+
 
         <DialogFooter className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Fechar</Button>
