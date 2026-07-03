@@ -313,9 +313,11 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
                         {e.notes && <div className="text-[10.5px] text-slate-500 truncate max-w-[280px]">{e.notes}</div>}
                       </td>
                       <td className="px-3 py-2">
-                        <Badge variant="outline" className={cn("text-[10px] font-semibold", CAT_STYLE[e.category] ?? CAT_STYLE.outros)}>
-                          {CATEGORIES.find((c) => c.value === e.category)?.label ?? e.category}
+                        <Badge variant="outline" className="text-[10px] font-semibold border bg-white" style={{ borderColor: categoryColor(e.category) + "66", color: categoryColor(e.category) }}>
+                          <span className="size-1.5 rounded-full mr-1" style={{ background: categoryColor(e.category) }} />
+                          {categoryLabel(e.category)}
                         </Badge>
+
                         {e.subcategory && <div className="text-[10px] text-slate-500 mt-0.5">{e.subcategory}</div>}
                       </td>
                       <td className="px-3 py-2 text-slate-700">{e.vendor || "—"}</td>
