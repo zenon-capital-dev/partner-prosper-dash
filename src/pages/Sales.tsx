@@ -322,7 +322,7 @@ export default function Sales() {
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
-    else { setSortKey(key); setSortDir(key === "sale_date" || key === "amount" || key === "commission" ? "desc" : "asc"); }
+    else { setSortKey(key); setSortDir(key === "sale_date" || key === "amount" || key === "commission" || key === "liquido" || key === "recebido" ? "desc" : "asc"); }
   };
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
