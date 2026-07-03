@@ -213,7 +213,7 @@ export default function DemandDetail() {
         .from("client_product_status_reports")
         .select("*")
         .eq("client_product_id", id!)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: true });
       const rows = data ?? [];
       const userIds = Array.from(new Set(rows.map((r: any) => r.reported_by).filter(Boolean)));
       if (userIds.length) {
