@@ -64,9 +64,38 @@ export default function DemandDetail() {
   const [savingNotes, setSavingNotes] = useState(false);
   const { user, isAdmin, isAdminSecondary, isColaborador, isVendedor, isPrestador, isCliente, isParceiro } = useAuth();
   const canManage = isAdmin || isAdminSecondary || isColaborador || isVendedor;
-  const canReport = canManage || isPrestador;
+
+  // Detecta se o usuário logado é um prestador atribuído a esta demanda
+  // (via service_provider_id principal ou via client_product_providers).
+  // Usado para liberar reporte/entrega mesmo se o role "prestador" não estiver em user_roles.
+  const { data: isAssignedProvider = false } = useQuery({
+    queryKey: ["demand-is-my-provider", id, user?.id],
+    enabled: !!id && !!user,
+    queryFn: async () => {
+      const email = (user?.email ?? "").toLowerCase();
+      const orClauses = [`user_id.eq.${user!.id}`];
+      if (email) orClauses.push(`email.eq.${email}`);
+      const { data: sps } = await supabase
+        .from("service_providers")
+        .select("id")
+        .or(orClauses.join(","));
+      const spIds = (sps ?? []).map((s: any) => s.id);
+      if (spIds.length === 0) return false;
+      const { data: cp } = await supabase
+        .from("client_products")
+        .select("service_provider_id, client_product_providers(service_provider_id)")
+        .eq("id", id!)
+        .maybeSingle();
+      if (!cp) return false;
+      if (cp.service_provider_id && spIds.includes(cp.service_provider_id)) return true;
+      const linked = (cp as any).client_product_providers ?? [];
+      return linked.some((l: any) => spIds.includes(l.service_provider_id));
+    },
+  });
+
+  const canReport = canManage || isPrestador || isAssignedProvider;
   const canAdminActions = canManage;
-  const currentRole = isCliente ? "cliente" : isPrestador ? "prestador" : isParceiro ? "parceiro" : isColaborador ? "colaborador" : "admin";
+  const currentRole = isCliente ? "cliente" : (isPrestador || isAssignedProvider) ? "prestador" : isParceiro ? "parceiro" : isColaborador ? "colaborador" : "admin";
   const [taskOpen, setTaskOpen] = useState(false);
   const [taskTitle, setTaskTitle] = useState("");
   const [deliveryOpen, setDeliveryOpen] = useState(false);
@@ -75,7 +104,8 @@ export default function DemandDetail() {
   const [rejectFor, setRejectFor] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [uploadingDoc, setUploadingDoc] = useState(false);
-  const canUploadDoc = isAdmin || isAdminSecondary || isColaborador || isVendedor || isPrestador;
+  const canUploadDoc = canManage || isPrestador || isAssignedProvider;
+
 
   const handleQuickDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
