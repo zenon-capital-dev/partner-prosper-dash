@@ -77,10 +77,10 @@ export function OperationalChecklist({ clientProductId, canEdit = true, canManag
   });
 
   const addStep = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (label: string) => {
       const { data, error } = await supabase.from("client_product_steps").insert({
         client_product_id: clientProductId,
-        label: "",
+        label,
         position: steps.length,
         status: "pendente",
         is_visible_to_client: true,
@@ -92,10 +92,17 @@ export function OperationalChecklist({ clientProductId, canEdit = true, canManag
     onSuccess: (data: any) => {
       qc.invalidateQueries({ queryKey: ["op-checklist", clientProductId] });
       if (data?.id) setExpanded((p) => ({ ...p, [data.id]: true }));
-      toast.success("Etapa adicionada — digite o nome da etapa");
+      toast.success("Etapa adicionada");
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const [newStepLabel, setNewStepLabel] = useState("");
+  const submitNewStep = () => {
+    const v = newStepLabel.trim();
+    if (!v) { toast.error("Digite o nome da etapa"); return; }
+    addStep.mutate(v, { onSuccess: () => setNewStepLabel("") });
+  };
 
 
   const removeStep = useMutation({
