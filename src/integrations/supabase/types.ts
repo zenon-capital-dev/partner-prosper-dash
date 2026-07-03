@@ -6019,6 +6019,84 @@ export type Database = {
         }
         Relationships: []
       }
+      signature_stages: {
+        Row: {
+          contract_id: string | null
+          created_at: string
+          created_by: string | null
+          document_id: string | null
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          name: string
+          notes: string | null
+          order_index: number
+          parent_type: string
+          party: string
+          status: string
+          updated_at: string
+          uploaded_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          name: string
+          notes?: string | null
+          order_index?: number
+          parent_type: string
+          party?: string
+          status?: string
+          updated_at?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          name?: string
+          notes?: string | null
+          order_index?: number
+          parent_type?: string
+          party?: string
+          status?: string
+          updated_at?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signature_stages_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signature_stages_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_settings: {
         Row: {
           key: string
@@ -6398,6 +6476,11 @@ export type Database = {
       }
       can_access_product_folder: {
         Args: { _folder_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_access_signature_object: { Args: { _name: string }; Returns: boolean }
+      can_access_signature_stage: {
+        Args: { _stage_id: string }
         Returns: boolean
       }
       check_is_admin: { Args: { _user_id?: string }; Returns: boolean }
