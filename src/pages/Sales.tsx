@@ -666,33 +666,28 @@ export default function Sales() {
         icon={<ShoppingBag className="size-6" />}
         actions={
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex bg-white p-1 rounded-lg border border-slate-200/70 shadow-sm">
-              {(["HOJE", "7 DIAS", "30 DIAS", "MÊS", "TUDO"] as const).map((k) => (
-                <button
-                  key={k}
-                  onClick={() => { setRangeKey(k); setDateFrom(""); setDateTo(""); }}
-                  className={cn(
-                    "px-3 py-1.5 rounded-md text-[10px] font-bold transition-all uppercase tracking-wider",
-                    !usingManualRange && rangeKey === k
-                      ? "bg-indigo-600 text-white shadow-sm"
-                      : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-                  )}
-                >
-                  {k}
-                </button>
-              ))}
-            </div>
-            {rangeKey === "MÊS" && !usingManualRange && (
-              <div className="flex items-center gap-2 bg-white border border-slate-200/70 rounded-lg h-10 px-3 shadow-sm">
-                <CalendarRange className="size-3.5 text-slate-400" />
-                <input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value || currentMonthKey())}
-                  className="bg-transparent text-xs font-semibold text-slate-700 outline-none w-[132px] capitalize"
-                />
-              </div>
-            )}
+            <select
+              value={rangeKey === "TUDO" ? "TUDO" : (rangeKey === "MÊS" && !usingManualRange ? selectedMonth : "TUDO")}
+              onChange={(e) => {
+                const v = e.target.value;
+                setDateFrom(""); setDateTo("");
+                if (v === "TUDO") { setRangeKey("TUDO"); return; }
+                setSelectedMonth(v);
+                setRangeKey("MÊS");
+              }}
+              className="h-10 bg-white border border-slate-200/70 rounded-lg px-3 text-xs font-bold text-slate-700 shadow-sm capitalize outline-none focus:ring-2 focus:ring-indigo-200 min-w-[190px]"
+            >
+              {Array.from({ length: 12 }).map((_, i) => {
+                const d = new Date();
+                d.setDate(1);
+                d.setMonth(d.getMonth() - i);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                const label = d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+                return <option key={key} value={key}>{i === 0 ? `${label} (atual)` : label}</option>;
+              })}
+              <option value="TUDO">Todo período</option>
+            </select>
+
             <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 px-4 gap-2 border-slate-200/70 bg-white hover:bg-slate-50">
               <Download className="size-4" /> Exportar
             </Button>
