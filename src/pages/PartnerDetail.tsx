@@ -323,6 +323,9 @@ export default function PartnerDetail() {
             </CardContent>
           </Card>
 
+          <PartnerDocumentsSection partnerId={partner.id} />
+
+
           {contracts.length > 0 && (
             <Card><CardContent className="p-0">
               <div className="px-4 pt-4 text-xs text-muted-foreground">Outros contratos vinculados</div>
