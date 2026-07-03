@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { nowBR, formatBRDate } from "@/lib/datetime";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { SignatureStagesPanel } from "@/components/signatures/SignatureStagesPanel";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
