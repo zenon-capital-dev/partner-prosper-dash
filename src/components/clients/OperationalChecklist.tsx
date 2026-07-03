@@ -184,12 +184,21 @@ export function OperationalChecklist({ clientProductId, canEdit = true, canManag
         <div className="border-2 border-dashed border-border rounded-2xl p-10 text-center space-y-4">
           <p className="text-sm text-muted-foreground">Nenhuma etapa do checklist configurada.</p>
           {canManage && (
-            <div className="flex items-center justify-center gap-2 flex-wrap">
-              <Button onClick={() => seedFromTemplate.mutate()} disabled={seedFromTemplate.isPending} size="sm" variant="outline" className="gap-2">
+            <div className="space-y-3 max-w-md mx-auto">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={newStepLabel}
+                  onChange={(e) => setNewStepLabel(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") submitNewStep(); }}
+                  placeholder="Nome da etapa (ex: Coletar documentos)"
+                  className="h-9 text-sm"
+                />
+                <Button onClick={submitNewStep} disabled={addStep.isPending} size="sm" className="gap-1 shrink-0">
+                  <Plus className="size-4" /> Adicionar
+                </Button>
+              </div>
+              <Button onClick={() => seedFromTemplate.mutate()} disabled={seedFromTemplate.isPending} size="sm" variant="outline" className="gap-2 w-full">
                 <ListChecks className="size-4" /> Usar template do produto
-              </Button>
-              <Button onClick={() => addStep.mutate()} disabled={addStep.isPending} size="sm" className="gap-2">
-                <Plus className="size-4" /> Adicionar primeira etapa
               </Button>
             </div>
           )}
