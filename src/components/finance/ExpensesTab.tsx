@@ -267,8 +267,10 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
           <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-2">Total por categoria</p>
           <div className="flex flex-wrap gap-2">
             {byCategory.map(([cat, val]) => (
-              <div key={cat} className={cn("px-3 py-1.5 rounded-md border text-xs font-medium flex items-center gap-2", CAT_STYLE[cat] ?? CAT_STYLE.outros)}>
-                <span>{CATEGORIES.find((c) => c.value === cat)?.label ?? cat}</span>
+              <div key={cat} className="px-3 py-1.5 rounded-md border text-xs font-medium flex items-center gap-2 bg-white" style={{ borderColor: categoryColor(cat) + "55", color: categoryColor(cat) }}>
+                <span className="size-2 rounded-full" style={{ background: categoryColor(cat) }} />
+                <span className="text-slate-800">{categoryLabel(cat)}</span>
+
                 <span className="font-mono font-bold">{formatBRL(val)}</span>
               </div>
             ))}
