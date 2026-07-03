@@ -69,6 +69,7 @@ const daysUntil = (dateStr: string) => {
 
 export default function OperationalExpenses() {
   const { isAdmin } = useAuth();
+  const cats = useExpenseCategories();
 
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["fin-expenses"],
