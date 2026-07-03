@@ -624,60 +624,209 @@ export default function ProviderPanel() {
               </SectionCard>
             </div>
 
-            {/* Bottom row: comissões + notificações */}
+            {/* Receita + Entregas */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+              {/* Receita 6 meses */}
               <SectionCard
-                title="Comissões"
-                icon={Wallet}
+                title="Receita — últimos 6 meses"
+                icon={TrendingUp}
                 className="lg:col-span-3"
-                action={<Button size="sm" variant="ghost" className="text-emerald-700 hover:text-emerald-800" onClick={() => onNavigate("comissoes")}>Detalhes <ArrowUpRight className="w-3 h-3 ml-1" /></Button>}
+                action={
+                  <div className="flex items-center gap-2 text-[11px]">
+                    <span className="text-slate-500">este mês</span>
+                    <span className="tabular-nums font-semibold text-slate-900">{formatBRL(revenueByMonth.curr)}</span>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[10px] tabular-nums",
+                        revenueByMonth.trend > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          : revenueByMonth.trend < 0 ? "bg-rose-50 text-rose-700 border-rose-200"
+                          : "bg-slate-50 text-slate-600 border-slate-200"
+                      )}
+                    >
+                      {revenueByMonth.trend > 0 ? "▲" : revenueByMonth.trend < 0 ? "▼" : "="} {Math.abs(revenueByMonth.trend)}%
+                    </Badge>
+                  </div>
+                }
               >
-                <div className="grid grid-cols-3 gap-3 mb-3">
-                  <div className="rounded-lg border border-emerald-100 bg-emerald-50/50 p-3">
-                    <div className="text-[10px] uppercase tracking-wider text-emerald-700">Pago</div>
-                    <div className="text-lg font-semibold text-emerald-900 tabular-nums mt-1">{formatBRL(commKpis.pago)}</div>
-                  </div>
-                  <div className="rounded-lg border border-amber-100 bg-amber-50/50 p-3">
-                    <div className="text-[10px] uppercase tracking-wider text-amber-700">A receber</div>
-                    <div className="text-lg font-semibold text-amber-900 tabular-nums mt-1">{formatBRL(commKpis.pendente)}</div>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                    <div className="text-[10px] uppercase tracking-wider text-slate-600">Total</div>
-                    <div className="text-lg font-semibold text-slate-900 tabular-nums mt-1">{formatBRL(commKpis.total)}</div>
-                  </div>
+                <div className="flex items-end justify-between gap-2 h-32 pt-2 pb-1">
+                  {revenueByMonth.buckets.map((b, i) => {
+                    const h = (b.value / revenueByMonth.max) * 100;
+                    const isLast = i === revenueByMonth.buckets.length - 1;
+                    return (
+                      <div key={b.key} className="flex-1 flex flex-col items-center gap-1.5 group">
+                        <div className="text-[10px] tabular-nums text-slate-400 opacity-0 group-hover:opacity-100 transition">
+                          {b.value > 0 ? formatBRL(b.value) : ""}
+                        </div>
+                        <div className="w-full max-w-[38px] h-full flex items-end">
+                          <div
+                            className={cn(
+                              "w-full rounded-t-md transition-all",
+                              isLast
+                                ? "bg-gradient-to-t from-emerald-500 to-teal-400"
+                                : "bg-gradient-to-t from-slate-200 to-slate-300 group-hover:from-teal-200 group-hover:to-teal-100"
+                            )}
+                            style={{ height: `${Math.max(h, 4)}%` }}
+                          />
+                        </div>
+                        <div className={cn("text-[10px] uppercase tracking-wider", isLast ? "text-teal-700 font-semibold" : "text-slate-400")}>
+                          {b.label}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] text-slate-500">
-                    <span>Progresso de recebimento</span>
-                    <span className="tabular-nums font-medium text-slate-700">{commPct}%</span>
+                <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-emerald-700">Pago</div>
+                    <div className="text-[13px] font-semibold text-emerald-900 tabular-nums mt-0.5">{formatBRL(commKpis.pago)}</div>
                   </div>
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all" style={{ width: `${commPct}%` }} />
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-amber-700">A receber</div>
+                    <div className="text-[13px] font-semibold text-amber-900 tabular-nums mt-0.5">{formatBRL(commKpis.pendente)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-slate-600">Total 6m</div>
+                    <div className="text-[13px] font-semibold text-slate-900 tabular-nums mt-0.5">{formatBRL(revenueByMonth.total)}</div>
                   </div>
                 </div>
               </SectionCard>
 
-              <SectionCard title="Notificações" icon={Bell} className="lg:col-span-2">
-                {recentNotifications.length === 0 ? (
-                  <EmptyState icon={Bell} title="Sem notificações" />
+              {/* Entregas recentes */}
+              <SectionCard
+                title="Entregas recentes"
+                icon={Package}
+                className="lg:col-span-2"
+              >
+                {deliveries.length === 0 ? (
+                  <EmptyState icon={Package} title="Sem entregas" description="Suas entregas aparecerão aqui." />
                 ) : (
                   <ul className="space-y-1.5">
-                    {(recentNotifications as any[]).map((n) => (
-                      <li key={n.id} className={cn("rounded-md p-2 border text-[12px]", n.read_at ? "border-slate-100 bg-white" : "border-teal-100 bg-teal-50/40")}>
-                        <div className="flex items-start gap-2">
-                          <div className={cn("size-1.5 rounded-full mt-1.5 shrink-0", n.read_at ? "bg-slate-300" : "bg-teal-500")} />
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium text-slate-900 truncate">{n.title || n.kind}</p>
-                            {n.message && <p className="text-[11px] text-slate-500 truncate">{n.message}</p>}
-                            <p className="text-[10px] text-slate-400 mt-0.5 tabular-nums">{formatDate(n.created_at)}</p>
+                    {(deliveries as any[]).map((d) => {
+                      const cp = (clientProducts as any[]).find((c) => c.id === d.client_product_id);
+                      const files = Array.isArray(d.files) ? d.files.length : 0;
+                      const tone = d.status === "approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : d.status === "rejected" ? "bg-rose-50 text-rose-700 border-rose-200"
+                        : d.status === "delivered" ? "bg-blue-50 text-blue-700 border-blue-200"
+                        : "bg-slate-50 text-slate-700 border-slate-200";
+                      return (
+                        <li key={d.id} className="rounded-lg border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors p-2.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-[12.5px] font-medium text-slate-900 truncate flex-1">{d.title}</p>
+                            <Badge variant="outline" className={cn("text-[10px] shrink-0 capitalize", tone)}>{String(d.status || "pending").replace("_", " ")}</Badge>
                           </div>
-                        </div>
-                      </li>
-                    ))}
+                          <div className="mt-1 flex items-center gap-2 text-[10.5px] text-slate-500">
+                            <span className="truncate">{cp?.clients?.full_name || "—"}</span>
+                            <span>·</span>
+                            <span className="tabular-nums shrink-0">{formatDate(d.created_at)}</span>
+                            {files > 0 && (<><span>·</span><span className="shrink-0">{files} arquivo(s)</span></>)}
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </SectionCard>
             </div>
+
+            {/* Atividade + Notificações */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+              <SectionCard title="Atividade recente" icon={Activity} className="lg:col-span-3">
+                {activityFeed.length === 0 ? (
+                  <EmptyState icon={Activity} title="Sem atividade" description="Reportes e entregas aparecerão em uma linha do tempo." />
+                ) : (
+                  <ol className="relative border-l border-slate-200 ml-2 space-y-3 pt-1">
+                    {activityFeed.map((it) => (
+                      <li key={it.id} className="pl-4 relative">
+                        <span className={cn(
+                          "absolute -left-[6px] top-1.5 size-3 rounded-full ring-4 ring-white",
+                          it.tone === "teal" ? "bg-teal-500" : "bg-indigo-500",
+                        )} />
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-[12.5px] font-medium text-slate-900 truncate">{it.title}</p>
+                            {it.subtitle && <p className="text-[11px] text-slate-500 truncate">{it.subtitle}</p>}
+                          </div>
+                          <span className="text-[10.5px] text-slate-400 tabular-nums shrink-0">{formatDate(it.when)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </SectionCard>
+
+              <SectionCard
+                title="Notificações"
+                icon={Bell}
+                className="lg:col-span-2"
+                action={
+                  recentNotifications.length > 0 && (
+                    <Badge variant="outline" className="text-[10px] bg-teal-50 text-teal-700 border-teal-200">
+                      {(recentNotifications as any[]).filter((n) => !n.read_at).length} nova(s)
+                    </Badge>
+                  )
+                }
+              >
+                {recentNotifications.length === 0 ? (
+                  <EmptyState icon={Bell} title="Sem notificações" description="Você receberá avisos por aqui." />
+                ) : (
+                  <ul className="space-y-1.5">
+                    {(recentNotifications as any[]).map((n) => {
+                      const clickable = !!n.link;
+                      const Wrap: any = clickable ? "button" : "div";
+                      return (
+                        <li key={n.id}>
+                          <Wrap
+                            {...(clickable ? { type: "button", onClick: () => navigate(n.link) } : {})}
+                            className={cn(
+                              "w-full text-left rounded-md p-2 border text-[12px] transition",
+                              n.read_at ? "border-slate-100 bg-white" : "border-teal-100 bg-teal-50/40",
+                              clickable && "hover:border-teal-300 hover:bg-teal-50 cursor-pointer",
+                            )}
+                          >
+                            <div className="flex items-start gap-2">
+                              <div className={cn("size-1.5 rounded-full mt-1.5 shrink-0", n.read_at ? "bg-slate-300" : "bg-teal-500")} />
+                              <div className="min-w-0 flex-1">
+                                <p className="font-medium text-slate-900 truncate">{n.title || n.kind}</p>
+                                {n.message && <p className="text-[11px] text-slate-500 truncate">{n.message}</p>}
+                                <p className="text-[10px] text-slate-400 mt-0.5 tabular-nums">{formatDate(n.created_at)}</p>
+                              </div>
+                              {clickable && <ArrowUpRight className="size-3 text-slate-400 mt-0.5 shrink-0" />}
+                            </div>
+                          </Wrap>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </SectionCard>
+            </div>
+
+            {/* Ações rápidas */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: "Reportar status", icon: ClipboardCheck, tone: "from-teal-500 to-emerald-500", onClick: () => onNavigate("demandas") },
+                { label: "Nova solicitação", icon: MessageSquare, tone: "from-amber-500 to-orange-500", onClick: () => navigate("/minhas-solicitacoes") },
+                { label: "Ver documentos", icon: FileText, tone: "from-indigo-500 to-blue-500", onClick: () => onNavigate("documentos") },
+                { label: "Comissões", icon: Wallet, tone: "from-emerald-500 to-green-500", onClick: () => onNavigate("comissoes") },
+              ].map((a) => (
+                <button
+                  key={a.label}
+                  onClick={a.onClick}
+                  className="group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white p-4 text-left shadow-sm hover:shadow-md hover:border-teal-300 transition-all"
+                >
+                  <div className={cn("absolute -right-6 -top-6 size-20 rounded-full bg-gradient-to-br opacity-10 group-hover:opacity-20 transition", a.tone)} />
+                  <div className={cn("size-9 rounded-lg bg-gradient-to-br text-white flex items-center justify-center shadow-sm", a.tone)}>
+                    <a.icon className="size-4" />
+                  </div>
+                  <div className="mt-3 text-[13px] font-semibold text-slate-900 flex items-center justify-between">
+                    {a.label}
+                    <ArrowUpRight className="size-3.5 text-slate-400 group-hover:text-teal-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" />
+                  </div>
+                </button>
+              ))}
+            </div>
+
           </div>
         )}
 
