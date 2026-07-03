@@ -97,16 +97,35 @@ export default function ProviderPanel() {
   const providerId = provider?.id;
 
   // ----- Profile edit -----
+  const emptyProfile = {
+    name: "", specialty: "", phone: "", document_number: "", whatsapp: "", bio: "",
+    address_zip: "", address_street: "", address_number: "", address_complement: "",
+    address_neighborhood: "", address_city: "", address_state: "",
+    pix_key: "", bank_name: "", bank_account_type: "corrente", bank_agency: "", bank_account: "",
+  };
   const [editingProfile, setEditingProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState({ name: "", specialty: "", phone: "", document_number: "" });
-  useEffect(() => {
-    if (provider) setProfileForm({
-      name: provider.name || "",
-      specialty: (provider as any).specialty || "",
-      phone: (provider as any).phone || "",
-      document_number: (provider as any).document_number || "",
-    });
-  }, [provider]);
+  const [profileForm, setProfileForm] = useState(emptyProfile);
+  const hydrateProfile = (p: any) => ({
+    name: p?.name || "",
+    specialty: p?.specialty || "",
+    phone: p?.phone || "",
+    document_number: p?.document_number || "",
+    whatsapp: p?.whatsapp || "",
+    bio: p?.bio || "",
+    address_zip: p?.address_zip || "",
+    address_street: p?.address_street || "",
+    address_number: p?.address_number || "",
+    address_complement: p?.address_complement || "",
+    address_neighborhood: p?.address_neighborhood || "",
+    address_city: p?.address_city || "",
+    address_state: p?.address_state || "",
+    pix_key: p?.pix_key || "",
+    bank_name: p?.bank_name || "",
+    bank_account_type: p?.bank_account_type || "corrente",
+    bank_agency: p?.bank_agency || "",
+    bank_account: p?.bank_account || "",
+  });
+  useEffect(() => { if (provider) setProfileForm(hydrateProfile(provider)); }, [provider]);
   const saveProfile = useMutation({
     mutationFn: async () => {
       if (!providerId) throw new Error("Prestador não encontrado");
