@@ -386,7 +386,7 @@ function ActionsFeed({ items, loading }: { items: any[]; loading: boolean }) {
   return (
     <div className="relative space-y-3 pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
       {items.map((it) => {
-        const meta = TYPE_META[it._type];
+        const meta = TYPE_META[it._type] || { label: it._type, icon: MessageSquare, color: "bg-slate-100 text-slate-700 border-slate-200" };
         const Icon = meta.icon;
         const from = ROLE_META[it.from] || { label: it.from || "—", icon: User, color: "bg-slate-100 text-slate-700 border-slate-200" };
         const to = ROLE_META[it.to] || { label: it.to || "—", icon: User, color: "bg-slate-100 text-slate-700 border-slate-200" };
