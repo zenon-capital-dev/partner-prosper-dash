@@ -34,6 +34,31 @@ export default function PartnerDetail() {
   const [partnerContract, setPartnerContract] = useState<any>(null);
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [payTarget, setPayTarget] = useState<any>(null);
+  const [payForm, setPayForm] = useState<{ paid_at: string; payment_method: string; notes: string }>({ paid_at: new Date().toISOString().slice(0,10), payment_method: "pix", notes: "" });
+  const [paySubmitting, setPaySubmitting] = useState(false);
+
+  const openPay = (c: any) => {
+    setPayTarget(c);
+    setPayForm({ paid_at: new Date().toISOString().slice(0,10), payment_method: partner?.pix_key ? "pix" : "transferencia", notes: "" });
+  };
+
+  const submitPay = async () => {
+    if (!payTarget) return;
+    setPaySubmitting(true);
+    const { error } = await supabase.from("commission_splits").update({
+      status: "pago",
+      paid_at: new Date(payForm.paid_at).toISOString(),
+      payment_method: payForm.payment_method,
+      notes: payForm.notes || null,
+    }).eq("id", payTarget.id);
+    setPaySubmitting(false);
+    if (error) return toast.error(error.message);
+    toast.success("Pagamento lançado");
+    setPayTarget(null);
+    await reload();
+  };
+
 
   const reload = async () => {
     if (!id) return;
