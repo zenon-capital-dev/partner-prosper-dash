@@ -6,7 +6,7 @@ import { parseISO, differenceInCalendarDays, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   CheckCircle2, Video, Phone, FileText, Bell, RotateCcw, Calendar, Plus, Clock, AlertTriangle, MapPin,
-  MessageSquare, LifeBuoy, Inbox, ArrowRight, User, Building2, Wrench,
+  MessageSquare, LifeBuoy, Inbox, ArrowRight, User, Building2, Wrench, Package, Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,7 @@ const ROLE_META: Record<string, { label: string; icon: any; color: string }> = {
 };
 
 export function ClientTimelineTab({ clientId }: { clientId: string }) {
-  const [mode, setMode] = useState<"tarefas" | "acoes">("tarefas");
+  const [mode, setMode] = useState<"tarefas" | "acoes">("acoes");
   const [filter, setFilter] = useState<"all" | "pendentes" | "concluidas">("all");
 
 
@@ -60,7 +60,16 @@ export function ClientTimelineTab({ clientId }: { clientId: string }) {
     queryKey: ["client-actions-feed", clientId],
     enabled: mode === "acoes",
     queryFn: async () => {
-      const [tickets, requests, docs] = await Promise.all([
+      // Primeiro pegamos os client_products do cliente para filtrar chat/entregas
+      const { data: cps } = await supabase
+        .from("client_products")
+        .select("id, products(name)")
+        .eq("client_id", clientId);
+      const cpIds = (cps ?? []).map((c: any) => c.id);
+      const cpNameMap = new Map<string, string>();
+      (cps ?? []).forEach((c: any) => cpNameMap.set(c.id, c.products?.name || "Demanda"));
+
+      const [tickets, requests, docs, comments, deliveries, receipts] = await Promise.all([
         supabase
           .from("client_support_tickets")
           .select("id, subject, category, status, priority, created_by, created_at, last_message_at, client_product_id")
@@ -79,7 +88,43 @@ export function ClientTimelineTab({ clientId }: { clientId: string }) {
           .eq("client_id", clientId)
           .order("requested_at", { ascending: false })
           .limit(100),
+        cpIds.length
+          ? supabase
+              .from("demand_comments")
+              .select("id, content, visibility, author_id, created_at, client_product_id")
+              .in("client_product_id", cpIds)
+              .order("created_at", { ascending: false })
+              .limit(150)
+          : Promise.resolve({ data: [] as any[] } as any),
+        cpIds.length
+          ? supabase
+              .from("demand_deliveries")
+              .select("id, title, description, status, created_at, client_product_id")
+              .in("client_product_id", cpIds)
+              .order("created_at", { ascending: false })
+              .limit(100)
+          : Promise.resolve({ data: [] as any[] } as any),
+        supabase
+          .from("payments")
+          .select("id, amount, description, receipt_url, status, updated_at, installment_number")
+          .eq("client_id", clientId)
+          .not("receipt_url", "is", null)
+          .order("updated_at", { ascending: false })
+          .limit(100),
       ]);
+
+      // Autores dos comentários (para inferir papel: cliente/prestador/admin)
+      const authorIds = Array.from(new Set(((comments as any).data || []).map((c: any) => c.author_id).filter(Boolean))) as string[];
+      const roleByUser = new Map<string, string>();
+      if (authorIds.length) {
+        const { data: roles } = await supabase.from("user_roles").select("user_id, role").in("user_id", authorIds);
+        (roles ?? []).forEach((r: any) => {
+          const existing = roleByUser.get(r.user_id);
+          // prioridade: admin > prestador > cliente > outros
+          const rank = (x: string) => ["admin","admin_secondary","colaborador"].includes(x) ? 3 : x === "prestador" ? 2 : x === "cliente" ? 1 : 0;
+          if (!existing || rank(r.role) > rank(existing)) roleByUser.set(r.user_id, r.role);
+        });
+      }
 
       const merged: any[] = [];
       for (const t of tickets.data || []) {
@@ -119,6 +164,48 @@ export function ClientTimelineTab({ clientId }: { clientId: string }) {
           from: "admin",
           to: "cliente",
           link: `/clientes/${clientId}?tab=documentos`,
+        });
+      }
+      for (const c of (comments as any).data || []) {
+        const role = roleByUser.get(c.author_id) || "admin";
+        const from = ["admin","admin_secondary","colaborador"].includes(role) ? "admin" : role;
+        const to = c.visibility === "client" ? "cliente" : c.visibility === "provider" ? "prestador" : from === "cliente" ? "admin" : "admin";
+        merged.push({
+          _type: "chat",
+          id: c.id,
+          when: c.created_at,
+          title: `Mensagem em ${cpNameMap.get(c.client_product_id) || "Demanda"}`,
+          subtitle: c.content,
+          status: c.visibility,
+          from,
+          to,
+          link: `/demandas/${c.client_product_id}?tab=comments`,
+        });
+      }
+      for (const d of (deliveries as any).data || []) {
+        merged.push({
+          _type: "delivery",
+          id: d.id,
+          when: d.created_at,
+          title: `Entrega: ${d.title}`,
+          subtitle: d.description || cpNameMap.get(d.client_product_id) || null,
+          status: d.status,
+          from: "admin",
+          to: "cliente",
+          link: `/clientes/${clientId}?tab=entregas`,
+        });
+      }
+      for (const p of receipts.data || []) {
+        merged.push({
+          _type: "receipt",
+          id: p.id,
+          when: p.updated_at,
+          title: `Comprovante · Parcela ${p.installment_number || ""}`.trim(),
+          subtitle: p.description || `Valor: R$ ${Number(p.amount || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+          status: p.status,
+          from: "cliente",
+          to: "admin",
+          link: `/clientes/${clientId}?tab=financeiro`,
         });
       }
       return merged.sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime());
@@ -289,14 +376,17 @@ function ActionsFeed({ items, loading }: { items: any[]; loading: boolean }) {
     </div>
   );
   const TYPE_META: Record<string, { label: string; icon: any; color: string }> = {
-    ticket:  { label: "Suporte",       icon: LifeBuoy,       color: "bg-rose-50 text-rose-700 border-rose-200" },
-    request: { label: "Solicitação",   icon: MessageSquare,  color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
-    doc:     { label: "Documento",     icon: FileText,       color: "bg-amber-50 text-amber-700 border-amber-200" },
+    ticket:   { label: "Suporte",       icon: LifeBuoy,       color: "bg-rose-50 text-rose-700 border-rose-200" },
+    request:  { label: "Solicitação",   icon: MessageSquare,  color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+    doc:      { label: "Documento",     icon: FileText,       color: "bg-amber-50 text-amber-700 border-amber-200" },
+    chat:     { label: "Mensagem",      icon: MessageSquare,  color: "bg-sky-50 text-sky-700 border-sky-200" },
+    delivery: { label: "Entrega",       icon: Package,        color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    receipt:  { label: "Comprovante",   icon: Receipt,        color: "bg-violet-50 text-violet-700 border-violet-200" },
   };
   return (
     <div className="relative space-y-3 pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
       {items.map((it) => {
-        const meta = TYPE_META[it._type];
+        const meta = TYPE_META[it._type] || { label: it._type, icon: MessageSquare, color: "bg-slate-100 text-slate-700 border-slate-200" };
         const Icon = meta.icon;
         const from = ROLE_META[it.from] || { label: it.from || "—", icon: User, color: "bg-slate-100 text-slate-700 border-slate-200" };
         const to = ROLE_META[it.to] || { label: it.to || "—", icon: User, color: "bg-slate-100 text-slate-700 border-slate-200" };
