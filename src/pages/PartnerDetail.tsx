@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, User, Users, Wallet, FileSignature, Building2, History, KeyRound, LifeBuoy, Upload, Download, FileCheck2, Send } from "lucide-react";
+import { ArrowLeft, User, Users, Wallet, FileSignature, Building2, History, KeyRound, LifeBuoy, Upload, Download, FileCheck2, Send, Check } from "lucide-react";
 import { CredentialsManager } from "@/components/CredentialsManager";
 import { toast } from "sonner";
 import { openDownloadUrl, downloadStorageFile } from "@/lib/download";
@@ -15,6 +15,12 @@ import { confirmAction } from "@/lib/confirm";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 import { formatBRL } from "@/lib/format";
 import { SupportThread } from "@/components/partner-support/SupportThread";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 export default function PartnerDetail() {
   const { id } = useParams();
@@ -28,6 +34,31 @@ export default function PartnerDetail() {
   const [partnerContract, setPartnerContract] = useState<any>(null);
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [payTarget, setPayTarget] = useState<any>(null);
+  const [payForm, setPayForm] = useState<{ paid_at: string; payment_method: string; notes: string }>({ paid_at: new Date().toISOString().slice(0,10), payment_method: "pix", notes: "" });
+  const [paySubmitting, setPaySubmitting] = useState(false);
+
+  const openPay = (c: any) => {
+    setPayTarget(c);
+    setPayForm({ paid_at: new Date().toISOString().slice(0,10), payment_method: partner?.pix_key ? "pix" : "transferencia", notes: "" });
+  };
+
+  const submitPay = async () => {
+    if (!payTarget) return;
+    setPaySubmitting(true);
+    const { error } = await supabase.from("commission_splits").update({
+      status: "pago",
+      paid_at: new Date(payForm.paid_at).toISOString(),
+      payment_method: payForm.payment_method,
+      notes: payForm.notes || null,
+    }).eq("id", payTarget.id);
+    setPaySubmitting(false);
+    if (error) return toast.error(error.message);
+    toast.success("Pagamento lançado");
+    setPayTarget(null);
+    await reload();
+  };
+
 
   const reload = async () => {
     if (!id) return;
@@ -228,7 +259,7 @@ export default function PartnerDetail() {
         <TabsContent value="comissoes" className="mt-4">
           <Card><CardContent className="p-0">
             <Table>
-              <TableHeader><TableRow><TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Valor</TableHead><TableHead>Status</TableHead><TableHead>Data</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Valor</TableHead><TableHead>Status</TableHead><TableHead>Data</TableHead><TableHead className="text-right">Ações</TableHead></TableRow></TableHeader>
               <TableBody>
                 {commissions.map((c) => (
                   <TableRow key={c.id}>
@@ -237,9 +268,17 @@ export default function PartnerDetail() {
                     <TableCell>{formatBRL(Number(c.amount || 0))}</TableCell>
                     <TableCell><Badge variant="outline">{c.status}</Badge></TableCell>
                     <TableCell>{c.paid_at ? format(new Date(c.paid_at), "dd/MM/yyyy") : (c.created_at ? format(new Date(c.created_at), "dd/MM/yyyy") : "—")}</TableCell>
+                    <TableCell className="text-right">
+                      {c.status !== "pago" && c.status !== "cancelado" && (
+                        <Button size="sm" variant="outline" className="h-7 text-[11px] text-emerald-700 border-emerald-200 hover:bg-emerald-50" onClick={() => openPay(c)}>
+                          <Check className="size-3 mr-1" /> Lançar pagamento
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
-                {commissions.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Nenhuma comissão</TableCell></TableRow>}
+                {commissions.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">Nenhuma comissão</TableCell></TableRow>}
+
               </TableBody>
             </Table>
           </CardContent></Card>
@@ -365,9 +404,57 @@ export default function PartnerDetail() {
           <CredentialsManager userId={partner.user_id} currentEmail={partner.email} entityLabel="parceiro" entityType="parceiro" entityId={partner.id} entityName={partner.full_name} />
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!payTarget} onOpenChange={(v) => !v && setPayTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Lançar pagamento ao parceiro</DialogTitle>
+          </DialogHeader>
+          {payTarget && (
+            <div className="space-y-3">
+              <div className="rounded-md border bg-slate-50/60 p-3 text-[12px] space-y-1">
+                <p><span className="text-slate-500">Parceiro:</span> <span className="font-medium">{partner.full_name}</span></p>
+                <p><span className="text-slate-500">Cliente:</span> {payTarget.clients?.full_name || "—"}</p>
+                <p><span className="text-slate-500">Produto:</span> {payTarget.products?.name || "—"}</p>
+                <p><span className="text-slate-500">Valor:</span> <span className="font-mono font-semibold">{formatBRL(Number(payTarget.amount || 0))}</span></p>
+                {partner.pix_key && <p><span className="text-slate-500">Chave PIX:</span> <span className="font-mono">{partner.pix_key}</span></p>}
+              </div>
+              <div>
+                <Label className="text-[11px]">Data do pagamento</Label>
+                <Input type="date" value={payForm.paid_at} onChange={(e) => setPayForm({ ...payForm, paid_at: e.target.value })} />
+              </div>
+              <div>
+                <Label className="text-[11px]">Método</Label>
+                <Select value={payForm.payment_method} onValueChange={(v) => setPayForm({ ...payForm, payment_method: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="transferencia">Transferência bancária</SelectItem>
+                    <SelectItem value="ted">TED / DOC</SelectItem>
+                    <SelectItem value="boleto">Boleto</SelectItem>
+                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-[11px]">Observações / comprovante</Label>
+                <Textarea rows={3} value={payForm.notes} onChange={(e) => setPayForm({ ...payForm, notes: e.target.value })} placeholder="Nº da transação, banco, referência..." />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPayTarget(null)}>Cancelar</Button>
+            <Button onClick={submitPay} disabled={paySubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              {paySubmitting ? "Lançando..." : "Confirmar pagamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
 
 function Field({ label, value }: { label: string; value: any }) {
   return (
