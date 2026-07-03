@@ -404,9 +404,57 @@ export default function PartnerDetail() {
           <CredentialsManager userId={partner.user_id} currentEmail={partner.email} entityLabel="parceiro" entityType="parceiro" entityId={partner.id} entityName={partner.full_name} />
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!payTarget} onOpenChange={(v) => !v && setPayTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Lançar pagamento ao parceiro</DialogTitle>
+          </DialogHeader>
+          {payTarget && (
+            <div className="space-y-3">
+              <div className="rounded-md border bg-slate-50/60 p-3 text-[12px] space-y-1">
+                <p><span className="text-slate-500">Parceiro:</span> <span className="font-medium">{partner.full_name}</span></p>
+                <p><span className="text-slate-500">Cliente:</span> {payTarget.clients?.full_name || "—"}</p>
+                <p><span className="text-slate-500">Produto:</span> {payTarget.products?.name || "—"}</p>
+                <p><span className="text-slate-500">Valor:</span> <span className="font-mono font-semibold">{formatBRL(Number(payTarget.amount || 0))}</span></p>
+                {partner.pix_key && <p><span className="text-slate-500">Chave PIX:</span> <span className="font-mono">{partner.pix_key}</span></p>}
+              </div>
+              <div>
+                <Label className="text-[11px]">Data do pagamento</Label>
+                <Input type="date" value={payForm.paid_at} onChange={(e) => setPayForm({ ...payForm, paid_at: e.target.value })} />
+              </div>
+              <div>
+                <Label className="text-[11px]">Método</Label>
+                <Select value={payForm.payment_method} onValueChange={(v) => setPayForm({ ...payForm, payment_method: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="transferencia">Transferência bancária</SelectItem>
+                    <SelectItem value="ted">TED / DOC</SelectItem>
+                    <SelectItem value="boleto">Boleto</SelectItem>
+                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-[11px]">Observações / comprovante</Label>
+                <Textarea rows={3} value={payForm.notes} onChange={(e) => setPayForm({ ...payForm, notes: e.target.value })} placeholder="Nº da transação, banco, referência..." />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPayTarget(null)}>Cancelar</Button>
+            <Button onClick={submitPay} disabled={paySubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              {paySubmitting ? "Lançando..." : "Confirmar pagamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
 
 function Field({ label, value }: { label: string; value: any }) {
   return (
