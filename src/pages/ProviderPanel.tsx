@@ -253,6 +253,27 @@ export default function ProviderPanel() {
     staleTime: 2 * 60_000,
   });
 
+  // Pastas de documentos do cliente às quais este prestador foi autorizado (pela Zenon)
+  const { data: authorizedFolderClients = [] } = useQuery({
+    queryKey: ["provider-authorized-folder-clients", providerId],
+    enabled: !!providerId,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("client_document_folders")
+        .select("id, client_id, name, clients(full_name)")
+        .order("name");
+      const map = new Map<string, { client_id: string; client_name: string; folders: any[] }>();
+      for (const f of (data ?? []) as any[]) {
+        const key = f.client_id;
+        if (!map.has(key)) map.set(key, { client_id: key, client_name: f.clients?.full_name || "Cliente", folders: [] });
+        map.get(key)!.folders.push(f);
+      }
+      return Array.from(map.values());
+    },
+  });
+
+
+
   const { data: commissions = [] } = useQuery({
     queryKey: ["provider-commissions", providerId],
     enabled: !!providerId,
