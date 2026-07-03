@@ -410,14 +410,23 @@ export function OperationalChecklist({ clientProductId, canEdit = true, canManag
       )}
 
       {canManage && (
-        <Button
-          variant="outline"
-          className="w-full gap-2 border-dashed h-11"
-          onClick={() => addStep.mutate()}
-          disabled={addStep.isPending}
-        >
-          <Plus className="size-4" /> Adicionar Etapa
-        </Button>
+        <div className="flex items-center gap-2 pt-2">
+          <Input
+            value={newStepLabel}
+            onChange={(e) => setNewStepLabel(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") submitNewStep(); }}
+            placeholder="Nome da nova etapa (ex: Enviar proposta)"
+            className="h-11 text-sm"
+          />
+          <Button
+            variant="outline"
+            className="gap-2 border-dashed h-11 shrink-0"
+            onClick={submitNewStep}
+            disabled={addStep.isPending}
+          >
+            <Plus className="size-4" /> Adicionar Etapa
+          </Button>
+        </div>
       )}
     </div>
   );
