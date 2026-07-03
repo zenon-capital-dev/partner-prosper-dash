@@ -307,18 +307,37 @@ export default function DemandDetail() {
   };
 
   const createDelivery = async () => {
-    if (!deliveryForm.title.trim()) return toast.error("Título obrigatório");
-    const { error } = await supabase.from("demand_deliveries").insert({
-      client_product_id: id,
-      title: deliveryForm.title,
-      description: deliveryForm.description || null,
-      status: "pending",
-    });
-    if (error) return toast.error(error.message);
-    toast.success("Entrega registrada");
-    setDeliveryForm({ title: "", description: "" });
-    setDeliveryOpen(false);
-    qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+    if (!deliveryForm.title.trim()) return toast.error("Nome da entrega é obrigatório");
+    setSavingDelivery(true);
+    try {
+      const { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } = await import("@/lib/uploads");
+      deliveryForm.files.forEach(assertUploadFile);
+      const clientId = (demand as any)?.client_id;
+      const uploaded: Array<{ path: string; name: string; size: number; type: string }> = [];
+      for (const [idx, file] of deliveryForm.files.entries()) {
+        const path = `${clientId ?? "misc"}/${id}/deliveries/${Date.now()}-${idx + 1}-${sanitizeStorageFileName(file.name)}`;
+        const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: false });
+        if (upErr) throw upErr;
+        uploaded.push({ path, name: file.name, size: file.size, type: file.type });
+      }
+      const { error } = await supabase.from("demand_deliveries").insert({
+        client_product_id: id!,
+        title: deliveryForm.title,
+        description: deliveryForm.description || null,
+        status: "pending",
+        files: uploaded as any,
+      });
+      if (error) throw error;
+      toast.success("Entrega registrada");
+      setDeliveryForm({ title: "", description: "", files: [] });
+      setDeliveryOpen(false);
+      qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+    } catch (err: any) {
+      const { uploadErrorMessage } = await import("@/lib/uploads");
+      toast.error(uploadErrorMessage(err));
+    } finally {
+      setSavingDelivery(false);
+    }
   };
 
   const duplicateDemand = async () => {
