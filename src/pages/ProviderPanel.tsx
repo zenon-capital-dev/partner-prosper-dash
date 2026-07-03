@@ -725,8 +725,26 @@ export default function ProviderPanel() {
               getUploadFolder={(req) => req.client_product_id || providerId}
               invalidateKeys={[["provider-docs", providerId, cpIds.join(",")]]}
             />
+
+            {authorizedFolderClients.length > 0 && (
+              <SectionCard title="Pastas autorizadas pela Zenon" icon={FileText}>
+                <p className="text-[12px] text-slate-500 mb-3">
+                  Você recebeu permissão de visualização em pastas de documentos de clientes. Apenas leitura — o envio é feito pela Zenon ou pelo próprio cliente.
+                </p>
+                <div className="space-y-6">
+                  {authorizedFolderClients.map((c: any) => (
+                    <div key={c.client_id} className="rounded-lg border border-slate-200 bg-white p-3">
+                      <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Cliente</p>
+                      <p className="text-sm font-semibold text-slate-900 mb-3">{c.client_name}</p>
+                      <ClientDocumentFolders clientId={c.client_id} viewerRole="provider" />
+                    </div>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
           </>
         )}
+
 
         {activeKey === "comissoes" && (() => {
           const splits = commissions as any[];
