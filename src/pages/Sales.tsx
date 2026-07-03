@@ -102,7 +102,7 @@ export default function Sales() {
   const [page, setPage] = useState(1);
   type KpiKind = "bruto" | "recebido_mes" | "a_receber" | "liquido" | "custos" | "comissoes" | "count";
   const [kpiDetail, setKpiDetail] = useState<KpiKind | null>(null);
-  const [breakdownDim, setBreakdownDim] = useState<"status" | "partner" | "product" | "client" | "partner_product" | "product_client">(
+  const [breakdownDim, setBreakdownDim] = useState<"status" | "partner" | "product" | "client" | "partner_product" | "product_client" | "partner_client" | "revenue_type" | "month">(
     () => (typeof window !== "undefined" && (localStorage.getItem("sales-breakdown-dim") as any)) || "status"
   );
   const [breakdownMetric, setBreakdownMetric] = useState<"bruto" | "recebido" | "liquido" | "qtd">(
