@@ -715,7 +715,7 @@ export default function ProviderPanel() {
                             {r.pending && <span className="inline-flex items-center gap-1"><span className="size-1.5 rounded-full bg-amber-400" /> Pendências</span>}
                             {r.next_steps && <span className="inline-flex items-center gap-1"><span className="size-1.5 rounded-full bg-blue-400" /> Próximos passos</span>}
                             {Array.isArray(r.attachments) && r.attachments.length > 0 && <span>{r.attachments.length} anexo(s)</span>}
-                            <span className="ml-auto text-primary/80 opacity-0 group-hover:opacity-100 transition">Ver detalhes →</span>
+                            <span className="ml-auto text-teal-700 font-medium">Ver detalhes →</span>
                           </div>
                         </button>
                       </li>
