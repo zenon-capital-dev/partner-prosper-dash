@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { Sparkles, CalendarClock } from "lucide-react";
+import { Sparkles, CalendarClock, ArrowUpRight } from "lucide-react";
 
 interface KpiItem {
   label: string;
