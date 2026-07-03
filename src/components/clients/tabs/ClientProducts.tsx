@@ -314,11 +314,12 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                         <DropdownMenuItem onClick={() => openDeadline(cp)} className="gap-2 cursor-pointer text-[13px]">
                           <Calendar className="size-3.5" /> Definir prazo
                         </DropdownMenuItem>
-                        {cp.sale_id && (
-                          <DropdownMenuItem onClick={() => openEditSale(cp.sale_id)} className="gap-2 cursor-pointer text-[13px]">
+                        {effectiveSaleId && (
+                          <DropdownMenuItem onClick={() => openEditSale(effectiveSaleId)} className="gap-2 cursor-pointer text-[13px]">
                             <DollarSign className="size-3.5" /> Editar financeiro / venda
                           </DropdownMenuItem>
                         )}
+
                         <DropdownMenuItem onClick={() => navigate(`/demandas/${cp.id}`)} className="gap-2 cursor-pointer text-[13px]">
                           <FileText className="size-3.5" /> Ver detalhes
                         </DropdownMenuItem>
