@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PartnerDocumentsSection } from "@/components/partner/PartnerDocumentsSection";
 
 
 export default function PartnerDetail() {
@@ -321,6 +322,9 @@ export default function PartnerDetail() {
               )}
             </CardContent>
           </Card>
+
+          <PartnerDocumentsSection partnerId={partner.id} />
+
 
           {contracts.length > 0 && (
             <Card><CardContent className="p-0">
