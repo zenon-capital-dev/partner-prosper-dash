@@ -634,28 +634,35 @@ export default function FinanceCenter() {
         actions={
           <div className="flex items-center gap-2 flex-wrap">
             <StageFilterBar />
-            <Select value={kpiRange} onValueChange={(v) => setKpiRange(v as any)}>
-              <SelectTrigger className="h-9 w-[190px] bg-white border-slate-200">
+            <Select
+              value={kpiRange === "specific" ? specificMonth : kpiRange}
+              onValueChange={(v) => {
+                if (v === "all") { setKpiRange("all"); return; }
+                // v is a YYYY-MM month key
+                setKpiRange("specific");
+                setSpecificMonth(v);
+              }}
+            >
+              <SelectTrigger className="h-9 w-[210px] bg-white border-slate-200 capitalize">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="specific">📅 Escolher mês…</SelectItem>
-                <SelectItem value="month">Mês atual</SelectItem>
-                <SelectItem value="week">Últimos 7 dias</SelectItem>
-                <SelectItem value="3m">Últimos 3 meses</SelectItem>
-                <SelectItem value="6m">Últimos 6 meses</SelectItem>
-                <SelectItem value="year">Últimos 12 meses</SelectItem>
+                {Array.from({ length: 12 }).map((_, i) => {
+                  const d = new Date();
+                  d.setDate(1);
+                  d.setMonth(d.getMonth() - i);
+                  const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                  const label = d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+                  return (
+                    <SelectItem key={key} value={key} className="capitalize">
+                      {i === 0 ? `📅 ${label} (mês atual)` : label}
+                    </SelectItem>
+                  );
+                })}
                 <SelectItem value="all">Todo período</SelectItem>
               </SelectContent>
             </Select>
-            {kpiRange === "specific" && (
-              <input
-                type="month"
-                value={specificMonth}
-                onChange={(e) => setSpecificMonth(e.target.value || nowMonthKey())}
-                className="h-9 rounded-md border border-slate-200 bg-white px-2 text-sm capitalize"
-              />
-            )}
+
 
             {canManage && (
               <>
