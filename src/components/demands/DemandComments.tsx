@@ -126,7 +126,8 @@ export function DemandComments({ clientProductId, role }: Props) {
     if (roles.includes("parceiro")) return "Parceiro";
     if (roles.includes("cliente")) return "Cliente";
     if (author?.email) return author.email.split("@")[0];
-    return "Sistema";
+    // Sem profile/roles resolvidos → assumir time interno da Zenon (não "Sistema").
+    return "Zenon · Operacional";
   };
 
 
