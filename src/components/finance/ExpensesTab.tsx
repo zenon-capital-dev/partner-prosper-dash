@@ -15,29 +15,10 @@ import { Switch } from "@/components/ui/switch";
 import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Plus, Pencil, Trash2, CheckCircle2, RotateCcw, TrendingDown, Wallet, AlertTriangle, Receipt, FileText, Tag, Calendar, CreditCard, Building2, StickyNote, Repeat, Banknote, Zap, Landmark, Coins } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, RotateCcw, TrendingDown, Wallet, AlertTriangle, Receipt, FileText, Tag, Calendar, CreditCard, Building2, StickyNote, Repeat, Banknote, Zap, Landmark, Coins, Settings2 } from "lucide-react";
+import { useExpenseCategories } from "@/hooks/useExpenseCategories";
+import { ManageExpenseCategoriesDialog } from "@/components/finance/ManageExpenseCategoriesDialog";
 
-const CATEGORIES: { value: string; label: string }[] = [
-  { value: "folha", label: "Folha / Salários" },
-  { value: "fornecedor", label: "Fornecedor" },
-  { value: "ferramenta", label: "Ferramenta / Software" },
-  { value: "imposto", label: "Imposto / Tributo" },
-  { value: "marketing", label: "Marketing" },
-  { value: "operacional", label: "Operacional" },
-  { value: "financeiro", label: "Financeiro / Bancário" },
-  { value: "outros", label: "Outros" },
-];
-
-const CAT_STYLE: Record<string, string> = {
-  folha: "bg-indigo-50 text-indigo-700 border-indigo-200",
-  fornecedor: "bg-blue-50 text-blue-700 border-blue-200",
-  ferramenta: "bg-violet-50 text-violet-700 border-violet-200",
-  imposto: "bg-rose-50 text-rose-700 border-rose-200",
-  marketing: "bg-amber-50 text-amber-700 border-amber-200",
-  operacional: "bg-slate-100 text-slate-700 border-slate-200",
-  financeiro: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  outros: "bg-slate-50 text-slate-600 border-slate-200",
-};
 
 type Expense = {
   id: string;
@@ -88,6 +69,12 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
   const [form, setForm] = useState(emptyForm());
+  const [manageOpen, setManageOpen] = useState(false);
+  const cats = useExpenseCategories();
+  const CATEGORIES = cats.visible;
+  const categoryLabel = (v: string) => cats.labelOf(v);
+  const categoryColor = (v: string) => cats.colorOf(v);
+
 
   const { data: fetched = [], isLoading } = useQuery({
     queryKey: ["fin-expenses-tab"],
@@ -247,14 +234,44 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
         </div>
         <div>
           <Label className="text-[11px] uppercase tracking-wider text-slate-500">Categoria</Label>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="h-9 mt-1 w-[200px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todas">Todas categorias</SelectItem>
-              {CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-1 mt-1">
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="h-9 w-[200px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas categorias</SelectItem>
+                {CATEGORIES.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    <span className="inline-flex items-center gap-2">
+                      <span className="size-2 rounded-full" style={{ background: c.color }} />
+                      {c.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {canManage && (
+              <>
+                <Button
+                  type="button" variant="outline" size="icon"
+                  className="h-9 w-9 rounded-lg border-slate-200 text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300"
+                  title="Adicionar / gerenciar categorias"
+                  onClick={() => setManageOpen(true)}
+                >
+                  <Plus className="size-4" />
+                </Button>
+                <Button
+                  type="button" variant="outline" size="icon"
+                  className="h-9 w-9 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50"
+                  title="Editar / remover categorias"
+                  onClick={() => setManageOpen(true)}
+                >
+                  <Settings2 className="size-4" />
+                </Button>
+              </>
+            )}
+          </div>
         </div>
+
         <div>
           <Label className="text-[11px] uppercase tracking-wider text-slate-500">Status</Label>
           <Select value={status} onValueChange={(v) => setStatus(v as any)}>
@@ -280,8 +297,10 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
           <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-2">Total por categoria</p>
           <div className="flex flex-wrap gap-2">
             {byCategory.map(([cat, val]) => (
-              <div key={cat} className={cn("px-3 py-1.5 rounded-md border text-xs font-medium flex items-center gap-2", CAT_STYLE[cat] ?? CAT_STYLE.outros)}>
-                <span>{CATEGORIES.find((c) => c.value === cat)?.label ?? cat}</span>
+              <div key={cat} className="px-3 py-1.5 rounded-md border text-xs font-medium flex items-center gap-2 bg-white" style={{ borderColor: categoryColor(cat) + "55", color: categoryColor(cat) }}>
+                <span className="size-2 rounded-full" style={{ background: categoryColor(cat) }} />
+                <span className="text-slate-800">{categoryLabel(cat)}</span>
+
                 <span className="font-mono font-bold">{formatBRL(val)}</span>
               </div>
             ))}
@@ -324,9 +343,11 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
                         {e.notes && <div className="text-[10.5px] text-slate-500 truncate max-w-[280px]">{e.notes}</div>}
                       </td>
                       <td className="px-3 py-2">
-                        <Badge variant="outline" className={cn("text-[10px] font-semibold", CAT_STYLE[e.category] ?? CAT_STYLE.outros)}>
-                          {CATEGORIES.find((c) => c.value === e.category)?.label ?? e.category}
+                        <Badge variant="outline" className="text-[10px] font-semibold border bg-white" style={{ borderColor: categoryColor(e.category) + "66", color: categoryColor(e.category) }}>
+                          <span className="size-1.5 rounded-full mr-1" style={{ background: categoryColor(e.category) }} />
+                          {categoryLabel(e.category)}
                         </Badge>
+
                         {e.subcategory && <div className="text-[10px] text-slate-500 mt-0.5">{e.subcategory}</div>}
                       </td>
                       <td className="px-3 py-2 text-slate-700">{e.vendor || "—"}</td>
@@ -626,7 +647,10 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ManageExpenseCategoriesDialog open={manageOpen} onOpenChange={setManageOpen} />
     </div>
+
   );
 }
 

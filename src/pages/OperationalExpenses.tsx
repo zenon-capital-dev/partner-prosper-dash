@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 
 const CATEGORY_LABELS: Record<string, string> = {
   folha: "Folha / Salários",
@@ -69,6 +70,7 @@ const daysUntil = (dateStr: string) => {
 
 export default function OperationalExpenses() {
   const { isAdmin } = useAuth();
+  const cats = useExpenseCategories();
 
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["fin-expenses"],
@@ -137,14 +139,14 @@ export default function OperationalExpenses() {
     const arr = Array.from(map.entries())
       .map(([k, v]) => ({
         key: k,
-        name: CATEGORY_LABELS[k] || k,
+        name: cats.labelOf(k),
         value: Math.round(v),
-        color: CATEGORY_PALETTE[k] || FALLBACK_COLORS[0],
+        color: cats.colorOf(k) || CATEGORY_PALETTE[k] || FALLBACK_COLORS[0],
       }))
       .sort((a, b) => b.value - a.value);
     const total = arr.reduce((s, x) => s + x.value, 0) || 1;
     return arr.map((x, i) => ({ ...x, pct: (x.value / total) * 100, color: x.color || FALLBACK_COLORS[i % FALLBACK_COLORS.length] }));
-  }, [expenses]);
+  }, [expenses, cats]);
 
   const topVendors = useMemo(() => {
     const map = new Map<string, { total: number; count: number }>();
