@@ -358,8 +358,18 @@ export default function ProviderPanel() {
       const due = c.deadline || c.sla_due_date || c.end_date;
       return due && new Date(due) < new Date();
     }).length;
-    const earnings = all.filter((c) => c.status !== "cancelado").reduce((s, c) => s + Number(c.value || 0), 0);
-    return { total: all.length, active, delayed, done, earnings };
+    const nonCancelled = all.filter((c) => !["cancelado","cancelada"].includes(c.status));
+    const isPaid = (c: any) => !!c.sales?.paid_at || ["concluido","concluida"].includes(c.status);
+    const aReceber = nonCancelled.filter((c) => !isPaid(c)).reduce((s, c) => s + Number(c.value || 0), 0);
+    const recebido = nonCancelled.filter(isPaid).reduce((s, c) => s + Number(c.value || 0), 0);
+    const recorrenteMes = nonCancelled.reduce((s, c) => {
+      const sale = c.sales;
+      if (sale?.revenue_type === "recorrente" && sale?.recurrence_months && Number(sale.recurrence_months) > 0) {
+        return s + Number(c.value || 0) / Number(sale.recurrence_months);
+      }
+      return s;
+    }, 0);
+    return { total: all.length, active, delayed, done, earnings: aReceber + recebido, aReceber, recebido, recorrenteMes };
   }, [clientProducts]);
 
   const upcoming = useMemo(() => {
@@ -472,8 +482,8 @@ export default function ProviderPanel() {
                   {[
                     { label: "Ativas",     value: stats.active,    icon: Activity },
                     { label: "Atrasadas",  value: stats.delayed,   icon: AlertTriangle, tone: stats.delayed > 0 ? "text-rose-100" : "" },
-                    { label: "Concluídas", value: stats.done,      icon: CheckCircle2 },
-                    { label: "A receber",  value: formatBRL(stats.earnings), icon: Wallet, small: true },
+                    { label: "Recorrente/mês", value: formatBRL(stats.recorrenteMes), icon: TrendingUp, small: true },
+                    { label: "A receber",  value: formatBRL(stats.aReceber), icon: Wallet, small: true },
                   ].map((k: any) => (
                     <div key={k.label} className="rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 p-3">
                       <div className="flex items-center justify-between text-white/70">
@@ -514,11 +524,11 @@ export default function ProviderPanel() {
               />
               <KpiTile
                 icon={Wallet}
-                label="Comissões pagas"
-                value={formatBRL(commKpis.pago)}
-                hint={`${commPct}% de ${formatBRL(commKpis.total)}`}
+                label="Recebido"
+                value={formatBRL(stats.recebido)}
+                hint={`${stats.aReceber > 0 ? formatBRL(stats.aReceber) + " a receber" : "tudo recebido"}`}
                 accent="text-emerald-600 bg-emerald-50 border-emerald-100"
-                progress={commPct}
+                progress={stats.earnings > 0 ? Math.round((stats.recebido / stats.earnings) * 100) : 0}
               />
             </div>
 
