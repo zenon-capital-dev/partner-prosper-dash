@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatBRL } from "@/lib/format";
 import { ymdBR, nowBR } from "@/lib/datetime";
-import { Wallet, TrendingUp, Receipt, CheckCircle2 } from "lucide-react";
+import { Wallet, TrendingUp, Receipt, CheckCircle2, HandCoins, Undo2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { saleIsFinalized, paymentReceivedAmount, isPaymentPaidInFuture } from "@/lib/financial";
 
