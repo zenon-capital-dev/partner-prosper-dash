@@ -136,6 +136,64 @@ export function DemandComments({ clientProductId, role }: Props) {
     return comments.filter((c: any) => c.visibility === filter);
   }, [comments, filter]);
 
+  const notifyRecipients = async (authorId: string, snippet: string) => {
+    try {
+      // Contexto da demanda: cliente, responsável, nome
+      const { data: cp } = await supabase
+        .from("client_products")
+        .select("id, client_id, responsible_employee_id, product:products(name), client:clients(name, user_id)")
+        .eq("id", clientProductId)
+        .maybeSingle();
+      if (!cp) return;
+
+      const demandName = (cp as any)?.product?.name || (cp as any)?.client?.name || "Demanda";
+      const clientUserId: string | null = (cp as any)?.client?.user_id ?? null;
+      const responsibleId: string | null = (cp as any)?.responsible_employee_id ?? null;
+
+      // Admins sempre notificados (exceto no caso "client" quando autor é admin, pra evitar spam consigo mesmo — já filtramos autor abaixo)
+      const { data: admins } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .in("role", ["admin", "admin_secondary"]);
+      const adminIds = (admins ?? []).map((a: any) => a.user_id);
+
+      const recipients = new Set<string>();
+      // Interno/admin: apenas time interno + responsável
+      if (visibility === "internal" || visibility === "admin") {
+        adminIds.forEach((id) => recipients.add(id));
+        if (responsibleId) recipients.add(responsibleId);
+      }
+      // Provider: admins + responsável (o prestador vê via seu próprio painel)
+      if (visibility === "provider") {
+        adminIds.forEach((id) => recipients.add(id));
+        if (responsibleId) recipients.add(responsibleId);
+      }
+      // Cliente: admins + responsável + o próprio cliente
+      if (visibility === "client") {
+        adminIds.forEach((id) => recipients.add(id));
+        if (responsibleId) recipients.add(responsibleId);
+        if (clientUserId) recipients.add(clientUserId);
+      }
+      // Autor nunca se auto-notifica
+      recipients.delete(authorId);
+      if (recipients.size === 0) return;
+
+      const authorLabel =
+        role === "client" ? "Cliente" : role === "provider" ? "Prestador" : "Zenon";
+      const rows = Array.from(recipients).map((uid) => ({
+        user_id: uid,
+        title: `💬 Nova mensagem em ${demandName}`,
+        message: `${authorLabel}: ${snippet.slice(0, 140)}${snippet.length > 140 ? "…" : ""}`,
+        link: uid === clientUserId ? `/portal-cliente` : `/demandas/${clientProductId}`,
+        type: "info",
+      }));
+      await supabase.from("notifications").insert(rows);
+    } catch (e) {
+      // Notificação é best-effort — não bloqueia o envio do comentário
+      console.warn("[DemandComments] notify failed", e);
+    }
+  };
+
   const submit = async () => {
     if (!content.trim()) return toast.error("Escreva um comentário");
     let authorId = user?.id;
@@ -145,10 +203,11 @@ export function DemandComments({ clientProductId, role }: Props) {
     }
     if (!authorId) return toast.error("Sua sessão expirou. Faça login novamente.");
     setSubmitting(true);
+    const text = content.trim();
     const { error } = await supabase.from("demand_comments").insert({
       client_product_id: clientProductId,
       author_id: authorId,
-      content: content.trim(),
+      content: text,
       visibility,
       created_at: nowBR().toISOString(),
     });
@@ -157,6 +216,8 @@ export function DemandComments({ clientProductId, role }: Props) {
     toast.success(visibility === "client" ? "Comentário publicado e visível para o cliente" : "Comentário publicado");
     setContent("");
     qc.invalidateQueries({ queryKey: ["demand-comments", clientProductId] });
+    // dispara notificações direcionadas (chat)
+    notifyRecipients(authorId, text);
   };
 
   const renderContent = (text: string) => {
