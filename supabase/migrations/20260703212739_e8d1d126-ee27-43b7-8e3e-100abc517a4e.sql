@@ -1,0 +1,15 @@
+ALTER TABLE public.service_providers
+  ADD COLUMN IF NOT EXISTS whatsapp text,
+  ADD COLUMN IF NOT EXISTS bio text,
+  ADD COLUMN IF NOT EXISTS address_zip text,
+  ADD COLUMN IF NOT EXISTS address_street text,
+  ADD COLUMN IF NOT EXISTS address_number text,
+  ADD COLUMN IF NOT EXISTS address_complement text,
+  ADD COLUMN IF NOT EXISTS address_neighborhood text,
+  ADD COLUMN IF NOT EXISTS address_city text,
+  ADD COLUMN IF NOT EXISTS address_state text,
+  ADD COLUMN IF NOT EXISTS pix_key text,
+  ADD COLUMN IF NOT EXISTS bank_name text,
+  ADD COLUMN IF NOT EXISTS bank_account_type text,
+  ADD COLUMN IF NOT EXISTS bank_agency text,
+  ADD COLUMN IF NOT EXISTS bank_account text;
