@@ -60,6 +60,9 @@ const TABS = [
   { id: "documentos", label: "Documentos", icon: FileText },
   { id: "entregas", label: "Entregas", icon: ClipboardList },
   { id: "financeiro", label: "Financeiro", icon: CreditCard },
+  { id: "contratos", label: "Contratos", icon: FileSignature },
+
+
   
   { id: "relacionamento", label: "Relacionamento", icon: MessageSquare },
   { id: "atividades", label: "Atividades", icon: Calendar },
@@ -568,6 +571,12 @@ export default function ClientDetail() {
           <TabsContent value="financeiro" className="m-0">
             {activeTab === "financeiro" && <ClientFinancial clientId={id!} />}
           </TabsContent>
+
+          <TabsContent value="contratos" className="m-0">
+            {activeTab === "contratos" && <ClientContracts clientId={id!} />}
+          </TabsContent>
+
+
 
 
           <TabsContent value="atividades" className="m-0">
