@@ -58,6 +58,8 @@ export default function DemandDetail() {
   const [docDialogOpen, setDocDialogOpen] = useState(false);
   const [delegateOpen, setDelegateOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [chatMsg, setChatMsg] = useState("");
+  const [chatSending, setChatSending] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
@@ -213,7 +215,7 @@ export default function DemandDetail() {
         .from("client_product_status_reports")
         .select("*")
         .eq("client_product_id", id!)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: true });
       const rows = data ?? [];
       const userIds = Array.from(new Set(rows.map((r: any) => r.reported_by).filter(Boolean)));
       if (userIds.length) {
@@ -822,16 +824,76 @@ export default function DemandDetail() {
                         })}
                       </div>
 
-                      {canReport && reports.length > 0 && (
-                        <div className="border-t border-slate-100 px-6 py-3 bg-slate-50/60 flex items-center justify-between">
-                          <p className="text-[11px] text-muted-foreground">{reports.length} reporte{reports.length > 1 ? "s" : ""} no histórico</p>
-                          <Button size="sm" variant="outline" className="h-7 gap-2 text-xs" onClick={() => setReportOpen(true)}>
-                            <Plus className="size-3" /> Adicionar reporte
-                          </Button>
+                      {canReport && (
+                        <div className="border-t border-slate-100 px-4 sm:px-6 py-3 bg-white">
+                          <div className="flex items-end gap-2">
+                            <textarea
+                              value={chatMsg}
+                              onChange={(e) => setChatMsg(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                  e.preventDefault();
+                                  (async () => {
+                                    const v = chatMsg.trim();
+                                    if (!v || chatSending) return;
+                                    setChatSending(true);
+                                    const { error } = await supabase.from("client_product_status_reports").insert({
+                                      client_product_id: id!,
+                                      status: (demand as any)?.status || "em_andamento",
+                                      notes: v,
+                                      reported_by: user?.id ?? null,
+                                    });
+                                    setChatSending(false);
+                                    if (error) { toast.error(error.message); return; }
+                                    setChatMsg("");
+                                    qc.invalidateQueries({ queryKey: ["demand-reports", id] });
+                                  })();
+                                }
+                              }}
+                              rows={1}
+                              placeholder="Escreva um andamento e pressione Enter para enviar..."
+                              className="flex-1 resize-none rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 min-h-[42px] max-h-40"
+                            />
+                            <Button
+                              size="sm"
+                              className="h-[42px] gap-1.5 rounded-2xl px-4"
+                              disabled={!chatMsg.trim() || chatSending}
+                              onClick={async () => {
+                                const v = chatMsg.trim();
+                                if (!v) return;
+                                setChatSending(true);
+                                const { error } = await supabase.from("client_product_status_reports").insert({
+                                  client_product_id: id!,
+                                  status: (demand as any)?.status || "em_andamento",
+                                  notes: v,
+                                  reported_by: user?.id ?? null,
+                                });
+                                setChatSending(false);
+                                if (error) { toast.error(error.message); return; }
+                                setChatMsg("");
+                                qc.invalidateQueries({ queryKey: ["demand-reports", id] });
+                              }}
+                            >
+                              Enviar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-[42px] rounded-2xl gap-1.5 text-xs"
+                              onClick={() => setReportOpen(true)}
+                              title="Reporte completo (status, pendências, próximos passos)"
+                            >
+                              <Plus className="size-3.5" /> Completo
+                            </Button>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground mt-1.5 px-1">
+                            Enter para enviar · Shift+Enter para quebrar linha · use "Completo" para status + pendências + próximos passos
+                          </p>
                         </div>
                       )}
                     </div>
                   </TabsContent>
+
 
 
                <TabsContent value="tarefas" className="animate-fade-up">
