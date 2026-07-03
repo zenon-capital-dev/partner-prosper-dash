@@ -15,29 +15,10 @@ import { Switch } from "@/components/ui/switch";
 import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Plus, Pencil, Trash2, CheckCircle2, RotateCcw, TrendingDown, Wallet, AlertTriangle, Receipt, FileText, Tag, Calendar, CreditCard, Building2, StickyNote, Repeat, Banknote, Zap, Landmark, Coins } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, RotateCcw, TrendingDown, Wallet, AlertTriangle, Receipt, FileText, Tag, Calendar, CreditCard, Building2, StickyNote, Repeat, Banknote, Zap, Landmark, Coins, Settings2 } from "lucide-react";
+import { useExpenseCategories } from "@/hooks/useExpenseCategories";
+import { ManageExpenseCategoriesDialog } from "@/components/finance/ManageExpenseCategoriesDialog";
 
-const CATEGORIES: { value: string; label: string }[] = [
-  { value: "folha", label: "Folha / Salários" },
-  { value: "fornecedor", label: "Fornecedor" },
-  { value: "ferramenta", label: "Ferramenta / Software" },
-  { value: "imposto", label: "Imposto / Tributo" },
-  { value: "marketing", label: "Marketing" },
-  { value: "operacional", label: "Operacional" },
-  { value: "financeiro", label: "Financeiro / Bancário" },
-  { value: "outros", label: "Outros" },
-];
-
-const CAT_STYLE: Record<string, string> = {
-  folha: "bg-indigo-50 text-indigo-700 border-indigo-200",
-  fornecedor: "bg-blue-50 text-blue-700 border-blue-200",
-  ferramenta: "bg-violet-50 text-violet-700 border-violet-200",
-  imposto: "bg-rose-50 text-rose-700 border-rose-200",
-  marketing: "bg-amber-50 text-amber-700 border-amber-200",
-  operacional: "bg-slate-100 text-slate-700 border-slate-200",
-  financeiro: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  outros: "bg-slate-50 text-slate-600 border-slate-200",
-};
 
 type Expense = {
   id: string;
