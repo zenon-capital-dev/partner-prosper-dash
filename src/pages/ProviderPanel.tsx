@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
 import { DemandRequestsPanel } from "@/components/demands/DemandRequestsPanel";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
+import { ClientDocumentFolders } from "@/components/documents/ClientDocumentFolders";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
@@ -251,6 +252,27 @@ export default function ProviderPanel() {
     },
     staleTime: 2 * 60_000,
   });
+
+  // Pastas de documentos do cliente às quais este prestador foi autorizado (pela Zenon)
+  const { data: authorizedFolderClients = [] } = useQuery({
+    queryKey: ["provider-authorized-folder-clients", providerId],
+    enabled: !!providerId,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("client_document_folders")
+        .select("id, client_id, name, clients(full_name)")
+        .order("name");
+      const map = new Map<string, { client_id: string; client_name: string; folders: any[] }>();
+      for (const f of (data ?? []) as any[]) {
+        const key = f.client_id;
+        if (!map.has(key)) map.set(key, { client_id: key, client_name: f.clients?.full_name || "Cliente", folders: [] });
+        map.get(key)!.folders.push(f);
+      }
+      return Array.from(map.values());
+    },
+  });
+
+
 
   const { data: commissions = [] } = useQuery({
     queryKey: ["provider-commissions", providerId],
@@ -703,8 +725,26 @@ export default function ProviderPanel() {
               getUploadFolder={(req) => req.client_product_id || providerId}
               invalidateKeys={[["provider-docs", providerId, cpIds.join(",")]]}
             />
+
+            {authorizedFolderClients.length > 0 && (
+              <SectionCard title="Pastas autorizadas pela Zenon" icon={FileText}>
+                <p className="text-[12px] text-slate-500 mb-3">
+                  Você recebeu permissão de visualização em pastas de documentos de clientes. Apenas leitura — o envio é feito pela Zenon ou pelo próprio cliente.
+                </p>
+                <div className="space-y-6">
+                  {authorizedFolderClients.map((c: any) => (
+                    <div key={c.client_id} className="rounded-lg border border-slate-200 bg-white p-3">
+                      <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Cliente</p>
+                      <p className="text-sm font-semibold text-slate-900 mb-3">{c.client_name}</p>
+                      <ClientDocumentFolders clientId={c.client_id} viewerRole="provider" />
+                    </div>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
           </>
         )}
+
 
         {activeKey === "comissoes" && (() => {
           const splits = commissions as any[];
