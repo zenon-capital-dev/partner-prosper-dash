@@ -960,20 +960,41 @@ export default function DemandDetail() {
                        </div>
                     ) : (
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {demand.deliveries.map((delivery: any) => (
+                          {demand.deliveries.map((delivery: any) => {
+                             const files: any[] = Array.isArray(delivery.files) ? delivery.files : [];
+                             return (
                              <div key={delivery.id} className="p-4 rounded-xl border border-border bg-muted/20 hover:border-primary/30 transition-colors">
                                 <div className="flex items-center justify-between mb-2">
                                    <h4 className="font-bold text-sm">{delivery.title}</h4>
                                    <Badge variant="outline" className="text-[9px] uppercase">{delivery.status}</Badge>
                                 </div>
-                                <p className="text-xs text-muted-foreground line-clamp-2 mb-4">{delivery.description}</p>
-                                {delivery.file_url && (
-                                   <Button variant="outline" size="sm" className="w-full h-8 text-[11px] gap-2">
+                                {delivery.description && <p className="text-xs text-muted-foreground line-clamp-3 mb-3">{delivery.description}</p>}
+                                {files.length > 0 && (
+                                   <div className="space-y-1.5">
+                                     {files.map((f: any, i: number) => (
+                                       <button
+                                         key={i}
+                                         onClick={async () => {
+                                           try { await downloadStorageFile("documents", f.path, f.name); }
+                                           catch (e: any) { toast.error(e?.message || "Falha ao baixar"); }
+                                         }}
+                                         className="w-full flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-[11px] hover:border-primary/40 hover:bg-primary/5 transition-colors text-left"
+                                       >
+                                         <Download className="size-3 shrink-0 text-primary" />
+                                         <span className="truncate flex-1">{f.name}</span>
+                                         {f.size ? <span className="text-muted-foreground shrink-0">{Math.round(f.size / 1024)} KB</span> : null}
+                                       </button>
+                                     ))}
+                                   </div>
+                                )}
+                                {files.length === 0 && delivery.file_url && (
+                                   <Button variant="outline" size="sm" className="w-full h-8 text-[11px] gap-2" onClick={() => window.open(delivery.file_url, "_blank")}>
                                       <Download className="size-3" /> Baixar Entrega
                                    </Button>
                                 )}
                              </div>
-                          ))}
+                             );
+                          })}
                        </div>
                     )}
                   </div>
