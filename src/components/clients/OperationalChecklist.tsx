@@ -133,7 +133,7 @@ export function OperationalChecklist({ clientProductId, canEdit = true, canManag
         client_product_id: clientProductId,
         label: typeof s === "string" ? s : (s.label || s.name || "Etapa"),
         position: steps.length + i,
-        status: "pendente",
+        status: "pendente" as const,
         is_visible_to_client: true,
         default_responsible: "provider",
       }));
