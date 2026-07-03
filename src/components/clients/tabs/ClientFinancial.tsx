@@ -54,6 +54,22 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
     },
   });
 
+  // Realtime: quando cliente envia comprovante ou algo muda em payments desse cliente,
+  // atualiza a tabela do admin automaticamente.
+  useEffect(() => {
+    if (!clientId) return;
+    const channel = supabase
+      .channel(`client-payments-rt:${clientId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "payments", filter: `client_id=eq.${clientId}` },
+        () => qc.invalidateQueries({ queryKey: ["client-payments", clientId] }),
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [clientId, qc]);
+
+
   const { data: sales = [], isLoading: salesLoading } = useQuery({
     queryKey: ["client-sales", clientId],
     queryFn: async () => {
