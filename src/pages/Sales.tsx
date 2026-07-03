@@ -1201,10 +1201,17 @@ export default function Sales() {
                                   <button
                                     type="button"
                                     disabled={!canManage}
-                                    className="text-[10px] font-medium text-slate-500 hover:text-indigo-700 text-left disabled:cursor-not-allowed"
+                                    className={cn(
+                                      "inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-semibold transition-colors w-fit",
+                                      s.closed_at
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                                        : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 animate-pulse",
+                                      !canManage && "cursor-not-allowed opacity-70"
+                                    )}
                                     title="Editar data de conclusão"
                                   >
-                                    {s.closed_at ? `✓ ${formatBRDate(s.closed_at)}` : "definir data"}
+                                    <CalendarRange className="size-3" />
+                                    {s.closed_at ? formatBRDate(s.closed_at) : "definir data"}
                                   </button>
                                 </PopoverTrigger>
                                 <PopoverContent align="start" className="w-auto p-3">
@@ -1218,6 +1225,7 @@ export default function Sales() {
                                 </PopoverContent>
                               </Popover>
                             )}
+
                           </div>
                         </Td>
                       )}
