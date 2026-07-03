@@ -1351,17 +1351,31 @@ export default function PartnerPanel() {
             </SectionCard>
 
             <SectionCard title="">
-              <div className="flex items-center gap-2">
-                {editing ? (
-                  <>
-                    <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
-                      <Save className="size-4" /> {saveProfile.isPending ? "Salvando..." : "Salvar todos os dados"}
+              <div className="space-y-3">
+                <div className={cn(
+                  "rounded-lg border px-3 py-2.5 text-[12px]",
+                  profileLocked
+                    ? "border-amber-200 bg-amber-50 text-amber-800"
+                    : "border-indigo-200 bg-indigo-50 text-indigo-800"
+                )}>
+                  {profileLocked
+                    ? "Seu perfil já foi preenchido e a edição foi bloqueada. Se precisar corrigir algo, fale com o administrador."
+                    : "Você pode editar seu perfil apenas 1 vez. Confira tudo com atenção antes de salvar — depois disso somente o administrador poderá alterar."}
+                </div>
+                <div className="flex items-center gap-2">
+                  {editing ? (
+                    <>
+                      <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending || !canEditProfile} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                        <Save className="size-4" /> {saveProfile.isPending ? "Salvando..." : "Salvar e bloquear edição"}
+                      </Button>
+                      <Button variant="outline" onClick={() => { setEditing(false); if (partner) setForm(hydrate(partner)); }}>Cancelar</Button>
+                    </>
+                  ) : (
+                    <Button onClick={() => setEditing(true)} disabled={!canEditProfile} className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60">
+                      {canEditProfile ? "Editar dados (1 vez)" : "Edição bloqueada"}
                     </Button>
-                    <Button variant="outline" onClick={() => { setEditing(false); if (partner) setForm(hydrate(partner)); }}>Cancelar</Button>
-                  </>
-                ) : (
-                  <Button onClick={() => setEditing(true)} className="bg-indigo-600 hover:bg-indigo-700">Editar dados</Button>
-                )}
+                  )}
+                </div>
               </div>
             </SectionCard>
 
