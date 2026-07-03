@@ -234,14 +234,44 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
         </div>
         <div>
           <Label className="text-[11px] uppercase tracking-wider text-slate-500">Categoria</Label>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="h-9 mt-1 w-[200px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todas">Todas categorias</SelectItem>
-              {CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-1 mt-1">
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="h-9 w-[200px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas categorias</SelectItem>
+                {CATEGORIES.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    <span className="inline-flex items-center gap-2">
+                      <span className="size-2 rounded-full" style={{ background: c.color }} />
+                      {c.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {canManage && (
+              <>
+                <Button
+                  type="button" variant="outline" size="icon"
+                  className="h-9 w-9 rounded-lg border-slate-200 text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300"
+                  title="Adicionar / gerenciar categorias"
+                  onClick={() => setManageOpen(true)}
+                >
+                  <Plus className="size-4" />
+                </Button>
+                <Button
+                  type="button" variant="outline" size="icon"
+                  className="h-9 w-9 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50"
+                  title="Editar / remover categorias"
+                  onClick={() => setManageOpen(true)}
+                >
+                  <Settings2 className="size-4" />
+                </Button>
+              </>
+            )}
+          </div>
         </div>
+
         <div>
           <Label className="text-[11px] uppercase tracking-wider text-slate-500">Status</Label>
           <Select value={status} onValueChange={(v) => setStatus(v as any)}>
