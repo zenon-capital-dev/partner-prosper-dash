@@ -25,6 +25,8 @@ export function ClientDeliveries({ clientId }: { clientId: string }) {
   const [creating, setCreating] = useState(false);
   const [openDelivery, setOpenDelivery] = useState<any | null>(null);
   const [newForm, setNewForm] = useState({ title: "", description: "", client_product_id: "" });
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [savingNew, setSavingNew] = useState(false);
 
   const { data: products } = useQuery({
     queryKey: ["client-products-min", clientId],
@@ -54,20 +56,40 @@ export function ClientDeliveries({ clientId }: { clientId: string }) {
 
   const create = async () => {
     if (!newForm.title.trim() || !newForm.client_product_id) {
-      return toast.error("Selecione a demanda e informe o título");
+      return toast.error("Selecione a demanda e informe o nome da entrega");
     }
-    const { error } = await supabase.from("demand_deliveries").insert({
+    setSavingNew(true);
+    // 1. cria a entrega
+    const { data: created, error } = await supabase.from("demand_deliveries").insert({
       client_product_id: newForm.client_product_id,
       title: newForm.title,
       description: newForm.description || null,
-      status: "pending",
-    });
-    if (error) return toast.error(error.message);
+      status: "delivered",
+      files: [],
+    }).select("id").single();
+    if (error || !created) {
+      setSavingNew(false);
+      return toast.error(error?.message || "Erro ao criar entrega");
+    }
+    // 2. faz upload dos arquivos (se houver)
+    const uploaded: FileEntry[] = [];
+    for (const file of newFiles) {
+      const path = `deliveries/${newForm.client_product_id}/${created.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: false });
+      if (upErr) { toast.error(`${file.name}: ${upErr.message}`); continue; }
+      uploaded.push({ path, name: file.name, size: file.size, uploaded_at: new Date().toISOString() });
+    }
+    if (uploaded.length) {
+      await supabase.from("demand_deliveries").update({ files: uploaded as any }).eq("id", created.id);
+    }
+    setSavingNew(false);
     toast.success("Entrega criada");
     setNewForm({ title: "", description: "", client_product_id: "" });
+    setNewFiles([]);
     setCreating(false);
     qc.invalidateQueries({ queryKey: ["client-deliveries", clientId] });
   };
+
 
   return (
     <div className="space-y-6 animate-fade-up">
@@ -148,18 +170,62 @@ export function ClientDeliveries({ clientId }: { clientId: string }) {
               </Select>
             </div>
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Título</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nome da entrega</label>
               <Input value={newForm.title} onChange={(e) => setNewForm({ ...newForm, title: e.target.value })} placeholder="Ex: Relatório mensal - Outubro" />
             </div>
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Descrição</label>
               <Textarea rows={4} value={newForm.description} onChange={(e) => setNewForm({ ...newForm, description: e.target.value })} placeholder="O que foi entregue, contexto, links..." />
             </div>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Arquivos ({newFiles.length})
+                </label>
+                <Button asChild size="sm" variant="outline" className="gap-1.5 h-8">
+                  <label className="cursor-pointer">
+                    <Upload className="size-3.5" /> Anexar arquivos
+                    <input type="file" multiple hidden onChange={(e) => {
+                      const list = e.target.files ? Array.from(e.target.files) : [];
+                      setNewFiles((prev) => [...prev, ...list]);
+                      e.target.value = "";
+                    }} />
+                  </label>
+                </Button>
+              </div>
+              {newFiles.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-4 text-center text-[11px] text-muted-foreground">
+                  Adicione os arquivos que o cliente vai baixar.
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {newFiles.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 text-xs">
+                      <FileText className="size-3.5 text-slate-500 shrink-0" />
+                      <span className="flex-1 truncate">{f.name}</span>
+                      <span className="text-[10px] text-muted-foreground">{(f.size / 1024).toFixed(1)} KB</span>
+                      <button
+                        type="button"
+                        onClick={() => setNewFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                        className="text-rose-500 hover:text-rose-600"
+                        aria-label="Remover"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreating(false)}>Cancelar</Button>
-            <Button onClick={create} className="bg-indigo-600 hover:bg-indigo-700">Criar entrega</Button>
+            <Button variant="outline" onClick={() => setCreating(false)} disabled={savingNew}>Cancelar</Button>
+            <Button onClick={create} disabled={savingNew} className="bg-indigo-600 hover:bg-indigo-700 gap-2">
+              {savingNew && <Loader2 className="size-3.5 animate-spin" />}
+              {savingNew ? "Salvando..." : "Criar entrega"}
+            </Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
 
