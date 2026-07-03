@@ -307,6 +307,14 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
           </div>
         </div>
 
+        {editContract?.id && (
+          <div className="px-6 pb-4">
+            <SignatureStagesPanel parentType="contract" parentId={editContract.id} />
+          </div>
+        )}
+
+
+
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={submit} disabled={submitting} className="bg-gradient-primary">
