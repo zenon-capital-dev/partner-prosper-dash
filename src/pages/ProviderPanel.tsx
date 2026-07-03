@@ -701,7 +701,7 @@ export default function ProviderPanel() {
                         <button
                           type="button"
                           onClick={() => setReportView({ ...r, _clientName: clientName, _productName: productName })}
-                          className="w-full text-left group rounded-xl border border-slate-200/70 bg-white p-4 hover:border-slate-300 hover:shadow-sm transition"
+                          className="w-full text-left group cursor-pointer rounded-xl border border-slate-200/70 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
@@ -715,7 +715,7 @@ export default function ProviderPanel() {
                             {r.pending && <span className="inline-flex items-center gap-1"><span className="size-1.5 rounded-full bg-amber-400" /> Pendências</span>}
                             {r.next_steps && <span className="inline-flex items-center gap-1"><span className="size-1.5 rounded-full bg-blue-400" /> Próximos passos</span>}
                             {Array.isArray(r.attachments) && r.attachments.length > 0 && <span>{r.attachments.length} anexo(s)</span>}
-                            <span className="ml-auto text-primary/80 opacity-0 group-hover:opacity-100 transition">Ver detalhes →</span>
+                            <span className="ml-auto text-teal-700 font-medium">Ver detalhes →</span>
                           </div>
                         </button>
                       </li>
