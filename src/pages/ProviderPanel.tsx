@@ -482,8 +482,8 @@ export default function ProviderPanel() {
                   {[
                     { label: "Ativas",     value: stats.active,    icon: Activity },
                     { label: "Atrasadas",  value: stats.delayed,   icon: AlertTriangle, tone: stats.delayed > 0 ? "text-rose-100" : "" },
-                    { label: "Concluídas", value: stats.done,      icon: CheckCircle2 },
-                    { label: "A receber",  value: formatBRL(stats.earnings), icon: Wallet, small: true },
+                    { label: "Recorrente/mês", value: formatBRL(stats.recorrenteMes), icon: TrendingUp, small: true },
+                    { label: "A receber",  value: formatBRL(stats.aReceber), icon: Wallet, small: true },
                   ].map((k: any) => (
                     <div key={k.label} className="rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 p-3">
                       <div className="flex items-center justify-between text-white/70">
