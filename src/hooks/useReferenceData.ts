@@ -153,31 +153,4 @@ export function useInternalTeamRef(enabled = true) {
   });
 }
 
-/**
- * Collaborators only: role = 'colaborador'. Excludes admin / admin_secondary / super_admin.
- * Use for pickers that must list only internal collaborators (not admins).
- */
-export function useCollaboratorsRef(enabled = true) {
-  return useQuery({
-    queryKey: ["ref:collaborators-only"],
-    enabled,
-    ...REF_OPTS,
-    queryFn: async () => {
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "colaborador" as any);
-      const ids = Array.from(new Set((roles ?? []).map((r: any) => r.user_id).filter(Boolean)));
-      if (!ids.length) return [];
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, full_name, email, active")
-        .in("id", ids)
-        .eq("active", true)
-        .order("full_name");
-      return data ?? [];
-    },
-  });
-}
-
 
