@@ -319,7 +319,7 @@ export default function ClientPanel() {
 
 
   const pendingDocs = useMemo(
-    () => (docs as any[]).filter((d) => d.status === "solicitado" || d.status === "reprovado"),
+    () => (docs as any[]).filter((d) => ["solicitado", "pendente", "reprovado", "pendente_correcao"].includes(String(d.status || "").toLowerCase())),
     [docs]
   );
   const pendingPayments = useMemo(
