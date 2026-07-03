@@ -31,7 +31,7 @@ const ROLE_META: Record<string, { label: string; icon: any; color: string }> = {
 };
 
 export function ClientTimelineTab({ clientId }: { clientId: string }) {
-  const [mode, setMode] = useState<"tarefas" | "acoes">("tarefas");
+  const [mode, setMode] = useState<"tarefas" | "acoes">("acoes");
   const [filter, setFilter] = useState<"all" | "pendentes" | "concluidas">("all");
 
 
