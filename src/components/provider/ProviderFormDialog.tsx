@@ -80,7 +80,7 @@ export function ProviderFormDialog({ open, onOpenChange, provider, onSuccess }: 
 
     // Optionally create login for provider
     if (createAccess && form.email && form.access_password && providerId) {
-      const { error: fnErr } = await supabase.functions.invoke("invite-user", {
+      const { data: fnData, error: fnErr } = await supabase.functions.invoke("invite-user", {
         body: {
           email: form.email,
           password: form.access_password,
@@ -90,8 +90,15 @@ export function ProviderFormDialog({ open, onOpenChange, provider, onSuccess }: 
           link_id: providerId,
         },
       });
-      if (fnErr) toast.warning("Prestador salvo, mas erro ao criar login: " + fnErr.message);
-      else toast.success("Login do prestador criado");
+      const errMsg = (fnData as any)?.error || fnErr?.message;
+      if (errMsg) {
+        toast.error("Prestador salvo, mas o login NÃO foi criado: " + errMsg);
+        setSubmitting(false);
+        onSuccess?.();
+        onOpenChange(false);
+        return;
+      }
+      toast.success("Login do prestador criado");
     }
 
     setSubmitting(false);
