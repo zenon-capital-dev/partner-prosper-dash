@@ -101,7 +101,8 @@ export default function DemandDetail() {
   const [taskOpen, setTaskOpen] = useState(false);
   const [taskTitle, setTaskTitle] = useState("");
   const [deliveryOpen, setDeliveryOpen] = useState(false);
-  const [deliveryForm, setDeliveryForm] = useState({ title: "", description: "" });
+  const [deliveryForm, setDeliveryForm] = useState<{ title: string; description: string; files: File[] }>({ title: "", description: "", files: [] });
+  const [savingDelivery, setSavingDelivery] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [rejectFor, setRejectFor] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
