@@ -4325,6 +4325,7 @@ export type Database = {
           address_street: string | null
           address_zip_code: string | null
           bank_account: string | null
+          bank_account_type: string | null
           bank_agency: string | null
           bank_name: string | null
           commission_percent: number | null
@@ -4343,6 +4344,7 @@ export type Database = {
           partner_type: Database["public"]["Enums"]["partner_type"]
           phone: string | null
           pix_key: string | null
+          profile_locked_at: string | null
           show_product_name: boolean
           updated_at: string
           user_id: string | null
@@ -4358,6 +4360,7 @@ export type Database = {
           address_street?: string | null
           address_zip_code?: string | null
           bank_account?: string | null
+          bank_account_type?: string | null
           bank_agency?: string | null
           bank_name?: string | null
           commission_percent?: number | null
@@ -4376,6 +4379,7 @@ export type Database = {
           partner_type?: Database["public"]["Enums"]["partner_type"]
           phone?: string | null
           pix_key?: string | null
+          profile_locked_at?: string | null
           show_product_name?: boolean
           updated_at?: string
           user_id?: string | null
@@ -4391,6 +4395,7 @@ export type Database = {
           address_street?: string | null
           address_zip_code?: string | null
           bank_account?: string | null
+          bank_account_type?: string | null
           bank_agency?: string | null
           bank_name?: string | null
           commission_percent?: number | null
@@ -4409,6 +4414,7 @@ export type Database = {
           partner_type?: Database["public"]["Enums"]["partner_type"]
           phone?: string | null
           pix_key?: string | null
+          profile_locked_at?: string | null
           show_product_name?: boolean
           updated_at?: string
           user_id?: string | null
