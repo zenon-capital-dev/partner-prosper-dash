@@ -803,14 +803,17 @@ export default function Sales() {
               </div>
               <div className="flex items-center gap-1.5">
                 <Select value={breakdownDim} onValueChange={(v) => changeBreakdown(v as any, breakdownMetric)}>
-                  <SelectTrigger className="h-7 w-[150px] text-[11px]"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-7 w-[170px] text-[11px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="status">Por status</SelectItem>
                     <SelectItem value="partner">Por parceiro</SelectItem>
                     <SelectItem value="product">Por produto</SelectItem>
                     <SelectItem value="client">Por cliente</SelectItem>
+                    <SelectItem value="revenue_type">Avulso vs Recorrente</SelectItem>
+                    <SelectItem value="month">Por mês</SelectItem>
                     <SelectItem value="partner_product">Parceiro · Produto</SelectItem>
                     <SelectItem value="product_client">Produto · Cliente</SelectItem>
+                    <SelectItem value="partner_client">Parceiro · Cliente</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={breakdownMetric} onValueChange={(v) => changeBreakdown(breakdownDim, v as any)}>
