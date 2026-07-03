@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import {
   Plus, Trash2, ChevronDown, ChevronUp, Loader2, CheckCircle2, Clock,
-  AlertOctagon, XCircle, PlayCircle, Eye, EyeOff, UserCog, Calendar
+  AlertOctagon, XCircle, PlayCircle, Eye, EyeOff, UserCog, Calendar, ListChecks
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
