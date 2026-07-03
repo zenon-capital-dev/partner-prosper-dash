@@ -647,7 +647,10 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ManageExpenseCategoriesDialog open={manageOpen} onOpenChange={setManageOpen} />
     </div>
+
   );
 }
 
