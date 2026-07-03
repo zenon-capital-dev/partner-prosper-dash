@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Wallet, DollarSign, ArrowUpRight, CheckCircle2, AlertCircle, ShoppingBag, Plus, ExternalLink, Pencil, Receipt } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
 import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
 import { PaymentFormDialog } from "@/components/payments/PaymentFormDialog";
+
+
 
 export function ClientFinancial({ clientId }: { clientId: string }) {
   const navigate = useNavigate();
@@ -51,6 +53,22 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
       return data ?? [];
     },
   });
+
+  // Realtime: quando cliente envia comprovante ou algo muda em payments desse cliente,
+  // atualiza a tabela do admin automaticamente.
+  useEffect(() => {
+    if (!clientId) return;
+    const channel = supabase
+      .channel(`client-payments-rt:${clientId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "payments", filter: `client_id=eq.${clientId}` },
+        () => qc.invalidateQueries({ queryKey: ["client-payments", clientId] }),
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [clientId, qc]);
+
 
   const { data: sales = [], isLoading: salesLoading } = useQuery({
     queryKey: ["client-sales", clientId],

@@ -65,10 +65,33 @@ export function PaymentReceiptDialog({
         if (docsError) throw docsError;
       }
 
+      // Notifica admins/vendedores para que o comprovante apareça no acesso master
+      try {
+        const [{ data: cli }, { data: staff }] = await Promise.all([
+          supabase.from("clients").select("full_name").eq("id", clientId).maybeSingle(),
+          supabase.from("user_roles").select("user_id").in("role", ["admin", "admin_secondary", "vendedor"]),
+        ]);
+        const clientName = (cli as any)?.full_name || "Cliente";
+        const recipients = Array.from(new Set((staff ?? []).map((s: any) => s.user_id)));
+        if (recipients.length > 0) {
+          const notifs = recipients.map((uid) => ({
+            user_id: uid,
+            title: `💰 Comprovante recebido · ${clientName}`,
+            message: `${clientName} anexou comprovante de ${formatBRL(payment.amount)}. Revise e dê baixa se estiver ok.`,
+            link: `/clientes/${clientId}?tab=financeiro`,
+            type: "info",
+          }));
+          await supabase.from("notifications").insert(notifs);
+        }
+      } catch (nerr) {
+        console.warn("[PaymentReceiptDialog] notify admins failed", nerr);
+      }
+
       toast.success(`${files.length} comprovante(s) enviado(s)! Aguardando análise.`);
       setFiles([]);
       setOpen(false);
       qc.invalidateQueries({ queryKey: invalidateKey });
+
     } catch (e: any) {
       toast.error(uploadErrorMessage(e) || e?.message || "Falha ao enviar comprovante");
     } finally {
