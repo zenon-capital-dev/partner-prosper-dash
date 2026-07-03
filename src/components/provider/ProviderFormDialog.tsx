@@ -194,8 +194,8 @@ export function ProviderFormDialog({ open, onOpenChange, provider, onSuccess }: 
                   <Switch checked={createAccess} onCheckedChange={setCreateAccess} disabled={!form.email} />
                 </div>
                 {createAccess && (
-                  <Field label="Senha provisória (mín. 8 caracteres, 1 letra e 1 número)">
-                    <Input type="text" value={form.access_password ?? ""} onChange={(e) => setForm({ ...form, access_password: e.target.value })} placeholder="Mínimo 8 caracteres, com letra e número" />
+                  <Field label="Senha (mín. 8 caracteres, com maiúscula, minúscula, número e símbolo)">
+                    <Input type="text" value={form.access_password ?? ""} onChange={(e) => setForm({ ...form, access_password: e.target.value })} placeholder="Ex: Prestador@2026" />
                   </Field>
                 )}
               </div>
