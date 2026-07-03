@@ -358,8 +358,18 @@ export default function ProviderPanel() {
       const due = c.deadline || c.sla_due_date || c.end_date;
       return due && new Date(due) < new Date();
     }).length;
-    const earnings = all.filter((c) => c.status !== "cancelado").reduce((s, c) => s + Number(c.value || 0), 0);
-    return { total: all.length, active, delayed, done, earnings };
+    const nonCancelled = all.filter((c) => !["cancelado","cancelada"].includes(c.status));
+    const isPaid = (c: any) => !!c.sales?.paid_at || ["concluido","concluida"].includes(c.status);
+    const aReceber = nonCancelled.filter((c) => !isPaid(c)).reduce((s, c) => s + Number(c.value || 0), 0);
+    const recebido = nonCancelled.filter(isPaid).reduce((s, c) => s + Number(c.value || 0), 0);
+    const recorrenteMes = nonCancelled.reduce((s, c) => {
+      const sale = c.sales;
+      if (sale?.revenue_type === "recorrente" && sale?.recurrence_months && Number(sale.recurrence_months) > 0) {
+        return s + Number(c.value || 0) / Number(sale.recurrence_months);
+      }
+      return s;
+    }, 0);
+    return { total: all.length, active, delayed, done, earnings: aReceber + recebido, aReceber, recebido, recorrenteMes };
   }, [clientProducts]);
 
   const upcoming = useMemo(() => {
