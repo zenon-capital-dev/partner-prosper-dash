@@ -118,10 +118,10 @@ export function SignatureStagesPanel({ parentType, parentId, className }: Props)
 
   const download = async (s: any) => {
     if (!s.file_path) return;
-    const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(s.file_path, 120);
-    if (error || !data?.signedUrl) return toast.error("Erro ao gerar link");
-    downloadStorageFile(data.signedUrl, s.file_name || "arquivo");
+    await downloadStorageFile(BUCKET, s.file_path, s.file_name || "arquivo");
   };
+
+
 
   const toggleStatus = async (s: any) => {
     const next = s.status === "concluida" ? "pendente" : "concluida";
