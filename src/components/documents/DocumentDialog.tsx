@@ -122,7 +122,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     [allClients],
   );
 
-  const { data: collaborators } = useInternalTeamRef(open);
+  const { data: collaborators } = useCollaboratorsRef(open);
 
 
   const { data: providers } = useProvidersRef(open);
