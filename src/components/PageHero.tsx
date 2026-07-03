@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { Sparkles, CalendarClock } from "lucide-react";
+import { Sparkles, CalendarClock, ArrowUpRight } from "lucide-react";
 
 interface KpiItem {
   label: string;
@@ -152,6 +152,11 @@ export function PageHero({
                 </p>
                 {k.hint && (
                   <p className="text-[11px] text-slate-600 dark:text-muted-foreground mt-2 truncate relative font-bold">{k.hint}</p>
+                )}
+                {k.onClick && (
+                  <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-indigo-600 opacity-70 group-hover/kpi:opacity-100 transition-opacity">
+                    Ver detalhes <ArrowUpRight className="size-3" />
+                  </span>
                 )}
               </Tag>
             );
