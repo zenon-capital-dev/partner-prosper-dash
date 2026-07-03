@@ -206,6 +206,8 @@ export function ClientProducts({ clientId }: { clientId: string }) {
             const statusCls = STATUS_STYLE[cp.status] || "bg-slate-100 text-slate-600 border-slate-200";
             const statusLabel = STATUS_OPTIONS.find(s => s.value === cp.status)?.label || (cp.status || "—").replace(/_/g, " ");
             const isOverdue = cp.deadline && new Date(cp.deadline) < new Date() && cp.status !== "concluido";
+            const effectiveSaleId = cp.sale_id || (linksBySale as any)[cp.product_id]?.id || null;
+
 
             return (
               <div key={cp.id} className="bg-white border border-slate-200/70 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-200 transition-all">
