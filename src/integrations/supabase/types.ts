@@ -5977,6 +5977,18 @@ export type Database = {
       service_providers: {
         Row: {
           active: boolean | null
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip: string | null
+          bank_account: string | null
+          bank_account_type: string | null
+          bank_agency: string | null
+          bank_name: string | null
+          bio: string | null
           created_at: string | null
           document_number: string | null
           email: string | null
@@ -5985,12 +5997,26 @@ export type Database = {
           internal_rating: number | null
           name: string
           phone: string | null
+          pix_key: string | null
           specialty: string | null
           updated_at: string | null
           user_id: string | null
+          whatsapp: string | null
         }
         Insert: {
           active?: boolean | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          bank_account?: string | null
+          bank_account_type?: string | null
+          bank_agency?: string | null
+          bank_name?: string | null
+          bio?: string | null
           created_at?: string | null
           document_number?: string | null
           email?: string | null
@@ -5999,12 +6025,26 @@ export type Database = {
           internal_rating?: number | null
           name: string
           phone?: string | null
+          pix_key?: string | null
           specialty?: string | null
           updated_at?: string | null
           user_id?: string | null
+          whatsapp?: string | null
         }
         Update: {
           active?: boolean | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          bank_account?: string | null
+          bank_account_type?: string | null
+          bank_agency?: string | null
+          bank_name?: string | null
+          bio?: string | null
           created_at?: string | null
           document_number?: string | null
           email?: string | null
@@ -6013,9 +6053,11 @@ export type Database = {
           internal_rating?: number | null
           name?: string
           phone?: string | null
+          pix_key?: string | null
           specialty?: string | null
           updated_at?: string | null
           user_id?: string | null
+          whatsapp?: string | null
         }
         Relationships: []
       }
