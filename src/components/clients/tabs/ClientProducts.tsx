@@ -275,15 +275,16 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                         <ExternalLink className="size-3.5" /> Abrir
                       </Link>
                     </Button>
-                    {cp.sale_id && (
+                    {effectiveSaleId && (
                       <Button
                         variant="outline" size="sm"
                         className="h-9 rounded-lg gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50 flex-1 sm:flex-none"
-                        onClick={() => openEditSale(cp.sale_id)}
+                        onClick={() => openEditSale(effectiveSaleId)}
                       >
                         <DollarSign className="size-3.5" /> Editar venda
                       </Button>
                     )}
+
 
 
                     <DropdownMenu>
