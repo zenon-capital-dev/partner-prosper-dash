@@ -225,10 +225,10 @@ export default function PartnerContractsAdmin() {
                 <div className="border-t pt-4">
                   <p className="text-[11px] uppercase tracking-wider font-bold text-slate-600 mb-2">📥 Arquivos devolvidos pelo parceiro</p>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <UploadSlot label="Contrato assinado" path={selected.contract_signed_path} onPick={(f) => uploadSigned(selected, "contract_signed", f)} onDownload={downloadFile} />
-                    <UploadSlot label="NDA assinado" path={selected.nda_signed_path} onPick={(f) => uploadSigned(selected, "nda_signed", f)} onDownload={downloadFile} />
+                    <UploadSlot label="Contrato assinado" path={selected.contract_signed_path} onDownload={downloadFile} />
+                    <UploadSlot label="NDA assinado" path={selected.nda_signed_path} onDownload={downloadFile} />
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-2">Para enviar o contrato original ao parceiro, abra o perfil dele (botão "Perfil").</p>
+                  <p className="text-[11px] text-slate-500 mt-2">Somente o parceiro envia esses arquivos. Para enviar o contrato original ao parceiro, abra o perfil dele (botão "Perfil").</p>
                 </div>
 
                 <div className="border-t pt-4 space-y-3">
@@ -271,7 +271,7 @@ function Field({ label, value }: { label: string; value?: any }) {
   );
 }
 
-function UploadSlot({ label, path, onPick, onDownload }: { label: string; path?: string | null; onPick: (f: File) => void; onDownload: (p: string) => void }) {
+function UploadSlot({ label, path, onPick, onDownload }: { label: string; path?: string | null; onPick?: (f: File) => void; onDownload: (p: string) => void }) {
   return (
     <div className="border border-slate-200 rounded-lg p-3 bg-slate-50/40">
       <p className="text-[12px] font-bold text-slate-800 mb-2">{label}</p>
@@ -280,16 +280,20 @@ function UploadSlot({ label, path, onPick, onDownload }: { label: string; path?:
           <button onClick={() => onDownload(path)} className="inline-flex items-center gap-1.5 text-emerald-700 text-[12.5px] hover:underline">
             <Download className="size-3.5" /> Baixar atual
           </button>
-          <label className="cursor-pointer text-[11.5px] text-indigo-700 hover:underline">
-            Substituir
-            <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPick(f); e.target.value = ""; }} />
-          </label>
+          {onPick && (
+            <label className="cursor-pointer text-[11.5px] text-indigo-700 hover:underline">
+              Substituir
+              <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPick(f); e.target.value = ""; }} />
+            </label>
+          )}
         </div>
-      ) : (
+      ) : onPick ? (
         <label className="cursor-pointer inline-flex items-center gap-2 text-[12.5px] text-indigo-700 hover:underline">
           <Upload className="size-3.5" /> Enviar PDF
           <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPick(f); e.target.value = ""; }} />
         </label>
+      ) : (
+        <p className="text-[11.5px] text-slate-400 italic">Aguardando envio do parceiro</p>
       )}
     </div>
   );
