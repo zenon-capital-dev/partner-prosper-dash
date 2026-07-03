@@ -259,7 +259,7 @@ export default function PartnerDetail() {
         <TabsContent value="comissoes" className="mt-4">
           <Card><CardContent className="p-0">
             <Table>
-              <TableHeader><TableRow><TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Valor</TableHead><TableHead>Status</TableHead><TableHead>Data</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Valor</TableHead><TableHead>Status</TableHead><TableHead>Data</TableHead><TableHead className="text-right">Ações</TableHead></TableRow></TableHeader>
               <TableBody>
                 {commissions.map((c) => (
                   <TableRow key={c.id}>
@@ -268,9 +268,17 @@ export default function PartnerDetail() {
                     <TableCell>{formatBRL(Number(c.amount || 0))}</TableCell>
                     <TableCell><Badge variant="outline">{c.status}</Badge></TableCell>
                     <TableCell>{c.paid_at ? format(new Date(c.paid_at), "dd/MM/yyyy") : (c.created_at ? format(new Date(c.created_at), "dd/MM/yyyy") : "—")}</TableCell>
+                    <TableCell className="text-right">
+                      {c.status !== "pago" && c.status !== "cancelado" && (
+                        <Button size="sm" variant="outline" className="h-7 text-[11px] text-emerald-700 border-emerald-200 hover:bg-emerald-50" onClick={() => openPay(c)}>
+                          <Check className="size-3 mr-1" /> Lançar pagamento
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
-                {commissions.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Nenhuma comissão</TableCell></TableRow>}
+                {commissions.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">Nenhuma comissão</TableCell></TableRow>}
+
               </TableBody>
             </Table>
           </CardContent></Card>
