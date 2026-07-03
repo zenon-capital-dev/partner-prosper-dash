@@ -67,10 +67,11 @@ export function ProductInteractionPanel({ clientProductId }: Props) {
   async function sendComment() {
     if (!content.trim()) return;
     setSending(true);
+    const text = content.trim();
     const { error } = await supabase.from("demand_comments").insert({
       client_product_id: clientProductId,
       author_id: user!.id,
-      content: content.trim(),
+      content: text,
       visibility,
     } as any);
     setSending(false);
@@ -78,6 +79,36 @@ export function ProductInteractionPanel({ clientProductId }: Props) {
     setContent("");
     toast.success(visibility === "client" ? "Mensagem enviada ao cliente" : "Anotação interna salva");
     qc.invalidateQueries({ queryKey: ["demand-comments", clientProductId] });
+    // Notifica partes envolvidas
+    try {
+      const { data: cp } = await supabase
+        .from("client_products")
+        .select("responsible_employee_id, product:products(name), client:clients(name, user_id)")
+        .eq("id", clientProductId)
+        .maybeSingle();
+      const demandName = (cp as any)?.product?.name || (cp as any)?.client?.name || "Demanda";
+      const clientUserId: string | null = (cp as any)?.client?.user_id ?? null;
+      const responsibleId: string | null = (cp as any)?.responsible_employee_id ?? null;
+      const { data: admins } = await supabase
+        .from("user_roles").select("user_id").in("role", ["admin", "admin_secondary"]);
+      const recipients = new Set<string>();
+      (admins ?? []).forEach((a: any) => recipients.add(a.user_id));
+      if (responsibleId) recipients.add(responsibleId);
+      if (visibility === "client" && clientUserId) recipients.add(clientUserId);
+      recipients.delete(user!.id);
+      if (recipients.size > 0) {
+        const rows = Array.from(recipients).map((uid) => ({
+          user_id: uid,
+          title: `💬 Nova mensagem em ${demandName}`,
+          message: `Prestador: ${text.slice(0, 140)}${text.length > 140 ? "…" : ""}`,
+          link: uid === clientUserId ? `/portal-cliente` : `/demandas/${clientProductId}`,
+          type: "info",
+        }));
+        await supabase.from("notifications").insert(rows);
+      }
+    } catch (e) {
+      console.warn("[ProductInteractionPanel] notify failed", e);
+    }
   }
 
   async function uploadDelivery(files: File[]) {
