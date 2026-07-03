@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import {
   Plus, Trash2, ChevronDown, ChevronUp, Loader2, CheckCircle2, Clock,
-  AlertOctagon, XCircle, PlayCircle, Eye, EyeOff, UserCog, Calendar
+  AlertOctagon, XCircle, PlayCircle, Eye, EyeOff, UserCog, Calendar, ListChecks
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -110,6 +110,44 @@ export function OperationalChecklist({ clientProductId, canEdit = true, canManag
     onError: (e: any) => toast.error(e.message),
   });
 
+  const seedFromTemplate = useMutation({
+    mutationFn: async () => {
+      const { data: cp, error: cpErr } = await supabase
+        .from("client_products")
+        .select("product_id")
+        .eq("id", clientProductId)
+        .maybeSingle();
+      if (cpErr) throw cpErr;
+      if (!cp?.product_id) throw new Error("Demanda sem produto vinculado.");
+      const { data: prod, error: prodErr } = await supabase
+        .from("products")
+        .select("standard_steps")
+        .eq("id", cp.product_id)
+        .maybeSingle();
+      if (prodErr) throw prodErr;
+      const template = (prod?.standard_steps ?? []) as any[];
+      if (!template.length) {
+        throw new Error("Este produto não tem checklist padrão. Cadastre em Produtos → Editar → Operacional.");
+      }
+      const rows = template.map((s: any, i: number) => ({
+        client_product_id: clientProductId,
+        label: typeof s === "string" ? s : (s.label || s.name || "Etapa"),
+        position: steps.length + i,
+        status: "pendente" as const,
+        is_visible_to_client: true,
+        default_responsible: "provider",
+      }));
+      const { error } = await supabase.from("client_product_steps").insert(rows);
+      if (error) throw error;
+      return rows.length;
+    },
+    onSuccess: (n) => {
+      qc.invalidateQueries({ queryKey: ["op-checklist", clientProductId] });
+      toast.success(`${n} etapa(s) importada(s) do template do produto`);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   if (isLoading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>;
   }
@@ -139,9 +177,14 @@ export function OperationalChecklist({ clientProductId, canEdit = true, canManag
         <div className="border-2 border-dashed border-border rounded-2xl p-10 text-center space-y-4">
           <p className="text-sm text-muted-foreground">Nenhuma etapa do checklist configurada.</p>
           {canManage && (
-            <Button onClick={() => addStep.mutate()} disabled={addStep.isPending} size="sm" className="gap-2">
-              <Plus className="size-4" /> Adicionar primeira etapa
-            </Button>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <Button onClick={() => seedFromTemplate.mutate()} disabled={seedFromTemplate.isPending} size="sm" variant="outline" className="gap-2">
+                <ListChecks className="size-4" /> Usar template do produto
+              </Button>
+              <Button onClick={() => addStep.mutate()} disabled={addStep.isPending} size="sm" className="gap-2">
+                <Plus className="size-4" /> Adicionar primeira etapa
+              </Button>
+            </div>
           )}
         </div>
       ) : (
