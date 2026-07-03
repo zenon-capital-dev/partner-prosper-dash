@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 
 const CATEGORY_LABELS: Record<string, string> = {
   folha: "Folha / Salários",
