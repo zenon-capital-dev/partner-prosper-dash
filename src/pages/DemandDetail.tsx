@@ -58,6 +58,8 @@ export default function DemandDetail() {
   const [docDialogOpen, setDocDialogOpen] = useState(false);
   const [delegateOpen, setDelegateOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [chatMsg, setChatMsg] = useState("");
+  const [chatSending, setChatSending] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
