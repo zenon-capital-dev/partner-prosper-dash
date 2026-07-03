@@ -4105,6 +4105,65 @@ export type Database = {
           },
         ]
       }
+      partner_documents: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          final_path: string | null
+          final_uploaded_at: string | null
+          id: string
+          name: string
+          original_path: string | null
+          original_uploaded_at: string | null
+          partner_id: string
+          signed_path: string | null
+          signed_uploaded_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          final_path?: string | null
+          final_uploaded_at?: string | null
+          id?: string
+          name: string
+          original_path?: string | null
+          original_uploaded_at?: string | null
+          partner_id: string
+          signed_path?: string | null
+          signed_uploaded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          final_path?: string | null
+          final_uploaded_at?: string | null
+          id?: string
+          name?: string
+          original_path?: string | null
+          original_uploaded_at?: string | null
+          partner_id?: string
+          signed_path?: string | null
+          signed_uploaded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_documents_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_materials: {
         Row: {
           active: boolean
