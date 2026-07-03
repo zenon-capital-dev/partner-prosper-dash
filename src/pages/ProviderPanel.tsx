@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
 import { DemandRequestsPanel } from "@/components/demands/DemandRequestsPanel";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
+import { ClientDocumentFolders } from "@/components/documents/ClientDocumentFolders";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
