@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { nowBR, formatBRDate } from "@/lib/datetime";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { SignatureStagesPanel } from "@/components/signatures/SignatureStagesPanel";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -789,8 +791,15 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           )}
         </div>
 
+        {editDoc?.id && (
+          <div className="px-6 pb-4">
+            <SignatureStagesPanel parentType="document" parentId={editDoc.id} />
+          </div>
+        )}
+
         <DialogFooter className="gap-2 sm:gap-0 px-6 py-4 border-t border-slate-200/70 bg-slate-50/40">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+
           <Button onClick={submit} disabled={submitting} className="bg-gradient-primary">
             {submitting ? "Salvando..." : editDoc ? "Salvar Alterações" : "Criar Solicitação"}
           </Button>
