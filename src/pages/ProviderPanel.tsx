@@ -84,9 +84,10 @@ export default function ProviderPanel() {
     queryKey: ["provider-self", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      let { data } = await supabase.from("service_providers").select("id, name, specialty, email, phone, document_number, user_id").eq("user_id", user!.id).maybeSingle();
+      const cols = "id, name, specialty, email, phone, document_number, user_id, whatsapp, bio, address_zip, address_street, address_number, address_complement, address_neighborhood, address_city, address_state, pix_key, bank_name, bank_account_type, bank_agency, bank_account";
+      let { data } = await supabase.from("service_providers").select(cols).eq("user_id", user!.id).maybeSingle();
       if (!data && user?.email) {
-        const { data: be } = await supabase.from("service_providers").select("id, name, specialty, email, phone, document_number, user_id").ilike("email", user.email).maybeSingle();
+        const { data: be } = await supabase.from("service_providers").select(cols).ilike("email", user.email).maybeSingle();
         data = be;
       }
       return data;
