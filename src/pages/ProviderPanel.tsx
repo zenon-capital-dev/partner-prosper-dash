@@ -327,8 +327,22 @@ export default function ProviderPanel() {
     queryFn: async () => {
       const { data } = await supabase
         .from("notifications")
-        .select("id, title, message, created_at, read_at, kind")
+        .select("id, title, message, created_at, read_at, kind, link")
         .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: deliveries = [] } = useQuery({
+    queryKey: ["provider-deliveries", cpIds.join(",")],
+    enabled: cpIds.length > 0,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("demand_deliveries")
+        .select("id, title, description, status, created_at, client_product_id, files")
+        .in("client_product_id", cpIds)
         .order("created_at", { ascending: false })
         .limit(6);
       return data ?? [];
