@@ -1164,59 +1164,106 @@ export default function ProviderPanel() {
         })()}
 
 
-        {activeKey === "perfil" && (
-          <>
-            <PanelHero role="prestador" eyebrow="Perfil" title="Sua conta" subtitle={provider.email} />
-            <SectionCard
-              title="Dados"
-              icon={UserCog}
-              action={
-                editingProfile ? (
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="ghost" onClick={() => { setEditingProfile(false); if (provider) setProfileForm({ name: provider.name || "", specialty: (provider as any).specialty || "", phone: (provider as any).phone || "", document_number: (provider as any).document_number || "" }); }}>Cancelar</Button>
-                    <Button size="sm" onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending}>{saveProfile.isPending ? "Salvando..." : "Salvar"}</Button>
-                  </div>
-                ) : (
-                  <Button size="sm" variant="outline" onClick={() => setEditingProfile(true)}>Editar</Button>
-                )
-              }
-            >
-              {editingProfile ? (
+        {activeKey === "perfil" && (() => {
+          const F = ({ label, value, onChange, placeholder, colSpan, disabled, maxLength }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; colSpan?: string; disabled?: boolean; maxLength?: number }) => (
+            <div className={cn("space-y-1.5", colSpan)}>
+              <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">{label}</Label>
+              <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} disabled={disabled || !editingProfile} maxLength={maxLength} className={cn(!editingProfile && "bg-slate-50/70")} />
+            </div>
+          );
+          const set = (k: keyof typeof profileForm) => (v: string) => setProfileForm((f) => ({ ...f, [k]: v }));
+          return (
+            <>
+              <PanelHero role="prestador" eyebrow="Perfil" title="Sua conta" subtitle={provider.email} />
+
+              <div className={cn("rounded-lg border px-3 py-2.5 text-[12px] mb-4", editingProfile ? "border-teal-200 bg-teal-50 text-teal-800" : "border-slate-200 bg-slate-50 text-slate-700")}>
+                {editingProfile
+                  ? "Preencha seus dados e clique em Salvar. Você pode editar quando quiser."
+                  : "Mantenha seus dados atualizados. Clique em Editar para preencher ou corrigir."}
+              </div>
+
+              <SectionCard
+                title="Dados pessoais"
+                icon={UserCog}
+                action={
+                  editingProfile ? (
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => { setEditingProfile(false); if (provider) setProfileForm(hydrateProfile(provider)); }}>Cancelar</Button>
+                      <Button size="sm" className="bg-teal-600 hover:bg-teal-700" onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending}>{saveProfile.isPending ? "Salvando..." : "Salvar"}</Button>
+                    </div>
+                  ) : (
+                    <Button size="sm" className="bg-teal-600 hover:bg-teal-700" onClick={() => setEditingProfile(true)}>Editar dados</Button>
+                  )
+                }
+              >
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Nome</Label>
-                    <Input value={profileForm.name} onChange={(e) => setProfileForm((f) => ({ ...f, name: e.target.value }))} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Especialidade</Label>
-                    <Input value={profileForm.specialty} onChange={(e) => setProfileForm((f) => ({ ...f, specialty: e.target.value }))} placeholder="Ex.: Tráfego pago, Design, Consultoria..." />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">E-mail</Label>
-                    <Input value={provider.email || ""} disabled className="bg-slate-50" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Telefone</Label>
-                    <Input value={profileForm.phone} onChange={(e) => setProfileForm((f) => ({ ...f, phone: e.target.value }))} placeholder="(00) 00000-0000" />
-                  </div>
+                  <F label="Nome" value={profileForm.name} onChange={set("name")} />
+                  <F label="Especialidade" value={profileForm.specialty} onChange={set("specialty")} placeholder="Ex.: Tráfego pago, Design, Consultoria..." />
+                  <F label="E-mail" value={provider.email || ""} onChange={() => {}} disabled />
+                  <F label="Documento (CPF / CNPJ)" value={profileForm.document_number} onChange={set("document_number")} />
+                  <F label="Telefone" value={profileForm.phone} onChange={set("phone")} placeholder="(00) 00000-0000" />
+                  <F label="WhatsApp" value={profileForm.whatsapp} onChange={set("whatsapp")} placeholder="(00) 00000-0000" />
                   <div className="space-y-1.5 sm:col-span-2">
-                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Documento (CPF / CNPJ)</Label>
-                    <Input value={profileForm.document_number} onChange={(e) => setProfileForm((f) => ({ ...f, document_number: e.target.value }))} />
+                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Mini-bio</Label>
+                    <textarea
+                      value={profileForm.bio}
+                      onChange={(e) => set("bio")(e.target.value)}
+                      disabled={!editingProfile}
+                      rows={3}
+                      maxLength={500}
+                      placeholder="Um resumo curto sobre você e sua atuação (até 500 caracteres)"
+                      className={cn("w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-teal-500/30", !editingProfile && "bg-slate-50/70")}
+                    />
                   </div>
                 </div>
-              ) : (
-                <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-[13px]">
-                  <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Nome</dt><dd className="text-slate-900">{provider.name || "—"}</dd></div>
-                  <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Especialidade</dt><dd className="text-slate-900">{(provider as any).specialty || "—"}</dd></div>
-                  <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">E-mail</dt><dd className="text-slate-900">{provider.email}</dd></div>
-                  <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Telefone</dt><dd className="text-slate-900">{(provider as any).phone || "—"}</dd></div>
-                  <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Documento</dt><dd className="text-slate-900">{(provider as any).document_number || "—"}</dd></div>
-                </dl>
-              )}
-              <Button variant="outline" className="mt-5 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => signOut?.()}>Sair</Button>
-            </SectionCard>
-          </>
-        )}
+              </SectionCard>
+
+              <SectionCard title="Endereço" icon={UserCog} className="mt-4">
+                <div className="grid sm:grid-cols-6 gap-4">
+                  <F label="CEP" value={profileForm.address_zip} onChange={set("address_zip")} placeholder="00000-000" colSpan="sm:col-span-2" />
+                  <F label="Rua" value={profileForm.address_street} onChange={set("address_street")} colSpan="sm:col-span-4" />
+                  <F label="Número" value={profileForm.address_number} onChange={set("address_number")} colSpan="sm:col-span-1" />
+                  <F label="Complemento" value={profileForm.address_complement} onChange={set("address_complement")} colSpan="sm:col-span-2" />
+                  <F label="Bairro" value={profileForm.address_neighborhood} onChange={set("address_neighborhood")} colSpan="sm:col-span-3" />
+                  <F label="Cidade" value={profileForm.address_city} onChange={set("address_city")} colSpan="sm:col-span-4" />
+                  <F label="Estado (UF)" value={profileForm.address_state} onChange={(v) => set("address_state")(v.toUpperCase())} colSpan="sm:col-span-2" maxLength={2} />
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Dados bancários" icon={Wallet} className="mt-4">
+                <p className="text-[12px] text-slate-500 mb-3">Usamos esses dados para pagar suas comissões e recebíveis.</p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <F label="Chave PIX" value={profileForm.pix_key} onChange={set("pix_key")} placeholder="CPF, e-mail, telefone ou chave aleatória" />
+                  </div>
+                  <F label="Banco" value={profileForm.bank_name} onChange={set("bank_name")} />
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Tipo de conta</Label>
+                    <select
+                      value={profileForm.bank_account_type}
+                      onChange={(e) => set("bank_account_type")(e.target.value)}
+                      disabled={!editingProfile}
+                      className={cn("w-full h-10 rounded-md border border-slate-200 px-3 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30", !editingProfile && "bg-slate-50/70")}
+                    >
+                      <option value="corrente">Conta corrente</option>
+                      <option value="poupanca">Conta poupança</option>
+                      <option value="pagamento">Conta de pagamento</option>
+                    </select>
+                  </div>
+                  <F label="Agência" value={profileForm.bank_agency} onChange={set("bank_agency")} />
+                  <F label="Conta" value={profileForm.bank_account} onChange={set("bank_account")} placeholder="00000-0" />
+                </div>
+              </SectionCard>
+
+              <SectionCard title="" className="mt-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[12px] text-slate-500">Encerrar sua sessão nesta janela.</p>
+                  <Button variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => signOut?.()}>Sair</Button>
+                </div>
+              </SectionCard>
+            </>
+          );
+        })()}
       </PanelContainer>
 
       {reportTarget && (
