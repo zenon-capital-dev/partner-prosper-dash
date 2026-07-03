@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Briefcase, ClipboardCheck, FileText, UserCog, Inbox, Clock, Wallet, MessageSquare,
   TrendingUp, AlertTriangle, CheckCircle2, CalendarClock, Sparkles, ArrowUpRight, Activity, Bell,
+  Package, Zap, Target,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
