@@ -553,7 +553,7 @@ export default function DemandDetail() {
             )}
 
               <Tabs
-                value={["resumo","checklist","docs","reportes","tarefas","entregas","comments","chat","historico"].includes(searchParams.get("tab") || "") ? (searchParams.get("tab") as string) : "resumo"}
+                value={["resumo","checklist","docs","reportes","tarefas","entregas","comments","solicitacoes","history"].includes(searchParams.get("tab") || "") ? (searchParams.get("tab") as string) : "resumo"}
                 onValueChange={(v) => { searchParams.set("tab", v); setSearchParams(searchParams, { replace: true }); }}
                 className="space-y-6"
               >
