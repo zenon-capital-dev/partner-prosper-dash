@@ -846,42 +846,46 @@ export default function ClientPanel() {
 }
 
 function ClientProfileForm({ client, onSaved, onSignOut }: { client: any; onSaved: () => void; onSignOut: () => void }) {
-  const [form, setForm] = useState({
+  const initial = {
     full_name: client.full_name || "",
     email: client.email || "",
     phone: client.phone || "",
+    whatsapp: client.whatsapp || "",
     document: client.document || "",
-  });
+    birth_date: client.birth_date || "",
+    address_zip_code: client.address_zip_code || "",
+    address_street: client.address_street || "",
+    address_number: client.address_number || "",
+    address_complement: client.address_complement || "",
+    address_neighborhood: client.address_neighborhood || "",
+    address_city: client.address_city || "",
+    address_state: client.address_state || "",
+  };
+  const [form, setForm] = useState(initial);
   const [saving, setSaving] = useState(false);
-  const dirty =
-    form.full_name !== (client.full_name || "") ||
-    form.email !== (client.email || "") ||
-    form.phone !== (client.phone || "") ||
-    form.document !== (client.document || "");
+  const dirty = JSON.stringify(form) !== JSON.stringify(initial);
 
   async function save() {
     if (!form.full_name.trim()) { toast.error("Nome é obrigatório"); return; }
     setSaving(true);
-    const { error } = await supabase
-      .from("clients")
-      .update({
-        full_name: form.full_name.trim(),
-        email: form.email.trim() || null,
-        phone: form.phone.trim() || null,
-        document: form.document.trim() || null,
-      })
-      .eq("id", client.id);
+    const payload: any = {};
+    (Object.keys(form) as (keyof typeof form)[]).forEach((k) => {
+      const v = (form[k] ?? "").toString().trim();
+      payload[k] = v === "" ? null : v;
+    });
+    const { error } = await supabase.from("clients").update(payload).eq("id", client.id);
     setSaving(false);
     if (error) { toast.error(error.message || "Falha ao salvar"); return; }
     toast.success("Dados atualizados");
     onSaved();
   }
 
-  const field = (key: keyof typeof form, label: string, placeholder = "") => (
+  const field = (key: keyof typeof form, label: string, placeholder = "", type: string = "text") => (
     <div>
       <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 block mb-1">{label}</label>
       <input
-        value={form[key]}
+        type={type}
+        value={form[key] as string}
         onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
         placeholder={placeholder}
         className="w-full h-9 px-3 rounded-md border border-slate-200 bg-white text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40"
@@ -891,13 +895,32 @@ function ClientProfileForm({ client, onSaved, onSignOut }: { client: any; onSave
 
   return (
     <>
+      <p className="text-[12px] text-slate-500 mb-4">
+        Mantenha seus dados sempre atualizados. Nossa equipe usa essas informações para entrar em contato e emitir documentos.
+      </p>
       <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4">
         {field("full_name", "Nome", "Seu nome completo")}
-        {field("email", "E-mail", "seu@email.com")}
+        {field("email", "E-mail", "seu@email.com", "email")}
         {field("phone", "Telefone", "(11) 99999-9999")}
-        {field("document", "Documento", "CPF ou CNPJ")}
+        {field("whatsapp", "WhatsApp", "(11) 99999-9999")}
+        {field("document", "Documento (CPF/CNPJ)", "000.000.000-00")}
+        {field("birth_date", "Data de nascimento", "", "date")}
       </div>
-      <div className="flex flex-wrap items-center gap-3 mt-5">
+
+      <div className="mt-6 pt-5 border-t border-slate-200/70">
+        <h4 className="text-[13px] font-semibold text-slate-800 mb-3">Endereço</h4>
+        <div className="grid sm:grid-cols-6 gap-x-6 gap-y-4">
+          <div className="sm:col-span-2">{field("address_zip_code", "CEP", "00000-000")}</div>
+          <div className="sm:col-span-4">{field("address_street", "Rua")}</div>
+          <div className="sm:col-span-1">{field("address_number", "Número")}</div>
+          <div className="sm:col-span-2">{field("address_complement", "Complemento")}</div>
+          <div className="sm:col-span-3">{field("address_neighborhood", "Bairro")}</div>
+          <div className="sm:col-span-4">{field("address_city", "Cidade")}</div>
+          <div className="sm:col-span-2">{field("address_state", "UF", "SP")}</div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 mt-6">
         <Button onClick={save} disabled={!dirty || saving}>
           {saving ? "Salvando..." : "Salvar alterações"}
         </Button>
