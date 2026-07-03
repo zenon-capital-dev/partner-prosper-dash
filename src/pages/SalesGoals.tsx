@@ -106,14 +106,18 @@ export default function SalesGoals() {
   // Atualiza realizado quando leads/propostas/vendas/pagamentos/timeline mudarem
   useEffect(() => {
     if (!isAdmin) return;
-    const invalidate = () => qc.invalidateQueries({ queryKey: ["sales_goals_actual", month] });
+    const invalidateActual = () => qc.invalidateQueries({ queryKey: ["sales_goals_actual", month] });
+    const invalidateGoals = () => qc.invalidateQueries({ queryKey: ["sales_goals", month] });
+    const invalidateAll = () => { invalidateActual(); invalidateGoals(); };
     const ch = supabase
-      .channel("goals-actual-live")
-      .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, invalidate)
-      .on("postgres_changes", { event: "*", schema: "public", table: "proposals" }, invalidate)
-      .on("postgres_changes", { event: "*", schema: "public", table: "sales" }, invalidate)
-      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, invalidate)
-      .on("postgres_changes", { event: "*", schema: "public", table: "client_timeline" }, invalidate)
+      .channel(`goals-actual-live:${month}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, invalidateActual)
+      .on("postgres_changes", { event: "*", schema: "public", table: "proposals" }, invalidateActual)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sales" }, invalidateActual)
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, invalidateActual)
+      .on("postgres_changes", { event: "*", schema: "public", table: "client_timeline" }, invalidateActual)
+      .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, invalidateActual)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sales_goals" }, invalidateAll)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [isAdmin, month, qc]);
