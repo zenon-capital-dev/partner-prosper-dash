@@ -524,11 +524,11 @@ export default function ProviderPanel() {
               />
               <KpiTile
                 icon={Wallet}
-                label="Comissões pagas"
-                value={formatBRL(commKpis.pago)}
-                hint={`${commPct}% de ${formatBRL(commKpis.total)}`}
+                label="Recebido"
+                value={formatBRL(stats.recebido)}
+                hint={`${stats.aReceber > 0 ? formatBRL(stats.aReceber) + " a receber" : "tudo recebido"}`}
                 accent="text-emerald-600 bg-emerald-50 border-emerald-100"
-                progress={commPct}
+                progress={stats.earnings > 0 ? Math.round((stats.recebido / stats.earnings) * 100) : 0}
               />
             </div>
 
