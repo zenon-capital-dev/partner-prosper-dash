@@ -46,6 +46,35 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
     },
   });
 
+  const { data: saleCommissions = [], refetch: refetchCommissions } = useQuery({
+    queryKey: ["sale-commissions", saleId],
+    enabled: !!saleId && open,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("commissions")
+        .select("id, amount, status, expected_date, paid_at, payment_method, partner_id, referrer_id, collaborator_id, service_provider_id, partners(full_name), referrers(full_name), profiles:profiles!commissions_collaborator_id_fkey(full_name), service_providers(full_name), payment_id")
+        .eq("sale_id", saleId)
+        .order("expected_date", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const togglePayCommission = async (c: any) => {
+    const isPaid = c.status === "paga";
+    const payload: any = isPaid
+      ? { status: "pendente", paid_at: null, payment_method: null }
+      : { status: "paga", paid_at: new Date().toISOString(), payment_method: "pix" };
+    const { error } = await supabase.from("commissions").update(payload).eq("id", c.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(isPaid ? "Comissão marcada como pendente" : "Comissão paga!");
+    refetchCommissions();
+    qc.invalidateQueries({ queryKey: ["partner-commissions"] });
+    qc.invalidateQueries({ queryKey: ["fin-commissions"] });
+    qc.invalidateQueries({ queryKey: ["dash-commissions"] });
+    qc.invalidateQueries({ queryKey: ["commissions-list"] });
+  };
+
   useEffect(() => {
     if (open) {
       setAmount("");
