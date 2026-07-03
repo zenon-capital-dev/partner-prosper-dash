@@ -153,6 +153,11 @@ export function PageHero({
                 {k.hint && (
                   <p className="text-[11px] text-slate-600 dark:text-muted-foreground mt-2 truncate relative font-bold">{k.hint}</p>
                 )}
+                {k.onClick && (
+                  <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-indigo-600 opacity-70 group-hover/kpi:opacity-100 transition-opacity">
+                    Ver detalhes <ArrowUpRight className="size-3" />
+                  </span>
+                )}
               </Tag>
             );
           })}
