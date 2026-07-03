@@ -471,6 +471,11 @@ export default function Sales() {
     const palette = ["bg-indigo-500", "bg-emerald-500", "bg-sky-500", "bg-amber-500", "bg-rose-500", "bg-violet-500", "bg-teal-500", "bg-fuchsia-500", "bg-cyan-500", "bg-lime-500"];
     const statusLabel: Record<string, string> = { concluida: "Concluídas", em_andamento: "Em andamento", pendente: "Pendentes", cancelada: "Canceladas" };
     const keyOf = (s: any): { key: string; label: string } => {
+      const monthOf = (iso: string | null | undefined) => {
+        if (!iso) return "—";
+        const d = new Date(iso);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      };
       switch (breakdownDim) {
         case "status": return { key: s.status || "—", label: statusLabel[s.status] || s.status || "—" };
         case "partner": return { key: s.partner_id || "sem", label: s.partners?.full_name || "Sem parceiro" };
@@ -478,6 +483,9 @@ export default function Sales() {
         case "client": return { key: s.client_id || "sem", label: s.clients?.full_name || s.clients?.company || "Sem cliente" };
         case "partner_product": return { key: `${s.partner_id || "sem"}::${s.product_id || "sem"}`, label: `${s.partners?.full_name || "Sem parceiro"} · ${s.products?.name || "Sem produto"}` };
         case "product_client": return { key: `${s.product_id || "sem"}::${s.client_id || "sem"}`, label: `${s.products?.name || "Sem produto"} · ${s.clients?.full_name || s.clients?.company || "Sem cliente"}` };
+        case "partner_client": return { key: `${s.partner_id || "sem"}::${s.client_id || "sem"}`, label: `${s.partners?.full_name || "Sem parceiro"} · ${s.clients?.full_name || s.clients?.company || "Sem cliente"}` };
+        case "revenue_type": return { key: s.revenue_type || "avulso", label: (s.revenue_type || "avulso") === "recorrente" ? "Recorrente" : "Avulso" };
+        case "month": { const m = monthOf(s.sale_date || s.created_at); return { key: m, label: m }; }
       }
     };
     const valueOf = (s: any): number => {
