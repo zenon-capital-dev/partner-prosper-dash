@@ -10,13 +10,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCircle, Handshake, Plus, FileText, Paperclip, PenLine, Download, CheckCircle2 } from "lucide-react";
+import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCircle, Handshake, Plus, FileText, Paperclip, PenLine, Download, CheckCircle2, ChevronsUpDown, Check, Search } from "lucide-react";
 import { downloadStorageFile } from "@/lib/download";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
-import { useClientsRef, useProvidersRef, useInternalTeamRef } from "@/hooks/useReferenceData";
+import { useClientsRef, useProvidersRef, useCollaboratorsRef } from "@/hooks/useReferenceData";
 import { useMemo } from "react";
 
 
@@ -120,7 +122,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     [allClients],
   );
 
-  const { data: collaborators } = useInternalTeamRef(open);
+  const { data: collaborators } = useCollaboratorsRef(open);
 
 
   const { data: providers } = useProvidersRef(open);
@@ -380,25 +382,47 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
                 ))}
               </div>
 
-              <Select value={selectedRecipientId} onValueChange={setSelectedRecipientId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={`Selecione o ${recipientType === 'client' ? 'cliente' : recipientType === 'collaborator' ? 'colaborador' : recipientType === 'provider' ? 'prestador' : 'parceiro'}`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {recipientType === "client" && clients?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
-                  ))}
-                  {recipientType === "collaborator" && collaborators?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.full_name || c.email}</SelectItem>
-                  ))}
-                  {recipientType === "provider" && providers?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                  {recipientType === "partner" && partners?.map((c: any) => (
-                    <SelectItem key={c.id} value={c.id}>{c.full_name || c.email}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {(() => {
+                const list: Array<{ id: string; label: string }> =
+                  recipientType === "client" ? (clients ?? []).map((c: any) => ({ id: c.id, label: c.full_name || c.email || "—" }))
+                  : recipientType === "collaborator" ? (collaborators ?? []).map((c: any) => ({ id: c.id, label: c.full_name || c.email || "—" }))
+                  : recipientType === "provider" ? (providers ?? []).map((c: any) => ({ id: c.id, label: c.name || "—" }))
+                  : (partners ?? []).map((c: any) => ({ id: c.id, label: c.full_name || c.email || "—" }));
+                const selected = list.find((o) => o.id === selectedRecipientId);
+                const placeholder = `Selecione o ${recipientType === 'client' ? 'cliente' : recipientType === 'collaborator' ? 'colaborador' : recipientType === 'provider' ? 'prestador' : 'parceiro'}`;
+                return (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                        <span className={cn("truncate", !selected && "text-muted-foreground")}>
+                          {selected?.label || placeholder}
+                        </span>
+                        <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar por nome..." />
+                        <CommandList>
+                          <CommandEmpty>Nenhum resultado.</CommandEmpty>
+                          <CommandGroup>
+                            {list.map((o) => (
+                              <CommandItem
+                                key={o.id}
+                                value={o.label}
+                                onSelect={() => setSelectedRecipientId(o.id)}
+                              >
+                                <Check className={cn("mr-2 size-4", selectedRecipientId === o.id ? "opacity-100" : "opacity-0")} />
+                                {o.label}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                );
+              })()}
             </div>
           )}
 
