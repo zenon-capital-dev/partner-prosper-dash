@@ -1156,24 +1156,59 @@ export default function DemandDetail() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={deliveryOpen} onOpenChange={setDeliveryOpen}>
+      <Dialog open={deliveryOpen} onOpenChange={(v) => { setDeliveryOpen(v); if (!v) setDeliveryForm({ title: "", description: "", files: [] }); }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Registrar entrega</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Registrar entrega</DialogTitle>
+            <p className="text-xs text-muted-foreground">Dê um nome à entrega e anexe os arquivos que o cliente poderá baixar.</p>
+          </DialogHeader>
           <div className="space-y-3">
-            <input className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm"
-              placeholder="Título da entrega"
-              value={deliveryForm.title}
-              onChange={(e) => setDeliveryForm({ ...deliveryForm, title: e.target.value })} />
-            <Textarea rows={4} placeholder="Descrição (opcional)"
-              value={deliveryForm.description}
-              onChange={(e) => setDeliveryForm({ ...deliveryForm, description: e.target.value })} />
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Nome da entrega *</label>
+              <input className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm"
+                placeholder="Ex: Relatório mensal de junho"
+                value={deliveryForm.title}
+                onChange={(e) => setDeliveryForm({ ...deliveryForm, title: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Descrição (opcional)</label>
+              <Textarea rows={3} placeholder="Contexto ou instruções para o cliente"
+                value={deliveryForm.description}
+                onChange={(e) => setDeliveryForm({ ...deliveryForm, description: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Arquivos para o cliente baixar</label>
+              <input
+                type="file"
+                multiple
+                onChange={(e) => setDeliveryForm({ ...deliveryForm, files: [...deliveryForm.files, ...Array.from(e.target.files ?? [])] })}
+                className="block w-full text-xs file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+              />
+              {deliveryForm.files.length > 0 && (
+                <ul className="space-y-1 pt-2">
+                  {deliveryForm.files.map((f, i) => (
+                    <li key={i} className="flex items-center justify-between gap-2 text-xs bg-muted/40 rounded px-2 py-1.5">
+                      <span className="truncate">{f.name} <span className="text-muted-foreground">({Math.round(f.size / 1024)} KB)</span></span>
+                      <button
+                        type="button"
+                        className="text-rose-600 hover:text-rose-700 text-[11px]"
+                        onClick={() => setDeliveryForm({ ...deliveryForm, files: deliveryForm.files.filter((_, j) => j !== i) })}
+                      >Remover</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeliveryOpen(false)}>Cancelar</Button>
-            <Button onClick={createDelivery}>Salvar</Button>
+            <Button variant="outline" onClick={() => setDeliveryOpen(false)} disabled={savingDelivery}>Cancelar</Button>
+            <Button onClick={createDelivery} disabled={savingDelivery}>
+              {savingDelivery ? "Enviando..." : "Salvar entrega"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
       <EditDemandDialog open={editOpen} onOpenChange={setEditOpen} demand={demand} />
 
