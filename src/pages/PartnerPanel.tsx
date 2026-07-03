@@ -507,7 +507,7 @@ export default function PartnerPanel() {
     bank_agency: p?.bank_agency || "",
     bank_account: p?.bank_account || "",
     bank_account_type: p?.bank_account_type || "",
-    address_zip: p?.address_zip || "",
+    address_zip: p?.address_zip_code || p?.address_zip || "",
     address_street: p?.address_street || "",
     address_number: p?.address_number || "",
     address_complement: p?.address_complement || "",
@@ -517,14 +517,20 @@ export default function PartnerPanel() {
   });
   useEffect(() => { if (partner) setForm(hydrate(partner)); }, [partner]);
 
+  const profileLocked = !!(partner as any)?.profile_locked_at;
+  const canEditProfile = !profileLocked;
+
   const saveProfile = useMutation({
     mutationFn: async () => {
       if (!partner?.id) throw new Error("Parceiro não encontrado");
-      const { error } = await supabase.from("partners").update(form as any).eq("id", partner.id);
+      if (profileLocked) throw new Error("Você já concluiu a edição do seu perfil. Peça ao administrador para alterar.");
+      const { address_zip, ...rest } = form as any;
+      const payload: any = { ...rest, address_zip_code: address_zip, profile_locked_at: new Date().toISOString() };
+      const { error } = await supabase.from("partners").update(payload).eq("id", partner.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Dados de contato atualizados");
+      toast.success("Perfil salvo. A edição foi bloqueada — peça ao administrador se precisar alterar novamente.");
       qc.invalidateQueries({ queryKey: ["partner-self", user?.id] });
       qc.invalidateQueries({ queryKey: ["partner-self"] });
       setEditing(false);
@@ -1345,17 +1351,31 @@ export default function PartnerPanel() {
             </SectionCard>
 
             <SectionCard title="">
-              <div className="flex items-center gap-2">
-                {editing ? (
-                  <>
-                    <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
-                      <Save className="size-4" /> {saveProfile.isPending ? "Salvando..." : "Salvar todos os dados"}
+              <div className="space-y-3">
+                <div className={cn(
+                  "rounded-lg border px-3 py-2.5 text-[12px]",
+                  profileLocked
+                    ? "border-amber-200 bg-amber-50 text-amber-800"
+                    : "border-indigo-200 bg-indigo-50 text-indigo-800"
+                )}>
+                  {profileLocked
+                    ? "Seu perfil já foi preenchido e a edição foi bloqueada. Se precisar corrigir algo, fale com o administrador."
+                    : "Você pode editar seu perfil apenas 1 vez. Confira tudo com atenção antes de salvar — depois disso somente o administrador poderá alterar."}
+                </div>
+                <div className="flex items-center gap-2">
+                  {editing ? (
+                    <>
+                      <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending || !canEditProfile} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                        <Save className="size-4" /> {saveProfile.isPending ? "Salvando..." : "Salvar e bloquear edição"}
+                      </Button>
+                      <Button variant="outline" onClick={() => { setEditing(false); if (partner) setForm(hydrate(partner)); }}>Cancelar</Button>
+                    </>
+                  ) : (
+                    <Button onClick={() => setEditing(true)} disabled={!canEditProfile} className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60">
+                      {canEditProfile ? "Editar dados (1 vez)" : "Edição bloqueada"}
                     </Button>
-                    <Button variant="outline" onClick={() => { setEditing(false); if (partner) setForm(hydrate(partner)); }}>Cancelar</Button>
-                  </>
-                ) : (
-                  <Button onClick={() => setEditing(true)} className="bg-indigo-600 hover:bg-indigo-700">Editar dados</Button>
-                )}
+                  )}
+                </div>
               </div>
             </SectionCard>
 
