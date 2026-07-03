@@ -25,6 +25,8 @@ export function ClientDeliveries({ clientId }: { clientId: string }) {
   const [creating, setCreating] = useState(false);
   const [openDelivery, setOpenDelivery] = useState<any | null>(null);
   const [newForm, setNewForm] = useState({ title: "", description: "", client_product_id: "" });
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [savingNew, setSavingNew] = useState(false);
 
   const { data: products } = useQuery({
     queryKey: ["client-products-min", clientId],
@@ -54,20 +56,40 @@ export function ClientDeliveries({ clientId }: { clientId: string }) {
 
   const create = async () => {
     if (!newForm.title.trim() || !newForm.client_product_id) {
-      return toast.error("Selecione a demanda e informe o título");
+      return toast.error("Selecione a demanda e informe o nome da entrega");
     }
-    const { error } = await supabase.from("demand_deliveries").insert({
+    setSavingNew(true);
+    // 1. cria a entrega
+    const { data: created, error } = await supabase.from("demand_deliveries").insert({
       client_product_id: newForm.client_product_id,
       title: newForm.title,
       description: newForm.description || null,
-      status: "pending",
-    });
-    if (error) return toast.error(error.message);
+      status: "delivered",
+      files: [],
+    }).select("id").single();
+    if (error || !created) {
+      setSavingNew(false);
+      return toast.error(error?.message || "Erro ao criar entrega");
+    }
+    // 2. faz upload dos arquivos (se houver)
+    const uploaded: FileEntry[] = [];
+    for (const file of newFiles) {
+      const path = `deliveries/${newForm.client_product_id}/${created.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: false });
+      if (upErr) { toast.error(`${file.name}: ${upErr.message}`); continue; }
+      uploaded.push({ path, name: file.name, size: file.size, uploaded_at: new Date().toISOString() });
+    }
+    if (uploaded.length) {
+      await supabase.from("demand_deliveries").update({ files: uploaded as any }).eq("id", created.id);
+    }
+    setSavingNew(false);
     toast.success("Entrega criada");
     setNewForm({ title: "", description: "", client_product_id: "" });
+    setNewFiles([]);
     setCreating(false);
     qc.invalidateQueries({ queryKey: ["client-deliveries", clientId] });
   };
+
 
   return (
     <div className="space-y-6 animate-fade-up">
