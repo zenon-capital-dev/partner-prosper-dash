@@ -240,7 +240,6 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         recurrence_months: isRecurring ? Math.max(1, Math.min(120, parseInt(form.recurrence_months || 12, 10) || 12)) : null,
         recurrence_start: isRecurring ? recurrenceStart : null,
         project_id: form.project_id || null,
-        resource_pool_id: form.resource_pool_id || null,
       } as any;
 
       const shouldGenerateFinancialSchedule = saleIsFinalized(payload);
