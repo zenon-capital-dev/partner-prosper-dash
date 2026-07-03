@@ -2035,58 +2035,91 @@ function CommissionsTable({
 }
 
 // -------------------- Cash flow --------------------
+type CashRange = { days: number; bucket: "day" | "week" | "month" };
+const CASH_RANGES: Record<string, CashRange & { label: string }> = {
+  week: { days: 7, bucket: "day", label: "Última semana" },
+  month: { days: 30, bucket: "day", label: "Último mês" },
+  "3m": { days: 90, bucket: "week", label: "Últimos 3 meses" },
+  "6m": { days: 180, bucket: "week", label: "Últimos 6 meses" },
+  year: { days: 365, bucket: "month", label: "Último ano" },
+};
+
 function CashFlow({ payments, commissions, sales }: { payments: any[]; commissions: any[]; sales: any[] }) {
-  const [days, setDays] = useState(30);
+  const [rangeKey, setRangeKey] = useState<string>("month");
+  const { days, bucket } = CASH_RANGES[rangeKey];
+
+  const bucketKey = (iso: string) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (bucket === "day") return iso.slice(0, 10);
+    if (bucket === "month") return iso.slice(0, 7);
+    // week: ISO Monday
+    const day = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() - (day - 1));
+    return d.toISOString().slice(0, 10);
+  };
+
   const data = useMemo(() => {
     const map: Record<string, { label: string; entrada: number; saida: number; saldo: number }> = {};
-    for (let i = days - 1; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
-      map[key] = { label: key.slice(5), entrada: 0, saida: 0, saldo: 0 };
+    const start = new Date();
+    start.setDate(start.getDate() - (days - 1));
+    const cursor = new Date(start);
+    while (cursor <= new Date()) {
+      const key = bucketKey(cursor.toISOString());
+      if (!map[key]) {
+        const label =
+          bucket === "month"
+            ? key
+            : bucket === "week"
+            ? `sem ${key.slice(5)}`
+            : key.slice(5);
+        map[key] = { label, entrada: 0, saida: 0, saldo: 0 };
+      }
+      cursor.setDate(cursor.getDate() + 1);
     }
-    payments
-      .forEach((p: any) => {
-        const received = paymentReceivedAmount(p);
-        if (received <= 0) return;
-        const key = (p.paid_at || "").slice(0, 10);
-        if (map[key]) map[key].entrada += received;
-      });
+    payments.forEach((p: any) => {
+      const received = paymentReceivedAmount(p);
+      if (received <= 0) return;
+      const key = bucketKey(p.paid_at || "");
+      if (map[key]) map[key].entrada += received;
+    });
     const salesAmountById = new Map((sales || []).map((s: any) => [s.id, Number(s.amount || 0)]));
-    const receivedBySaleByDay: Record<string, Map<string, number>> = {};
+    const receivedBySaleByBucket: Record<string, Map<string, number>> = {};
     payments.forEach((p: any) => {
       const received = paymentReceivedAmount(p);
       if (received <= 0 || !p.sale_id) return;
-      const key = (p.paid_at || "").slice(0, 10);
+      const key = bucketKey(p.paid_at || "");
       if (!map[key]) return;
-      if (!receivedBySaleByDay[key]) receivedBySaleByDay[key] = new Map();
-      receivedBySaleByDay[key].set(p.sale_id, (receivedBySaleByDay[key].get(p.sale_id) || 0) + received);
+      if (!receivedBySaleByBucket[key]) receivedBySaleByBucket[key] = new Map();
+      receivedBySaleByBucket[key].set(p.sale_id, (receivedBySaleByBucket[key].get(p.sale_id) || 0) + received);
     });
     commissions
       .filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status))
       .forEach((c: any) => {
-        const key = (c.paid_at || "").slice(0, 10);
-        if (map[key]) map[key].saida += accruedCommissionAmount(c, receivedBySaleByDay[key] || new Map(), salesAmountById);
+        const key = bucketKey(c.paid_at || "");
+        if (map[key]) map[key].saida += accruedCommissionAmount(c, receivedBySaleByBucket[key] || new Map(), salesAmountById);
       });
     let acc = 0;
-    return Object.values(map).map((d) => {
-      acc += d.entrada - d.saida;
-      return { ...d, saldo: acc };
-    });
-  }, [payments, commissions, sales, days]);
+    return Object.keys(map)
+      .sort()
+      .map((k) => {
+        acc += map[k].entrada - map[k].saida;
+        return { ...map[k], saldo: acc };
+      });
+  }, [payments, commissions, sales, days, bucket]);
 
   return (
     <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-semibold text-slate-800">Fluxo de caixa</h3>
-        <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
-          <SelectTrigger className="w-[140px] h-9 bg-white border-slate-200">
+        <Select value={rangeKey} onValueChange={setRangeKey}>
+          <SelectTrigger className="w-[180px] h-9 bg-white border-slate-200">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="30">Últimos 30 dias</SelectItem>
-            <SelectItem value="60">Últimos 60 dias</SelectItem>
-            <SelectItem value="90">Últimos 90 dias</SelectItem>
+            {Object.entries(CASH_RANGES).map(([k, v]) => (
+              <SelectItem key={k} value={k}>{v.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -2110,6 +2143,7 @@ function CashFlow({ payments, commissions, sales }: { payments: any[]; commissio
     </div>
   );
 }
+
 
 // -------------------- Reports --------------------
 function Reports({ payments, commissions, sales }: { payments: any[]; commissions: any[]; sales: any[] }) {
