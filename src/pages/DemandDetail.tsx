@@ -104,7 +104,7 @@ export default function DemandDetail() {
   const [rejectFor, setRejectFor] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [uploadingDoc, setUploadingDoc] = useState(false);
-  const canUploadDoc = canManage || isPrestador || isAssignedProvider;
+  const canUploadDoc = canManage || isPrestador || isAssignedProvider || isCliente;
 
 
   const handleQuickDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
