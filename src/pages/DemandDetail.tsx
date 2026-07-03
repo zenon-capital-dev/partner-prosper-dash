@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { openDownloadUrl } from "@/lib/download";
+import { openDownloadUrl, downloadStorageFile } from "@/lib/download";
 import { nowBR, toBR, isTodayBR } from "@/lib/datetime";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -101,7 +101,8 @@ export default function DemandDetail() {
   const [taskOpen, setTaskOpen] = useState(false);
   const [taskTitle, setTaskTitle] = useState("");
   const [deliveryOpen, setDeliveryOpen] = useState(false);
-  const [deliveryForm, setDeliveryForm] = useState({ title: "", description: "" });
+  const [deliveryForm, setDeliveryForm] = useState<{ title: string; description: string; files: File[] }>({ title: "", description: "", files: [] });
+  const [savingDelivery, setSavingDelivery] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [rejectFor, setRejectFor] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
@@ -306,18 +307,37 @@ export default function DemandDetail() {
   };
 
   const createDelivery = async () => {
-    if (!deliveryForm.title.trim()) return toast.error("Título obrigatório");
-    const { error } = await supabase.from("demand_deliveries").insert({
-      client_product_id: id,
-      title: deliveryForm.title,
-      description: deliveryForm.description || null,
-      status: "pending",
-    });
-    if (error) return toast.error(error.message);
-    toast.success("Entrega registrada");
-    setDeliveryForm({ title: "", description: "" });
-    setDeliveryOpen(false);
-    qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+    if (!deliveryForm.title.trim()) return toast.error("Nome da entrega é obrigatório");
+    setSavingDelivery(true);
+    try {
+      const { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } = await import("@/lib/uploads");
+      deliveryForm.files.forEach(assertUploadFile);
+      const clientId = (demand as any)?.client_id;
+      const uploaded: Array<{ path: string; name: string; size: number; type: string }> = [];
+      for (const [idx, file] of deliveryForm.files.entries()) {
+        const path = `${clientId ?? "misc"}/${id}/deliveries/${Date.now()}-${idx + 1}-${sanitizeStorageFileName(file.name)}`;
+        const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: false });
+        if (upErr) throw upErr;
+        uploaded.push({ path, name: file.name, size: file.size, type: file.type });
+      }
+      const { error } = await supabase.from("demand_deliveries").insert({
+        client_product_id: id!,
+        title: deliveryForm.title,
+        description: deliveryForm.description || null,
+        status: "pending",
+        files: uploaded as any,
+      });
+      if (error) throw error;
+      toast.success("Entrega registrada");
+      setDeliveryForm({ title: "", description: "", files: [] });
+      setDeliveryOpen(false);
+      qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+    } catch (err: any) {
+      const { uploadErrorMessage } = await import("@/lib/uploads");
+      toast.error(uploadErrorMessage(err));
+    } finally {
+      setSavingDelivery(false);
+    }
   };
 
   const duplicateDemand = async () => {
@@ -940,20 +960,41 @@ export default function DemandDetail() {
                        </div>
                     ) : (
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {demand.deliveries.map((delivery: any) => (
+                          {demand.deliveries.map((delivery: any) => {
+                             const files: any[] = Array.isArray(delivery.files) ? delivery.files : [];
+                             return (
                              <div key={delivery.id} className="p-4 rounded-xl border border-border bg-muted/20 hover:border-primary/30 transition-colors">
                                 <div className="flex items-center justify-between mb-2">
                                    <h4 className="font-bold text-sm">{delivery.title}</h4>
                                    <Badge variant="outline" className="text-[9px] uppercase">{delivery.status}</Badge>
                                 </div>
-                                <p className="text-xs text-muted-foreground line-clamp-2 mb-4">{delivery.description}</p>
-                                {delivery.file_url && (
-                                   <Button variant="outline" size="sm" className="w-full h-8 text-[11px] gap-2">
+                                {delivery.description && <p className="text-xs text-muted-foreground line-clamp-3 mb-3">{delivery.description}</p>}
+                                {files.length > 0 && (
+                                   <div className="space-y-1.5">
+                                     {files.map((f: any, i: number) => (
+                                       <button
+                                         key={i}
+                                         onClick={async () => {
+                                           try { await downloadStorageFile("documents", f.path, f.name); }
+                                           catch (e: any) { toast.error(e?.message || "Falha ao baixar"); }
+                                         }}
+                                         className="w-full flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-[11px] hover:border-primary/40 hover:bg-primary/5 transition-colors text-left"
+                                       >
+                                         <Download className="size-3 shrink-0 text-primary" />
+                                         <span className="truncate flex-1">{f.name}</span>
+                                         {f.size ? <span className="text-muted-foreground shrink-0">{Math.round(f.size / 1024)} KB</span> : null}
+                                       </button>
+                                     ))}
+                                   </div>
+                                )}
+                                {files.length === 0 && delivery.file_url && (
+                                   <Button variant="outline" size="sm" className="w-full h-8 text-[11px] gap-2" onClick={() => window.open(delivery.file_url, "_blank")}>
                                       <Download className="size-3" /> Baixar Entrega
                                    </Button>
                                 )}
                              </div>
-                          ))}
+                             );
+                          })}
                        </div>
                     )}
                   </div>
@@ -1136,24 +1177,59 @@ export default function DemandDetail() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={deliveryOpen} onOpenChange={setDeliveryOpen}>
+      <Dialog open={deliveryOpen} onOpenChange={(v) => { setDeliveryOpen(v); if (!v) setDeliveryForm({ title: "", description: "", files: [] }); }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Registrar entrega</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Registrar entrega</DialogTitle>
+            <p className="text-xs text-muted-foreground">Dê um nome à entrega e anexe os arquivos que o cliente poderá baixar.</p>
+          </DialogHeader>
           <div className="space-y-3">
-            <input className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm"
-              placeholder="Título da entrega"
-              value={deliveryForm.title}
-              onChange={(e) => setDeliveryForm({ ...deliveryForm, title: e.target.value })} />
-            <Textarea rows={4} placeholder="Descrição (opcional)"
-              value={deliveryForm.description}
-              onChange={(e) => setDeliveryForm({ ...deliveryForm, description: e.target.value })} />
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Nome da entrega *</label>
+              <input className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm"
+                placeholder="Ex: Relatório mensal de junho"
+                value={deliveryForm.title}
+                onChange={(e) => setDeliveryForm({ ...deliveryForm, title: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Descrição (opcional)</label>
+              <Textarea rows={3} placeholder="Contexto ou instruções para o cliente"
+                value={deliveryForm.description}
+                onChange={(e) => setDeliveryForm({ ...deliveryForm, description: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Arquivos para o cliente baixar</label>
+              <input
+                type="file"
+                multiple
+                onChange={(e) => setDeliveryForm({ ...deliveryForm, files: [...deliveryForm.files, ...Array.from(e.target.files ?? [])] })}
+                className="block w-full text-xs file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+              />
+              {deliveryForm.files.length > 0 && (
+                <ul className="space-y-1 pt-2">
+                  {deliveryForm.files.map((f, i) => (
+                    <li key={i} className="flex items-center justify-between gap-2 text-xs bg-muted/40 rounded px-2 py-1.5">
+                      <span className="truncate">{f.name} <span className="text-muted-foreground">({Math.round(f.size / 1024)} KB)</span></span>
+                      <button
+                        type="button"
+                        className="text-rose-600 hover:text-rose-700 text-[11px]"
+                        onClick={() => setDeliveryForm({ ...deliveryForm, files: deliveryForm.files.filter((_, j) => j !== i) })}
+                      >Remover</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeliveryOpen(false)}>Cancelar</Button>
-            <Button onClick={createDelivery}>Salvar</Button>
+            <Button variant="outline" onClick={() => setDeliveryOpen(false)} disabled={savingDelivery}>Cancelar</Button>
+            <Button onClick={createDelivery} disabled={savingDelivery}>
+              {savingDelivery ? "Enviando..." : "Salvar entrega"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
       <EditDemandDialog open={editOpen} onOpenChange={setEditOpen} demand={demand} />
 
