@@ -376,9 +376,12 @@ function ActionsFeed({ items, loading }: { items: any[]; loading: boolean }) {
     </div>
   );
   const TYPE_META: Record<string, { label: string; icon: any; color: string }> = {
-    ticket:  { label: "Suporte",       icon: LifeBuoy,       color: "bg-rose-50 text-rose-700 border-rose-200" },
-    request: { label: "Solicitação",   icon: MessageSquare,  color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
-    doc:     { label: "Documento",     icon: FileText,       color: "bg-amber-50 text-amber-700 border-amber-200" },
+    ticket:   { label: "Suporte",       icon: LifeBuoy,       color: "bg-rose-50 text-rose-700 border-rose-200" },
+    request:  { label: "Solicitação",   icon: MessageSquare,  color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+    doc:      { label: "Documento",     icon: FileText,       color: "bg-amber-50 text-amber-700 border-amber-200" },
+    chat:     { label: "Mensagem",      icon: MessageSquare,  color: "bg-sky-50 text-sky-700 border-sky-200" },
+    delivery: { label: "Entrega",       icon: Package,        color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    receipt:  { label: "Comprovante",   icon: Receipt,        color: "bg-violet-50 text-violet-700 border-violet-200" },
   };
   return (
     <div className="relative space-y-3 pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
