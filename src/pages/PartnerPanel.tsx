@@ -507,7 +507,7 @@ export default function PartnerPanel() {
     bank_agency: p?.bank_agency || "",
     bank_account: p?.bank_account || "",
     bank_account_type: p?.bank_account_type || "",
-    address_zip: p?.address_zip || "",
+    address_zip: p?.address_zip_code || p?.address_zip || "",
     address_street: p?.address_street || "",
     address_number: p?.address_number || "",
     address_complement: p?.address_complement || "",
@@ -517,14 +517,20 @@ export default function PartnerPanel() {
   });
   useEffect(() => { if (partner) setForm(hydrate(partner)); }, [partner]);
 
+  const profileLocked = !!(partner as any)?.profile_locked_at;
+  const canEditProfile = !profileLocked;
+
   const saveProfile = useMutation({
     mutationFn: async () => {
       if (!partner?.id) throw new Error("Parceiro não encontrado");
-      const { error } = await supabase.from("partners").update(form as any).eq("id", partner.id);
+      if (profileLocked) throw new Error("Você já concluiu a edição do seu perfil. Peça ao administrador para alterar.");
+      const { address_zip, ...rest } = form as any;
+      const payload: any = { ...rest, address_zip_code: address_zip, profile_locked_at: new Date().toISOString() };
+      const { error } = await supabase.from("partners").update(payload).eq("id", partner.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Dados de contato atualizados");
+      toast.success("Perfil salvo. A edição foi bloqueada — peça ao administrador se precisar alterar novamente.");
       qc.invalidateQueries({ queryKey: ["partner-self", user?.id] });
       qc.invalidateQueries({ queryKey: ["partner-self"] });
       setEditing(false);
