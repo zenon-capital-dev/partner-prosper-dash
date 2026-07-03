@@ -69,6 +69,12 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
   const [form, setForm] = useState(emptyForm());
+  const [manageOpen, setManageOpen] = useState(false);
+  const cats = useExpenseCategories();
+  const CATEGORIES = cats.visible;
+  const categoryLabel = (v: string) => cats.labelOf(v);
+  const categoryColor = (v: string) => cats.colorOf(v);
+
 
   const { data: fetched = [], isLoading } = useQuery({
     queryKey: ["fin-expenses-tab"],
