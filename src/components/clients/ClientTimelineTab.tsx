@@ -114,7 +114,7 @@ export function ClientTimelineTab({ clientId }: { clientId: string }) {
       ]);
 
       // Autores dos comentários (para inferir papel: cliente/prestador/admin)
-      const authorIds = Array.from(new Set(((comments as any).data || []).map((c: any) => c.author_id).filter(Boolean)));
+      const authorIds = Array.from(new Set(((comments as any).data || []).map((c: any) => c.author_id).filter(Boolean))) as string[];
       const roleByUser = new Map<string, string>();
       if (authorIds.length) {
         const { data: roles } = await supabase.from("user_roles").select("user_id, role").in("user_id", authorIds);
