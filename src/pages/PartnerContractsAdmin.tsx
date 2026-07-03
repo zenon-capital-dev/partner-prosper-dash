@@ -225,10 +225,10 @@ export default function PartnerContractsAdmin() {
                 <div className="border-t pt-4">
                   <p className="text-[11px] uppercase tracking-wider font-bold text-slate-600 mb-2">📥 Arquivos devolvidos pelo parceiro</p>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <UploadSlot label="Contrato assinado" path={selected.contract_signed_path} onPick={(f) => uploadSigned(selected, "contract_signed", f)} onDownload={downloadFile} />
-                    <UploadSlot label="NDA assinado" path={selected.nda_signed_path} onPick={(f) => uploadSigned(selected, "nda_signed", f)} onDownload={downloadFile} />
+                    <UploadSlot label="Contrato assinado" path={selected.contract_signed_path} onDownload={downloadFile} />
+                    <UploadSlot label="NDA assinado" path={selected.nda_signed_path} onDownload={downloadFile} />
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-2">Para enviar o contrato original ao parceiro, abra o perfil dele (botão "Perfil").</p>
+                  <p className="text-[11px] text-slate-500 mt-2">Somente o parceiro envia esses arquivos. Para enviar o contrato original ao parceiro, abra o perfil dele (botão "Perfil").</p>
                 </div>
 
                 <div className="border-t pt-4 space-y-3">
