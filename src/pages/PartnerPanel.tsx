@@ -393,15 +393,16 @@ export default function PartnerPanel() {
     queryKey: ["partner-commissions", partner?.id],
     enabled: !!partner?.id,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("commission_splits")
-        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(client_product_id, client_id, clients(id, full_name), products(name))")
+        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(client_id, clients(id, full_name), products(name), client_products(id))")
         .eq("beneficiary_type", "partner")
         .eq("beneficiary_id", partner!.id)
         .order("created_at", { ascending: false });
+      if (error) console.error("partner-commissions error", error);
       return (data ?? []).map((c: any) => ({
         ...c,
-        client_product_id: c.sales?.client_product_id ?? null,
+        client_product_id: c.sales?.client_products?.[0]?.id ?? null,
         client_id: c.sales?.client_id ?? null,
         clients: c.sales?.clients,
         products: c.sales?.products,
