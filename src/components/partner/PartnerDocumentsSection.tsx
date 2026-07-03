@@ -117,7 +117,7 @@ export function PartnerDocumentsSection({ partnerId }: { partnerId: string }) {
   };
 
   const removeSlot = async (doc: Doc, slot: Slot) => {
-    if (!(await confirmAction({ title: "Excluir arquivo?", destructive: true, confirmText: "Excluir" }))) return;
+    if (!(await confirmAction({ title: "Excluir arquivo?", description: "Essa ação não pode ser desfeita.", destructive: true, confirmText: "Excluir" }))) return;
     const pathKey = slot === "original" ? "original_path" : slot === "signed" ? "signed_path" : "final_path";
     const dateKey = slot === "original" ? "original_uploaded_at" : slot === "signed" ? "signed_uploaded_at" : "final_uploaded_at";
     const path = (doc as any)[pathKey] as string | null;
