@@ -206,6 +206,8 @@ export function ClientProducts({ clientId }: { clientId: string }) {
             const statusCls = STATUS_STYLE[cp.status] || "bg-slate-100 text-slate-600 border-slate-200";
             const statusLabel = STATUS_OPTIONS.find(s => s.value === cp.status)?.label || (cp.status || "—").replace(/_/g, " ");
             const isOverdue = cp.deadline && new Date(cp.deadline) < new Date() && cp.status !== "concluido";
+            const effectiveSaleId = cp.sale_id || (linksBySale as any)[cp.product_id]?.id || null;
+
 
             return (
               <div key={cp.id} className="bg-white border border-slate-200/70 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-200 transition-all">
@@ -273,15 +275,16 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                         <ExternalLink className="size-3.5" /> Abrir
                       </Link>
                     </Button>
-                    {cp.sale_id && (
+                    {effectiveSaleId && (
                       <Button
                         variant="outline" size="sm"
                         className="h-9 rounded-lg gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50 flex-1 sm:flex-none"
-                        onClick={() => openEditSale(cp.sale_id)}
+                        onClick={() => openEditSale(effectiveSaleId)}
                       >
                         <DollarSign className="size-3.5" /> Editar venda
                       </Button>
                     )}
+
 
 
                     <DropdownMenu>
@@ -311,11 +314,12 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                         <DropdownMenuItem onClick={() => openDeadline(cp)} className="gap-2 cursor-pointer text-[13px]">
                           <Calendar className="size-3.5" /> Definir prazo
                         </DropdownMenuItem>
-                        {cp.sale_id && (
-                          <DropdownMenuItem onClick={() => openEditSale(cp.sale_id)} className="gap-2 cursor-pointer text-[13px]">
+                        {effectiveSaleId && (
+                          <DropdownMenuItem onClick={() => openEditSale(effectiveSaleId)} className="gap-2 cursor-pointer text-[13px]">
                             <DollarSign className="size-3.5" /> Editar financeiro / venda
                           </DropdownMenuItem>
                         )}
+
                         <DropdownMenuItem onClick={() => navigate(`/demandas/${cp.id}`)} className="gap-2 cursor-pointer text-[13px]">
                           <FileText className="size-3.5" /> Ver detalhes
                         </DropdownMenuItem>
@@ -341,7 +345,7 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                     <div className="overflow-x-auto bg-slate-100">
                       <div className="grid grid-flow-col auto-cols-[minmax(170px,1fr)] gap-px min-w-full">
 
-                      <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} tone="primary" onClick={cp.sale_id ? () => openEditSale(cp.sale_id) : undefined} />
+                      <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} tone="primary" onClick={effectiveSaleId ? () => openEditSale(effectiveSaleId) : undefined} />
                       <DataField label="Início" value={cp.start_date ? formatDate(cp.start_date) : formatDate(cp.created_at)} icon={Calendar} />
                       <DataField
                         label="Prazo Final"
