@@ -6,7 +6,7 @@ import { parseISO, differenceInCalendarDays, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   CheckCircle2, Video, Phone, FileText, Bell, RotateCcw, Calendar, Plus, Clock, AlertTriangle, MapPin,
-  MessageSquare, LifeBuoy, Inbox, ArrowRight, User, Building2, Wrench,
+  MessageSquare, LifeBuoy, Inbox, ArrowRight, User, Building2, Wrench, Package, Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
