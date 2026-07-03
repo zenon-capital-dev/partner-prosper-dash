@@ -701,7 +701,7 @@ export default function ProviderPanel() {
                         <button
                           type="button"
                           onClick={() => setReportView({ ...r, _clientName: clientName, _productName: productName })}
-                          className="w-full text-left group rounded-xl border border-slate-200/70 bg-white p-4 hover:border-slate-300 hover:shadow-sm transition"
+                          className="w-full text-left group cursor-pointer rounded-xl border border-slate-200/70 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
