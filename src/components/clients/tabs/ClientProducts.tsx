@@ -345,7 +345,7 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                     <div className="overflow-x-auto bg-slate-100">
                       <div className="grid grid-flow-col auto-cols-[minmax(170px,1fr)] gap-px min-w-full">
 
-                      <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} tone="primary" onClick={cp.sale_id ? () => openEditSale(cp.sale_id) : undefined} />
+                      <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} tone="primary" onClick={effectiveSaleId ? () => openEditSale(effectiveSaleId) : undefined} />
                       <DataField label="Início" value={cp.start_date ? formatDate(cp.start_date) : formatDate(cp.created_at)} icon={Calendar} />
                       <DataField
                         label="Prazo Final"
