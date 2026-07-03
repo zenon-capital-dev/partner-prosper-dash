@@ -396,6 +396,44 @@ export default function ProviderPanel() {
 
   const commPct = commKpis.total > 0 ? Math.round((commKpis.pago / commKpis.total) * 100) : 0;
 
+  const revenueByMonth = useMemo(() => {
+    const now = new Date();
+    const buckets: { key: string; label: string; value: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const label = d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+      buckets.push({ key, label, value: 0 });
+    }
+    (commissions as any[]).forEach((c) => {
+      if (c.status !== "pago" || !c.paid_at) return;
+      const d = new Date(c.paid_at);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const b = buckets.find((x) => x.key === key);
+      if (b) b.value += Number(c.amount || 0);
+    });
+    const max = Math.max(1, ...buckets.map((b) => b.value));
+    const total = buckets.reduce((s, b) => s + b.value, 0);
+    const prev = buckets[buckets.length - 2]?.value || 0;
+    const curr = buckets[buckets.length - 1]?.value || 0;
+    const trend = prev === 0 ? (curr > 0 ? 100 : 0) : Math.round(((curr - prev) / prev) * 100);
+    return { buckets, max, total, trend, curr };
+  }, [commissions]);
+
+  const activityFeed = useMemo(() => {
+    const items: any[] = [];
+    (reports as any[]).slice(0, 8).forEach((r) => {
+      const cp = (clientProducts as any[]).find((c) => c.id === r.client_product_id);
+      items.push({ id: `r-${r.id}`, kind: "report", when: r.created_at, title: `Reporte · ${cp?.clients?.full_name || "—"}`, subtitle: cp?.products?.name || "", tone: "teal" });
+    });
+    (deliveries as any[]).slice(0, 6).forEach((d) => {
+      const cp = (clientProducts as any[]).find((c) => c.id === d.client_product_id);
+      items.push({ id: `d-${d.id}`, kind: "delivery", when: d.created_at, title: `Entrega · ${d.title}`, subtitle: cp?.clients?.full_name || "", tone: "indigo" });
+    });
+    return items.sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime()).slice(0, 7);
+  }, [reports, deliveries, clientProducts]);
+
+
 
   const firstName = (provider?.name || user?.user_metadata?.full_name || "Prestador").split(" ")[0];
 
