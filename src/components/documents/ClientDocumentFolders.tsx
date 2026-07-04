@@ -49,6 +49,9 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const attachRef = useRef<HTMLInputElement>(null);
   const [attachingDoc, setAttachingDoc] = useState<any>(null);
+  const attachSourceRef = useRef<"email" | "whatsapp" | "admin" | "client" | null>(null);
+  const [editingDoc, setEditingDoc] = useState<any>(null);
+
   const [activeId, setActiveId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
