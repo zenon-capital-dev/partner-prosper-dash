@@ -365,21 +365,47 @@ export default function CollaboratorPanel() {
           <>
             <PanelHero role="colaborador" eyebrow="Documentos" title="Documentos das demandas" subtitle={`${docs.length} documento(s)`} />
             <SectionCard title="">
-              {docs.length === 0 ? <EmptyState icon={FileText} title="Sem documentos" /> :
-                <ul className="divide-y divide-slate-100 -mx-1">
-                  {docs.map((d: any) => (
-                    <li key={d.id} className="flex items-center gap-3 px-3 py-3">
-                      <div className="size-9 rounded-md bg-slate-50 border border-slate-200/70 flex items-center justify-center text-slate-400 shrink-0">
-                        <FileText className="size-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[13.5px] font-medium text-slate-900 truncate">{d.name}</p>
-                        <p className="text-[11.5px] text-slate-500 truncate">{d.clients?.full_name || ""} · {formatDate(d.created_at)}</p>
-                      </div>
-                      <Badge variant="outline" className="text-[10px] capitalize border-slate-200 shrink-0">{d.status}</Badge>
-                    </li>
-                  ))}
-                </ul>}
+              {docs.length === 0 ? <EmptyState icon={FileText} title="Sem documentos" /> : (() => {
+                const groups = new Map<string, { name: string; items: any[] }>();
+                (docs as any[]).forEach((d) => {
+                  const cid = d.client_id || "sem-cliente";
+                  const cname = d.clients?.full_name || "Sem cliente";
+                  if (!groups.has(cid)) groups.set(cid, { name: cname, items: [] });
+                  groups.get(cid)!.items.push(d);
+                });
+                return (
+                  <div className="space-y-2">
+                    {Array.from(groups.entries()).map(([cid, g]) => (
+                      <details key={cid} className="group rounded-lg border border-slate-200/70 bg-white overflow-hidden">
+                        <summary className="flex items-center gap-3 px-3 py-3 cursor-pointer hover:bg-slate-50 list-none">
+                          <div className="size-9 rounded-md bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0 text-[11px] font-semibold">
+                            {initials(g.name)}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[13.5px] font-medium text-slate-900 truncate">{g.name}</p>
+                            <p className="text-[11.5px] text-slate-500">{g.items.length} documento(s)</p>
+                          </div>
+                          <ChevronRight className="size-4 text-slate-400 transition-transform group-open:rotate-90" />
+                        </summary>
+                        <ul className="divide-y divide-slate-100 border-t border-slate-100">
+                          {g.items.map((d: any) => (
+                            <li key={d.id} className="flex items-center gap-3 px-3 py-2.5 pl-14">
+                              <div className="size-8 rounded-md bg-slate-50 border border-slate-200/70 flex items-center justify-center text-slate-400 shrink-0">
+                                <FileText className="size-3.5" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[13px] font-medium text-slate-900 truncate">{d.name}</p>
+                                <p className="text-[11px] text-slate-500 truncate">{formatDate(d.created_at)}{d.due_date ? ` · prazo ${formatDate(d.due_date)}` : ""}</p>
+                              </div>
+                              <Badge variant="outline" className="text-[10px] capitalize border-slate-200 shrink-0">{d.status}</Badge>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    ))}
+                  </div>
+                );
+              })()}
             </SectionCard>
           </>
         )}
