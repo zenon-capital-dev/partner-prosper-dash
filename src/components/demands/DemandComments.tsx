@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 type Visibility = "internal" | "admin" | "provider" | "client" | "system";
 
 const VIS_META: Record<Visibility, { label: string; tone: string; icon: any; description: string }> = {
-  internal: { label: "Interno Zenon", tone: "bg-slate-100 text-slate-700 border-slate-200", icon: Lock, description: "Apenas equipe Zenon" },
+  internal: { label: "Todos (Zenon)", tone: "bg-slate-100 text-slate-700 border-slate-200", icon: Lock, description: "Visível para toda a equipe Zenon" },
   admin: { label: "Admin", tone: "bg-rose-50 text-rose-700 border-rose-200", icon: ShieldAlert, description: "Apenas administradores" },
   provider: { label: "Prestador", tone: "bg-indigo-50 text-indigo-700 border-indigo-200", icon: Users, description: "Visível para Zenon e prestador" },
   client: { label: "Cliente", tone: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: User, description: "Visível para o cliente" },
@@ -51,13 +51,13 @@ export function DemandComments({ clientProductId, role }: Props) {
   const availableVisibilities: Visibility[] = useMemo(() => role === "admin"
     ? ["internal", "provider", "client"]
     : role === "provider"
-      ? ["provider"]
+      ? ["provider", "internal"]
       : ["client"], [role]);
 
 
   useEffect(() => {
     if (availableVisibilities.includes(visibility)) return;
-    setVisibility(role === "admin" ? "internal" : "client");
+    setVisibility(role === "admin" ? "internal" : role === "provider" ? "provider" : "client");
   }, [availableVisibilities, role, visibility]);
 
   const { data: comments = [] } = useQuery({
