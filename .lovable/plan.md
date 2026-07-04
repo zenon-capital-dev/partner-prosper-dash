@@ -1,99 +1,46 @@
+Vou tratar os 5 pontos do print em sequência. Antes de codar, preciso confirmar alguns detalhes para não fazer errado.
 
-## Objetivo
+## 1. Dashboard/Início do Prestador — status coloridos nas demandas
+Nos cards da tela "Demandas atribuídas" (print 1), aplicar cor semântica no badge de status + borda lateral do card:
+- **Vermelho** → SLA vencido (data limite passou) OU status "atrasado"
+- **Âmbar** → SLA próximo do vencimento (≤ 3 dias) OU "aguardando cliente" há muito tempo
+- **Azul** → "em andamento" no prazo
+- **Cinza** → "aguardando início"
+- **Verde** → "concluído"
 
-Unificar a linguagem de "fase do cliente" em toda a plataforma usando **um único campo já existente** (`clients.journey_stage_id` → tabela `client_journey_stages`), e permitir que **filtros salvos** por estágio funcionem de forma idêntica em Clientes, Esteira, Vendas, Metas Comerciais, Central Financeira, Dashboard e Painel do Parceiro. Também introduzir "Caixinhas" (reservas de lucro por mês) para debitar do lucro mensal.
+Escopo: `src/pages/ProviderPanel.tsx` (lista de demandas). Sem mudança de lógica de negócio.
 
----
+## 2. Prestador não consegue lançar "Entrega" (print 2)
+Na tela de detalhe da demanda, aba **Entregas**, o prestador só vê "Nenhuma entrega formalizada" e não tem botão para criar. Vou habilitar o botão "Nova entrega" para o prestador responsável pela demanda, respeitando RLS (`client_products.provider_id = auth.uid()` ou responsável). Preciso confirmar 1 coisa:
 
-## Parte 1 — Estágio da jornada como fonte única
+**Pergunta:** a entrega precisa passar por aprovação do admin antes de virar "entregue", ou o prestador marca direto como entregue e o cliente/admin só visualiza?
 
-Hoje já existe `client_journey_stages` (Prospecção, Captação, Diagnóstico, Proposta enviada, Venda finalizada, Em atendimento, Inativo — configurável pelo usuário em `/esteira`). O campo `clients.journey_stage_id` já existe e a Esteira já usa. Vou **eliminar o campo "status" solto** como filtro de fase e centralizar tudo em `journey_stage_id`.
+## 3. Portal do Cliente — pasta "TODOS OS DOC" (print 3)
+Na tela de Documentos do cliente, além das pastas por categoria (FATURAMENTO FISCAL, GERENCIAL, SALES…), adicionar uma pasta virtual fixa no topo chamada **"Todos os documentos"** que lista todos os arquivos do cliente independente da categoria, ordenados por data desc. É só uma view agregada — não cria pasta física no storage.
 
-### 1.1 Clientes (`src/pages/Clients.tsx`)
-- Trocar o filtro "Status" atual (ativo/prospecto/novo_cliente/inativo — hardcoded) por **filtro por Estágio da Jornada**, populado dinamicamente de `client_journey_stages`.
-- Na ficha do cliente (`ClientDetail`), o `ClientJourneyBadge` já permite mudar o estágio — mudança grava em `clients.journey_stage_id` e invalida cache de todas as telas.
-- Manter o campo `status` legado só para retrocompatibilidade (não mais exposto como filtro principal).
+Escopo: `src/pages/ClientPortal*` / componente de documentos do cliente.
 
-### 1.2 Esteira (`src/pages/ClientJourney.tsx`)
-- Já usa `journey_stage_id`. Sem mudança de dados — só passa a compartilhar o mesmo `FilterPresets` scope="journey-shared" com Clientes/Vendas/Metas para que filtros salvos por estágio funcionem de forma cruzada.
+## 4. Admin — flag "Venda finalizada" vs "Em negociação" (print 4)
+Hoje toda venda cadastrada já entra no fluxo (gera pendências, aparece em "atuar no cliente"). Precisa separar **projeção** de **venda efetivada**.
 
-### 1.3 Vendas (`src/pages/Sales.tsx`)
-- Adicionar filtro "Estágio do cliente" (join `sales.client_id → clients.journey_stage_id`).
-- Novo KPI: "Receita por estágio" (soma `amount` agrupado por estágio do cliente vinculado).
+Proposta:
+- Adicionar coluna `is_finalized boolean default false` (ou usar um enum `sale_stage`: `negociacao | finalizada | perdida`) na tabela `sales`.
+- Cards, esteira, financeiro, dashboards do admin passam a **ignorar** vendas com `is_finalized=false` nas métricas de "a atuar / pendências / receita a realizar".
+- Vendas em negociação aparecem apenas em uma aba/filtro **"Pipeline / Em negociação"**.
+- Botão "Finalizar venda" no detalhe da venda muda a flag e dispara a geração das parcelas/comissões/tarefas (o que hoje acontece na criação).
 
-### 1.4 Metas Comerciais (`src/pages/SalesGoals.tsx`)
-- Adicionar filtro por estágio para calcular "vendas realizadas no período contam apenas de clientes em X estágio(s)".
-- Mostrar composição da meta por estágio.
+**Pergunta:** vendas já existentes hoje devem ser marcadas como `finalizada` (mantém tudo como está) ou como `em negociação` (você revisa uma a uma)?
 
-### 1.5 Central Financeira (`src/pages/FinanceCenter.tsx`)
-- Adicionar filtro por estágio: filtra receitas (pagamentos → vendas → clientes → estágio).
-- Novo bloco "Receita por estágio do cliente": Prospecção, Captação, Proposta, Finalizada, Em atendimento, Inativo — com valor recebido + a receber.
+## 5. Central Financeira — filtro por mês fechado (print 5)
+Substituir/complementar o seletor atual ("Mês atual", "Últimos 30", etc.) por um **seletor de mês** (Junho/2026, Julho/2026, Agosto/2026…) que filtra todos os KPIs, gráficos e abas da Central por competência daquele mês fechado. Mantém "Mês atual" como opção default.
 
-### 1.6 Dashboard (`src/pages/DashboardAdmin.tsx` / `Dashboard.tsx`)
-- Novo widget "Receita por estágio" (barras) usando o mesmo pipeline.
-- O `JourneyMiniWidget` que já existe passa a mostrar também soma financeira ao lado da contagem.
-
-### 1.7 Painel do Parceiro (`src/pages/PartnerPanel.tsx`)
-- Aba "Meus clientes" ganha coluna "Estágio" (read-only, mesmo select estilizado) e filtro por estágio.
-- Aba "Comissões/Receita" ganha o mesmo bloco "Receita por estágio" restrito aos clientes do parceiro (RLS já garante).
-
----
-
-## Parte 2 — Filtros salvos compartilhados
-
-Hoje `FilterPresets` guarda em `localStorage` por scope isolado. Vou:
-
-- Criar scope compartilhado **`"stage-shared"`** que salva **apenas o subconjunto de filtros comuns** (estágios selecionados + range de datas + parceiro).
-- Cada página mantém seu próprio scope local (filtros específicos) + lê/escreve no `stage-shared` para o que é universal.
-- No dropdown de filtros salvos, marcar com ícone "🔗 Compartilhado" os presets do escopo global — aplicá-los em qualquer página traz automaticamente estágios + datas + parceiro; filtros específicos daquela página ficam como estavam.
-
-Fluxo: usuário cria em Clientes o preset "Prospecção Q2" (estágios: Prospecção+Captação, datas: abr–jun). Ao abrir Esteira, Vendas, Metas, Financeira, Dashboard ou Painel do Parceiro, esse mesmo preset aparece no dropdown e aplica os filtros equivalentes.
+Escopo: `src/pages/CentralFinanceira*` ou equivalente.
 
 ---
 
-## Parte 3 — Caixinhas (reservas de lucro por mês)
+## Ordem de execução sugerida
+1. Rápidos e independentes: (1) cores no dashboard prestador, (3) pasta "Todos os documentos", (5) filtro por mês.
+2. Médio: (2) liberar entrega para prestador.
+3. Maior impacto (schema + várias telas): (4) flag venda finalizada.
 
-Nova funcionalidade dentro da Central Financeira.
-
-### 3.1 Banco (migração)
-Tabela `profit_reserves` (Caixinhas):
-- `name` (ex.: "Escritório", "Reserva de emergência")
-- `amount` (valor a debitar)
-- `reference_month` (mês de competência — ex.: 2026-05-01)
-- `description`, `category`, `created_by`
-- + timestamps padrão + GRANTs + RLS (admin/finance role gerencia).
-
-### 3.2 UI (`src/pages/FinanceCenter.tsx`)
-- Novo bloco "Caixinhas" com botão "+ Nova caixinha": abre dialog para criar (nome, valor, mês de competência, descrição).
-- Lucro do mês passa a ser calculado como: `receita_recebida - despesas - Σ caixinhas do mês`.
-- Card "Lucro líquido" mostra tooltip com breakdown das caixinhas descontadas naquele mês.
-- Lista abaixo mostra todas as caixinhas com filtro por mês, edição e exclusão.
-
----
-
-## Parte 4 — Ordem de execução
-
-1. Migração `profit_reserves` (aguarda aprovação).
-2. Refatorar `Clients.tsx`: filtro Status → Estágio da jornada (dinâmico).
-3. Adicionar filtro por Estágio em `Sales.tsx`, `SalesGoals.tsx`, `FinanceCenter.tsx`, `PartnerPanel.tsx`.
-4. Adaptar `FilterPresets.tsx` para suportar scope compartilhado `stage-shared` + scope local.
-5. Adicionar bloco "Receita por estágio" em Financeira, Dashboard, Painel do Parceiro.
-6. Implementar Caixinhas: dialog + lista + integrar no cálculo de lucro.
-7. Verificar por Playwright: mudar estágio de um cliente em `/clientes/:id` → confirmar reflete em `/esteira`, `/vendas` (KPI), `/metas`, `/financeiro/central`, `/dashboard`, `/parceiro`.
-
----
-
-## Detalhes técnicos
-
-- Nenhuma alteração em `clients.status` (mantido para retrocompat).
-- Toda leitura de estágio usa `client_journey_stages` (já existe hook `useQuery(["journey-stages-mini"])`).
-- Filtros salvos compartilhados usam chave `localStorage: filter-presets:stage-shared:v1` com forma `{ stageIds: string[], from?: string, to?: string, partnerId?: string }`.
-- Caixinhas: função Postgres `monthly_profit(month date)` retorna `receita - despesas - reservas` para uso no Dashboard.
-- RLS de `profit_reserves`: apenas usuários com role admin/finance (via `has_role`).
-
----
-
-## Fora do escopo (não farei agora)
-
-- Renomear/remover campo legado `clients.status` (só deixa de ser filtro).
-- Migrar dados históricos de `status` para `journey_stage_id` automaticamente — usuário faz manualmente ou pedimos um passo de mapeamento depois se quiser.
+Posso começar pelos 3 rápidos em paralelo enquanto você responde as 2 perguntas (item 2 e 4). Confirma?

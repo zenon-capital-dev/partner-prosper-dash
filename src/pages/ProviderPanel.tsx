@@ -226,29 +226,44 @@ export default function ProviderPanel() {
     return m;
   }, [reports]);
 
-  const getDemandUrgency = (cp: any): { level: "overdue" | "stale" | "soon" | "ok"; label?: string; border: string; ring?: string } => {
+  const getDemandUrgency = (cp: any): { level: "overdue" | "stale" | "soon" | "ok" | "done"; label?: string; border: string; ring?: string; ribbon: string; ribbonLabel: string } => {
     const done = ["concluido", "concluida", "cancelado", "cancelada"].includes(cp.status);
-    if (done) return { level: "ok", border: "border-l-4 border-l-emerald-400 border-slate-200/70" };
+    if (done) return {
+      level: "done",
+      border: "border-l-[6px] border-l-emerald-500 border-slate-200/70",
+      ring: "bg-emerald-50/30",
+      ribbon: "bg-emerald-500",
+      ribbonLabel: cp.status?.startsWith("cancel") ? "Cancelada" : "Concluída",
+    };
     const due = cp.deadline || cp.sla_due_date;
     if (due) {
       const daysLate = Math.floor((Date.now() - new Date(due).getTime()) / 86400000);
-      if (daysLate > 0) return { level: "overdue", label: `${daysLate}d de atraso`, border: "border-l-4 border-l-rose-500 border-rose-200", ring: "bg-rose-50/60" };
+      if (daysLate > 0) return { level: "overdue", label: `${daysLate}d de atraso`, border: "border-l-[6px] border-l-rose-500 border-rose-200", ring: "bg-rose-50/60", ribbon: "bg-rose-500", ribbonLabel: `Atrasada · ${daysLate}d` };
+      const daysUntil = Math.abs(daysLate);
+      if (daysUntil <= 3) return { level: "soon", label: `Vence em ${daysUntil}d`, border: "border-l-[6px] border-l-amber-500 border-amber-200", ring: "bg-amber-50/40", ribbon: "bg-amber-500", ribbonLabel: `Vence em ${daysUntil}d` };
     }
     const last = lastReportByCp.get(cp.id);
     const daysSince = last ? Math.floor((Date.now() - new Date(last).getTime()) / 86400000) : null;
     if (daysSince === null) {
       const ageDays = Math.floor((Date.now() - new Date(cp.created_at).getTime()) / 86400000);
-      if (ageDays >= 3) return { level: "overdue", label: "Sem reporte", border: "border-l-4 border-l-rose-500 border-rose-200", ring: "bg-rose-50/60" };
-      if (ageDays >= 1) return { level: "stale", label: "Aguardando 1º reporte", border: "border-l-4 border-l-amber-500 border-amber-200", ring: "bg-amber-50/50" };
+      if (ageDays >= 3) return { level: "overdue", label: "Sem reporte", border: "border-l-[6px] border-l-rose-500 border-rose-200", ring: "bg-rose-50/60", ribbon: "bg-rose-500", ribbonLabel: "Sem reporte" };
+      if (ageDays >= 1) return { level: "stale", label: "Aguardando 1º reporte", border: "border-l-[6px] border-l-amber-500 border-amber-200", ring: "bg-amber-50/40", ribbon: "bg-amber-500", ribbonLabel: "Aguardando 1º reporte" };
     } else if (daysSince >= 7) {
-      return { level: "overdue", label: `Sem reporte há ${daysSince}d`, border: "border-l-4 border-l-rose-500 border-rose-200", ring: "bg-rose-50/60" };
+      return { level: "overdue", label: `Sem reporte há ${daysSince}d`, border: "border-l-[6px] border-l-rose-500 border-rose-200", ring: "bg-rose-50/60", ribbon: "bg-rose-500", ribbonLabel: `Sem reporte ${daysSince}d` };
     } else if (daysSince >= 3) {
-      return { level: "stale", label: `Sem reporte há ${daysSince}d`, border: "border-l-4 border-l-amber-500 border-amber-200", ring: "bg-amber-50/50" };
+      return { level: "stale", label: `Sem reporte há ${daysSince}d`, border: "border-l-[6px] border-l-amber-500 border-amber-200", ring: "bg-amber-50/40", ribbon: "bg-amber-500", ribbonLabel: `Sem reporte ${daysSince}d` };
     } else if (daysSince >= 2) {
-      return { level: "soon", label: `Reportar em breve (${daysSince}d)`, border: "border-l-4 border-l-sky-400 border-sky-200", ring: "bg-sky-50/40" };
+      return { level: "soon", label: `Reportar em breve (${daysSince}d)`, border: "border-l-[6px] border-l-sky-500 border-sky-200", ring: "bg-sky-50/40", ribbon: "bg-sky-500", ribbonLabel: "Reportar em breve" };
     }
-    return { level: "ok", border: "border-l-4 border-l-emerald-400 border-slate-200/70" };
+    return {
+      level: "ok",
+      border: "border-l-[6px] border-l-emerald-500 border-slate-200/70",
+      ring: "",
+      ribbon: "bg-emerald-500",
+      ribbonLabel: "Em dia",
+    };
   };
+
 
 
   const { data: documents = [] } = useQuery({
@@ -884,43 +899,47 @@ export default function ProviderPanel() {
                 {(clientProducts as any[]).map((cp) => {
                   const u = getDemandUrgency(cp);
                   return (
-                  <div key={cp.id} className={cn("rounded-xl border p-4 shadow-sm hover:shadow-md transition bg-white", u.border, u.ring)}>
-                    <div className="flex items-start justify-between gap-2 mb-3">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <Badge variant="outline" className={cn("text-[10px] border font-medium", u.level === "overdue" ? "bg-rose-50 text-rose-700 border-rose-200" : (STATUS_META[cp.status]?.tone || "bg-slate-100 text-slate-700 border-slate-200"))}>{STATUS_META[cp.status]?.label || prettyStatus(cp.status)}</Badge>
-                        {u.level === "overdue" && (
-                          <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200 animate-pulse">
-                            <AlertTriangle className="size-3 mr-1" /> {u.label}
-                          </Badge>
-                        )}
-                        {u.level === "stale" && (
-                          <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">
-                            <AlertTriangle className="size-3 mr-1" /> {u.label}
-                          </Badge>
-                        )}
-                        {u.level === "soon" && (
-                          <Badge variant="outline" className="text-[10px] bg-sky-50 text-sky-700 border-sky-200">
-                            {u.label}
-                          </Badge>
-                        )}
-
-                      </div>
-                      <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(cp.value)}</p>
+                  <div key={cp.id} className={cn("group relative overflow-hidden rounded-xl border shadow-sm hover:shadow-md transition bg-white", u.border, u.ring)}>
+                    {/* Faixa colorida de status no topo */}
+                    <div className={cn("flex items-center justify-between gap-2 px-4 py-1.5 text-white text-[10.5px] font-semibold tracking-wide uppercase", u.ribbon)}>
+                      <span className="flex items-center gap-1.5 truncate">
+                        {(u.level === "overdue" || u.level === "stale") && <AlertTriangle className="size-3 shrink-0" />}
+                        {u.level === "done" && <CheckCircle2 className="size-3 shrink-0" />}
+                        <span className="truncate">{u.ribbonLabel}</span>
+                      </span>
+                      <span className="text-[10px] font-medium opacity-90 shrink-0">{STATUS_META[cp.status]?.label || prettyStatus(cp.status)}</span>
                     </div>
-                    <p className="text-[14.5px] font-semibold text-slate-900 leading-tight">{cp.clients?.full_name || "—"}</p>
-                    <p className="text-[12px] text-slate-500 mt-0.5 truncate">{cp.products?.name || "—"}</p>
-                    <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-[11.5px] text-slate-500 flex-wrap">
-                      <span>Início: {formatDate(cp.created_at)}</span>
-                      <div className="flex gap-1.5">
-                        <Link to={`/demandas/${cp.id}`} className="inline-flex items-center h-8 px-2 rounded border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-50">Abrir</Link>
-                        <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setRequestsTarget({ id: cp.id, clientName: cp.clients?.full_name })}>
-                          <MessageSquare className="size-3 mr-1" /> Solicitar
-                        </Button>
-                        <Button size="sm" className={cn("h-8 text-[11px]", u.level === "overdue" ? "bg-rose-600 hover:bg-rose-700" : "bg-teal-600 hover:bg-teal-700")} onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}>Reportar status</Button>
+
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[14.5px] font-semibold text-slate-900 leading-tight truncate">{cp.clients?.full_name || "—"}</p>
+                          <p className="text-[12px] text-slate-500 mt-0.5 truncate">{cp.products?.name || "—"}</p>
+                        </div>
+                        <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums shrink-0">{formatBRL(cp.value)}</p>
+                      </div>
+
+                      {(cp.deadline || cp.sla_due_date) && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mb-2">
+                          <CalendarClock className="size-3" />
+                          <span>Prazo: <span className={cn("font-medium", u.level === "overdue" ? "text-rose-700" : u.level === "soon" ? "text-amber-700" : "text-slate-700")}>{formatDate(cp.deadline || cp.sla_due_date)}</span></span>
+                        </div>
+                      )}
+
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-[11.5px] text-slate-500 flex-wrap">
+                        <span>Início: {formatDate(cp.created_at)}</span>
+                        <div className="flex gap-1.5">
+                          <Link to={`/demandas/${cp.id}`} className="inline-flex items-center h-8 px-2 rounded border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-50">Abrir</Link>
+                          <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setRequestsTarget({ id: cp.id, clientName: cp.clients?.full_name })}>
+                            <MessageSquare className="size-3 mr-1" /> Solicitar
+                          </Button>
+                          <Button size="sm" className={cn("h-8 text-[11px] text-white", u.level === "overdue" ? "bg-rose-600 hover:bg-rose-700" : u.level === "stale" ? "bg-amber-600 hover:bg-amber-700" : "bg-teal-600 hover:bg-teal-700")} onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}>Reportar status</Button>
+                        </div>
                       </div>
                     </div>
                   </div>
                   );
+
                 })}
               </div>}
           </>
