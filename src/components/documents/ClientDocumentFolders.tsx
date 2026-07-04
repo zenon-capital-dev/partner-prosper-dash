@@ -209,6 +209,43 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
     qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
   }
 
+  function triggerAttach(doc: any, source?: "email" | "whatsapp" | "admin") {
+    attachSourceRef.current = source ?? null;
+    setAttachingDoc(doc);
+    setTimeout(() => attachRef.current?.click(), 0);
+  }
+
+  async function updateDocStatus(doc: any, status: string, extra: Record<string, any> = {}) {
+    const { error } = await supabase
+      .from("documents")
+      .update({ status: status as any, reviewed_at: new Date().toISOString(), ...extra })
+      .eq("id", doc.id);
+    if (error) return toast.error(error.message);
+    toast.success(`Status: ${STATUS_META[status]?.label || status}`);
+    qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
+  }
+
+  async function handleReject(doc: any) {
+    const reason = window.prompt("Motivo da rejeição:");
+    if (!reason) return;
+    await updateDocStatus(doc, "reprovado", { rejection_reason: reason });
+  }
+
+  async function handleRequestResend(doc: any) {
+    const note = window.prompt("Comentário para reenvio (opcional):") || null;
+    await updateDocStatus(doc, "pendente_correcao", { rejection_reason: note });
+  }
+
+  async function handleAddNote(doc: any) {
+    const note = window.prompt("Observação interna:", doc.internal_notes || "");
+    if (note === null) return;
+    const { error } = await supabase.from("documents").update({ internal_notes: note }).eq("id", doc.id);
+    if (error) return toast.error(error.message);
+    toast.success("Observação salva");
+    qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
+  }
+
+
   async function onAttachToRequest(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
