@@ -401,7 +401,19 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
                   return (
                     <tr key={e.id} className="hover:bg-slate-50/70">
                       <td className="px-3 py-2">
-                        <div className="font-medium text-slate-900">{e.description}</div>
+                        <div className="font-medium text-slate-900 flex items-center gap-1.5">
+                          {e.description}
+                          {e.receipt_url && (
+                            <button
+                              type="button"
+                              onClick={() => openReceipt(e.receipt_url!)}
+                              className="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 rounded px-1.5 py-0.5"
+                              title="Ver comprovante"
+                            >
+                              <Paperclip className="size-3" /> comprovante
+                            </button>
+                          )}
+                        </div>
                         {e.notes && <div className="text-[10.5px] text-slate-500 truncate max-w-[280px]">{e.notes}</div>}
                       </td>
                       <td className="px-3 py-2">
