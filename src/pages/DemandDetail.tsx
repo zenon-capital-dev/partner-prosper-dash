@@ -506,6 +506,7 @@ export default function DemandDetail() {
                <DropdownMenuItem onClick={deleteDemand} className="gap-2 cursor-pointer text-rose-600 focus:text-rose-700">
                  <Trash2 className="size-4" /> Excluir Demanda
                </DropdownMenuItem>
+             </DropdownMenuContent>
             </DropdownMenu>
           </div>}
         {!canAdminActions && canReport && (
