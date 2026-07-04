@@ -300,12 +300,14 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
             </SelectContent>
           </Select>
         </div>
-        {canManage && (
+        {canManage && !hideNewButton && (
           <div className="ml-auto">
             <Button onClick={openNew} className="gap-1"><Plus className="size-4" /> Nova despesa</Button>
           </div>
         )}
       </div>
+      )}
+
 
       {/* Por categoria */}
       {byCategory.length > 0 && (
