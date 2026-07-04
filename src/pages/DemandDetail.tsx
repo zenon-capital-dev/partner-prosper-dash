@@ -507,9 +507,27 @@ export default function DemandDetail() {
                  <Trash2 className="size-4" /> Excluir Demanda
                </DropdownMenuItem>
              </DropdownMenuContent>
-           </DropdownMenu>
-         </div>}
+            </DropdownMenu>
+          </div>}
+        {!canAdminActions && canReport && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              className="btn-premium h-11 rounded-xl gap-2 px-6"
+              onClick={() => setReportOpen(true)}
+            >
+              <FileCheck className="size-4" /> Reportar Status
+            </Button>
+            <Button
+              variant="outline"
+              className="h-11 rounded-xl gap-2 border-emerald-100 text-emerald-700 hover:bg-emerald-50"
+              onClick={() => setDeliveryOpen(true)}
+            >
+              <Package className="size-4" /> Registrar Entrega
+            </Button>
+          </div>
+        )}
       </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
