@@ -231,10 +231,12 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
 
       {/* Filtros */}
       <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-3 flex flex-wrap items-end gap-3">
-        <div>
-          <Label className="text-[11px] uppercase tracking-wider text-slate-500">Mês de referência</Label>
-          <Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="h-9 mt-1 w-[160px]" />
-        </div>
+        {!disableInternalDateFilter && (
+          <div>
+            <Label className="text-[11px] uppercase tracking-wider text-slate-500">Mês de referência</Label>
+            <Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="h-9 mt-1 w-[160px]" />
+          </div>
+        )}
         <div>
           <Label className="text-[11px] uppercase tracking-wider text-slate-500">Categoria</Label>
           <div className="flex items-center gap-1 mt-1">
