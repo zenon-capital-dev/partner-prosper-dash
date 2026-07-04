@@ -58,9 +58,10 @@ interface ExpensesTabProps {
   expenses?: Expense[];
   canManage?: boolean;
   showKpis?: boolean;
+  disableInternalDateFilter?: boolean;
 }
 
-export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis = true }: ExpensesTabProps = {}) {
+export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis = true, disableInternalDateFilter = false }: ExpensesTabProps = {}) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const [month, setMonth] = useState<string>(ymNow());
@@ -94,15 +95,17 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
   const today = ymdNow();
   const filtered = useMemo(() => {
     return rows.filter((e) => {
-      const ref = (e.reference_month || e.expense_date || "").slice(0, 7);
-      if (month && ref !== month) return false;
+      if (!disableInternalDateFilter) {
+        const ref = (e.reference_month || e.expense_date || "").slice(0, 7);
+        if (month && ref !== month) return false;
+      }
       if (category !== "todas" && e.category !== category) return false;
       if (status === "pago" && !e.paid) return false;
       if (status === "pendente" && e.paid) return false;
       if (status === "vencidas" && (e.paid || !(e.due_date && e.due_date < today))) return false;
       return true;
     });
-  }, [rows, month, category, status, today]);
+  }, [rows, month, category, status, today, disableInternalDateFilter]);
 
   const kpis = useMemo(() => {
     const total = filtered.reduce((s, e) => s + Number(e.amount || 0), 0);
@@ -228,10 +231,12 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
 
       {/* Filtros */}
       <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-3 flex flex-wrap items-end gap-3">
-        <div>
-          <Label className="text-[11px] uppercase tracking-wider text-slate-500">Mês de referência</Label>
-          <Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="h-9 mt-1 w-[160px]" />
-        </div>
+        {!disableInternalDateFilter && (
+          <div>
+            <Label className="text-[11px] uppercase tracking-wider text-slate-500">Mês de referência</Label>
+            <Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="h-9 mt-1 w-[160px]" />
+          </div>
+        )}
         <div>
           <Label className="text-[11px] uppercase tracking-wider text-slate-500">Categoria</Label>
           <div className="flex items-center gap-1 mt-1">
