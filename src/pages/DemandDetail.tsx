@@ -95,7 +95,9 @@ export default function DemandDetail() {
     },
   });
 
-  const canReport = canManage || isPrestador || isAssignedProvider;
+  // Liberado para qualquer usuário do time de execução (admin, colaborador, vendedor, prestador
+  // atribuído ou não). Cliente e parceiro não reportam/entregam. RLS valida a inserção.
+  const canReport = !!user && !isCliente && !isParceiro;
   const canAdminActions = canManage;
   const currentRole = isCliente ? "cliente" : (isPrestador || isAssignedProvider) ? "prestador" : isParceiro ? "parceiro" : isColaborador ? "colaborador" : "admin";
   const [taskOpen, setTaskOpen] = useState(false);
