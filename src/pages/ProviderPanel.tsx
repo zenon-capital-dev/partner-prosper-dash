@@ -899,43 +899,47 @@ export default function ProviderPanel() {
                 {(clientProducts as any[]).map((cp) => {
                   const u = getDemandUrgency(cp);
                   return (
-                  <div key={cp.id} className={cn("rounded-xl border p-4 shadow-sm hover:shadow-md transition bg-white", u.border, u.ring)}>
-                    <div className="flex items-start justify-between gap-2 mb-3">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <Badge variant="outline" className={cn("text-[10px] border font-medium", u.level === "overdue" ? "bg-rose-50 text-rose-700 border-rose-200" : (STATUS_META[cp.status]?.tone || "bg-slate-100 text-slate-700 border-slate-200"))}>{STATUS_META[cp.status]?.label || prettyStatus(cp.status)}</Badge>
-                        {u.level === "overdue" && (
-                          <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200 animate-pulse">
-                            <AlertTriangle className="size-3 mr-1" /> {u.label}
-                          </Badge>
-                        )}
-                        {u.level === "stale" && (
-                          <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">
-                            <AlertTriangle className="size-3 mr-1" /> {u.label}
-                          </Badge>
-                        )}
-                        {u.level === "soon" && (
-                          <Badge variant="outline" className="text-[10px] bg-sky-50 text-sky-700 border-sky-200">
-                            {u.label}
-                          </Badge>
-                        )}
-
-                      </div>
-                      <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(cp.value)}</p>
+                  <div key={cp.id} className={cn("group relative overflow-hidden rounded-xl border shadow-sm hover:shadow-md transition bg-white", u.border, u.ring)}>
+                    {/* Faixa colorida de status no topo */}
+                    <div className={cn("flex items-center justify-between gap-2 px-4 py-1.5 text-white text-[10.5px] font-semibold tracking-wide uppercase", u.ribbon)}>
+                      <span className="flex items-center gap-1.5 truncate">
+                        {(u.level === "overdue" || u.level === "stale") && <AlertTriangle className="size-3 shrink-0" />}
+                        {u.level === "done" && <CheckCircle2 className="size-3 shrink-0" />}
+                        <span className="truncate">{u.ribbonLabel}</span>
+                      </span>
+                      <span className="text-[10px] font-medium opacity-90 shrink-0">{STATUS_META[cp.status]?.label || prettyStatus(cp.status)}</span>
                     </div>
-                    <p className="text-[14.5px] font-semibold text-slate-900 leading-tight">{cp.clients?.full_name || "—"}</p>
-                    <p className="text-[12px] text-slate-500 mt-0.5 truncate">{cp.products?.name || "—"}</p>
-                    <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-[11.5px] text-slate-500 flex-wrap">
-                      <span>Início: {formatDate(cp.created_at)}</span>
-                      <div className="flex gap-1.5">
-                        <Link to={`/demandas/${cp.id}`} className="inline-flex items-center h-8 px-2 rounded border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-50">Abrir</Link>
-                        <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setRequestsTarget({ id: cp.id, clientName: cp.clients?.full_name })}>
-                          <MessageSquare className="size-3 mr-1" /> Solicitar
-                        </Button>
-                        <Button size="sm" className={cn("h-8 text-[11px]", u.level === "overdue" ? "bg-rose-600 hover:bg-rose-700" : "bg-teal-600 hover:bg-teal-700")} onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}>Reportar status</Button>
+
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[14.5px] font-semibold text-slate-900 leading-tight truncate">{cp.clients?.full_name || "—"}</p>
+                          <p className="text-[12px] text-slate-500 mt-0.5 truncate">{cp.products?.name || "—"}</p>
+                        </div>
+                        <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums shrink-0">{formatBRL(cp.value)}</p>
+                      </div>
+
+                      {(cp.deadline || cp.sla_due_date) && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mb-2">
+                          <CalendarClock className="size-3" />
+                          <span>Prazo: <span className={cn("font-medium", u.level === "overdue" ? "text-rose-700" : u.level === "soon" ? "text-amber-700" : "text-slate-700")}>{formatDate(cp.deadline || cp.sla_due_date)}</span></span>
+                        </div>
+                      )}
+
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-[11.5px] text-slate-500 flex-wrap">
+                        <span>Início: {formatDate(cp.created_at)}</span>
+                        <div className="flex gap-1.5">
+                          <Link to={`/demandas/${cp.id}`} className="inline-flex items-center h-8 px-2 rounded border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-50">Abrir</Link>
+                          <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setRequestsTarget({ id: cp.id, clientName: cp.clients?.full_name })}>
+                            <MessageSquare className="size-3 mr-1" /> Solicitar
+                          </Button>
+                          <Button size="sm" className={cn("h-8 text-[11px] text-white", u.level === "overdue" ? "bg-rose-600 hover:bg-rose-700" : u.level === "stale" ? "bg-amber-600 hover:bg-amber-700" : "bg-teal-600 hover:bg-teal-700")} onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}>Reportar status</Button>
+                        </div>
                       </div>
                     </div>
                   </div>
                   );
+
                 })}
               </div>}
           </>
