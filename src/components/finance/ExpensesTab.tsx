@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -59,9 +59,12 @@ interface ExpensesTabProps {
   canManage?: boolean;
   showKpis?: boolean;
   disableInternalDateFilter?: boolean;
+  hideFilters?: boolean;
+  hideNewButton?: boolean;
+  openNewSignal?: number;
 }
 
-export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis = true, disableInternalDateFilter = false }: ExpensesTabProps = {}) {
+export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis = true, disableInternalDateFilter = false, hideFilters = false, hideNewButton = false, openNewSignal }: ExpensesTabProps = {}) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const [month, setMonth] = useState<string>(ymNow());
@@ -128,6 +131,13 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
     setForm(emptyForm());
     setDialogOpen(true);
   }
+
+  // Permite abrir o diálogo a partir de um botão externo (ex.: "Nova despesa" no topo da página).
+  useEffect(() => {
+    if (openNewSignal !== undefined && openNewSignal > 0) openNew();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openNewSignal]);
+
   function openEdit(e: Expense) {
     setEditing(e);
     setForm({
@@ -230,6 +240,7 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
       )}
 
       {/* Filtros */}
+      {!hideFilters && (
       <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-3 flex flex-wrap items-end gap-3">
         {!disableInternalDateFilter && (
           <div>
@@ -289,12 +300,14 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
             </SelectContent>
           </Select>
         </div>
-        {canManage && (
+        {canManage && !hideNewButton && (
           <div className="ml-auto">
             <Button onClick={openNew} className="gap-1"><Plus className="size-4" /> Nova despesa</Button>
           </div>
         )}
       </div>
+      )}
+
 
       {/* Por categoria */}
       {byCategory.length > 0 && (
