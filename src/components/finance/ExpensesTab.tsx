@@ -157,8 +157,46 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
       vendor: e.vendor ?? "",
       notes: e.notes ?? "",
       recurringMonths: 1,
+      receipt_url: e.receipt_url ?? "",
     });
     setDialogOpen(true);
+  }
+
+  // Upload de comprovante para o bucket privado. Devolve a "path" salva no storage.
+  const [uploading, setUploading] = useState(false);
+  async function handleReceiptUpload(file: File) {
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) return toast.error("Arquivo grande demais (máx 15 MB)");
+    setUploading(true);
+    try {
+      const uid = await getCurrentUserId();
+      const ext = (file.name.split(".").pop() || "bin").toLowerCase();
+      const path = `${uid ?? "anon"}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("expense-receipts").upload(path, file, {
+        contentType: file.type || undefined,
+        upsert: false,
+      });
+      if (error) throw error;
+      setForm((f) => ({ ...f, receipt_url: path }));
+      toast.success("Comprovante anexado");
+    } catch (e: any) {
+      toast.error(e?.message || "Falha ao subir comprovante");
+    } finally {
+      setUploading(false);
+    }
+  }
+  async function removeReceipt() {
+    if (!form.receipt_url) return;
+    try {
+      await supabase.storage.from("expense-receipts").remove([form.receipt_url]);
+    } catch {}
+    setForm((f) => ({ ...f, receipt_url: "" }));
+  }
+  async function openReceipt(path: string) {
+    if (!path) return;
+    const { data, error } = await supabase.storage.from("expense-receipts").createSignedUrl(path, 60 * 5);
+    if (error || !data?.signedUrl) return toast.error("Não foi possível abrir o comprovante");
+    window.open(data.signedUrl, "_blank");
   }
 
   async function save() {
@@ -177,6 +215,7 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
       payment_method: form.payment_method || null,
       vendor: form.vendor.trim() || null,
       notes: form.notes.trim() || null,
+      receipt_url: form.receipt_url || null,
     };
     if (editing) {
       const { error } = await supabase
@@ -199,6 +238,8 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
           // future recurrences start unpaid
           paid: i === 0 ? base.paid : false,
           paid_at: i === 0 ? base.paid_at : null,
+          // Comprovante anexa só à primeira parcela para não duplicar o arquivo.
+          receipt_url: i === 0 ? base.receipt_url : null,
         });
       }
       const { error } = await supabase.from("expenses").insert(rowsToInsert as any);
