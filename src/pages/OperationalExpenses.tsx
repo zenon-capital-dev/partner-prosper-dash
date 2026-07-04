@@ -8,7 +8,7 @@ import {
   TrendingDown, Wallet, AlertTriangle, CheckCircle2, Clock, Receipt,
   PieChart as PieIcon, Activity, ArrowUpRight, ArrowDownRight, Building2,
   CalendarClock, Landmark, Home, ChevronRight, CalendarRange, Plus,
-  BarChart3, LayoutGrid, ListChecks, FileBarChart2,
+  BarChart3, LayoutGrid, ListChecks, FileBarChart2, Tag, Settings2, Filter,
 } from "lucide-react";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -20,6 +20,7 @@ import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { DateRangeField } from "@/components/DateRangeField";
 import type { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
+import { ManageExpenseCategoriesDialog } from "@/components/finance/ManageExpenseCategoriesDialog";
 
 const CATEGORY_PALETTE: Record<string, string> = {
   folha: "#6366f1", fornecedor: "#0ea5e9", ferramenta: "#8b5cf6", imposto: "#f43f5e",
