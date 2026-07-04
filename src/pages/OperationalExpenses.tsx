@@ -91,6 +91,8 @@ export default function OperationalExpenses() {
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
   const [tab, setTab] = useState<TabKey>("overview");
   const [openNewSignal, setOpenNewSignal] = useState(0);
+  const [manageCatsOpen, setManageCatsOpen] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all"); // "all" or a category value
 
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["fin-expenses"],
