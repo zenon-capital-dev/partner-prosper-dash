@@ -804,6 +804,8 @@ export default function OperationalExpenses() {
           </div>
         )}
       </div>
+
+      <ManageExpenseCategoriesDialog open={manageCatsOpen} onOpenChange={setManageCatsOpen} />
     </div>
   );
 }
