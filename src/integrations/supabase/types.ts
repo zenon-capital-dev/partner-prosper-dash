@@ -1898,13 +1898,16 @@ export type Database = {
           amount: number
           beneficiary_id: string
           beneficiary_type: Database["public"]["Enums"]["beneficiary_type"]
+          client_id: string | null
+          client_product_id: string | null
           created_at: string
           id: string
           notes: string | null
           paid_at: string | null
+          payment_id: string | null
           payment_method: string | null
           percent: number
-          sale_id: string
+          sale_id: string | null
           status: Database["public"]["Enums"]["split_status"]
           updated_at: string
         }
@@ -1912,13 +1915,16 @@ export type Database = {
           amount: number
           beneficiary_id: string
           beneficiary_type: Database["public"]["Enums"]["beneficiary_type"]
+          client_id?: string | null
+          client_product_id?: string | null
           created_at?: string
           id?: string
           notes?: string | null
           paid_at?: string | null
+          payment_id?: string | null
           payment_method?: string | null
           percent: number
-          sale_id: string
+          sale_id?: string | null
           status?: Database["public"]["Enums"]["split_status"]
           updated_at?: string
         }
@@ -1926,17 +1932,48 @@ export type Database = {
           amount?: number
           beneficiary_id?: string
           beneficiary_type?: Database["public"]["Enums"]["beneficiary_type"]
+          client_id?: string | null
+          client_product_id?: string | null
           created_at?: string
           id?: string
           notes?: string | null
           paid_at?: string | null
+          payment_id?: string | null
           payment_method?: string | null
           percent?: number
-          sale_id?: string
+          sale_id?: string | null
           status?: Database["public"]["Enums"]["split_status"]
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "commission_splits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_splits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "commission_splits_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_splits_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "commission_splits_sale_id_fkey"
             columns: ["sale_id"]
@@ -6685,6 +6722,10 @@ export type Database = {
         Returns: undefined
       }
       sync_commissions_for_payment: {
+        Args: { p_payment_id: string }
+        Returns: undefined
+      }
+      sync_splits_for_payment: {
         Args: { p_payment_id: string }
         Returns: undefined
       }
