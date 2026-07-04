@@ -59,9 +59,12 @@ interface ExpensesTabProps {
   canManage?: boolean;
   showKpis?: boolean;
   disableInternalDateFilter?: boolean;
+  hideFilters?: boolean;
+  hideNewButton?: boolean;
+  openNewSignal?: number;
 }
 
-export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis = true, disableInternalDateFilter = false }: ExpensesTabProps = {}) {
+export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis = true, disableInternalDateFilter = false, hideFilters = false, hideNewButton = false, openNewSignal }: ExpensesTabProps = {}) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const [month, setMonth] = useState<string>(ymNow());
