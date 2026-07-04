@@ -240,6 +240,7 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
       )}
 
       {/* Filtros */}
+      {!hideFilters && (
       <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-3 flex flex-wrap items-end gap-3">
         {!disableInternalDateFilter && (
           <div>
