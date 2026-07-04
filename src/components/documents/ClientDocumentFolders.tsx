@@ -522,7 +522,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                         </p>
                         <p className="text-[11px] text-slate-500">{formatDate(f.uploaded_at ?? f.created_at)}</p>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                         {f.file_path && (
                           <>
                             <Button size="sm" variant="ghost" onClick={() => viewFile(f.file_path)}>
@@ -534,9 +534,14 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                           </>
                         )}
                         {canUpload && !isAllView && (
-                          <Button size="sm" variant="outline" disabled={uploading} onClick={() => { setAttachingDoc(f); setTimeout(() => attachRef.current?.click(), 0); }}>
+                          <Button
+                            size="sm"
+                            variant={isRequest ? "default" : "outline"}
+                            disabled={uploading}
+                            onClick={() => { setAttachingDoc(f); setTimeout(() => attachRef.current?.click(), 0); }}
+                          >
                             {uploading ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Upload className="size-3.5 mr-1" />}
-                            {isRequest ? "Anexar" : "Adicionar"}
+                            {isRequest ? "Enviar arquivo" : "Adicionar"}
                           </Button>
                         )}
                         {(isAdmin || f.uploaded_by === user?.id) && (
@@ -545,6 +550,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                           </Button>
                         )}
                       </div>
+
                     </li>
                     );
                   })}
