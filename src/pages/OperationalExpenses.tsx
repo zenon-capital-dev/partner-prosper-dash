@@ -105,12 +105,15 @@ export default function OperationalExpenses() {
   const today = ymd(new Date());
 
   const filtered = useMemo(() => {
-    if (!range) return expenses as any[];
     return (expenses as any[]).filter((e) => {
-      const d = dayKey(e);
-      return d >= range.from && d <= range.to;
+      if (range) {
+        const d = dayKey(e);
+        if (!(d >= range.from && d <= range.to)) return false;
+      }
+      if (categoryFilter !== "all" && e.category !== categoryFilter) return false;
+      return true;
     });
-  }, [expenses, range]);
+  }, [expenses, range, categoryFilter]);
 
   const prevFiltered = useMemo(() => {
     if (!range) return [];
@@ -120,8 +123,13 @@ export default function OperationalExpenses() {
     const prevTo = addDays(from, -1);
     const prevFrom = addDays(prevTo, -(days - 1));
     const pf = ymd(prevFrom), pt = ymd(prevTo);
-    return (expenses as any[]).filter((e) => { const d = dayKey(e); return d >= pf && d <= pt; });
-  }, [expenses, range]);
+    return (expenses as any[]).filter((e) => {
+      const d = dayKey(e);
+      if (!(d >= pf && d <= pt)) return false;
+      if (categoryFilter !== "all" && e.category !== categoryFilter) return false;
+      return true;
+    });
+  }, [expenses, range, categoryFilter]);
 
   const kpis = useMemo(() => {
     let total = 0, paid = 0, pending = 0, overdue = 0, paidCount = 0;
