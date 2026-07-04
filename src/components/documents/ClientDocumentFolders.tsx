@@ -570,50 +570,158 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                 <ul className="divide-y divide-slate-100">
                   {files.map((f: any) => {
                     const isRequest = !f.file_path;
+                    const effective = (f.status as string) || (isRequest ? "solicitado" : "em_analise");
+                    const meta = STATUS_META[effective] ?? STATUS_META.solicitado;
+                    const Icon = meta.icon;
+                    const spin = effective === "enviado" || effective === "em_analise";
                     return (
-                    <li key={f.id} className="flex items-center gap-3 py-2">
-                      <FileText className={cn("size-4 shrink-0", isRequest ? "text-amber-500" : "text-slate-400")} />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900 truncate">
-                          {f.name}
-                          {isRequest && <Badge variant="outline" className="ml-2 text-[9px] bg-amber-50 text-amber-700 border-amber-200">Aguardando envio</Badge>}
-                        </p>
-                        <p className="text-[11px] text-slate-500">{formatDate(f.uploaded_at ?? f.created_at)}</p>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                        {f.file_path && (
-                          <>
-                            <Button size="sm" variant="ghost" onClick={() => viewFile(f.file_path)}>
-                              <Eye className="size-3.5" />
-                            </Button>
-                            <Button size="sm" variant="ghost" onClick={() => downloadFile(f.file_path, f.name)}>
-                              <Download className="size-3.5" />
-                            </Button>
-                          </>
-                        )}
-                        {canUpload && !isAllView && (
-                          <Button
-                            size="sm"
-                            variant={isRequest ? "default" : "outline"}
-                            disabled={uploading}
-                            onClick={() => { setAttachingDoc(f); setTimeout(() => attachRef.current?.click(), 0); }}
-                          >
-                            {uploading ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Upload className="size-3.5 mr-1" />}
-                            {isRequest ? "Enviar arquivo" : "Adicionar"}
-                          </Button>
-                        )}
-                        {(isAdmin || f.uploaded_by === user?.id) && (
-                          <Button size="sm" variant="ghost" className="text-rose-600 hover:text-rose-700" onClick={() => removeFile(f)}>
-                            <Trash2 className="size-3.5" />
-                          </Button>
-                        )}
-                      </div>
+                      <li key={f.id} className="p-4 flex flex-col lg:flex-row lg:items-center gap-3 hover:bg-slate-50/60 transition-colors">
+                        <div className={cn("size-11 rounded-xl flex items-center justify-center shrink-0 border", meta.tone)}>
+                          <Icon className={cn("size-5", spin && "animate-spin")} />
+                        </div>
 
-                    </li>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-bold text-slate-900 truncate">{f.name}</p>
+                            <Badge variant="outline" className={cn("text-[9px] uppercase tracking-widest", meta.tone)}>
+                              {meta.label}
+                            </Badge>
+                            {typeof f.is_required === "boolean" && (
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-[9px] uppercase tracking-widest",
+                                  f.is_required
+                                    ? "border-rose-200 text-rose-600 bg-rose-50"
+                                    : "border-slate-200 text-slate-500"
+                                )}
+                              >
+                                {f.is_required ? "Obrigatório" : "Opcional"}
+                              </Badge>
+                            )}
+                          </div>
+                          {f.description && (
+                            <p className="text-xs text-slate-500 mt-1">{f.description}</p>
+                          )}
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[10px] uppercase tracking-widest font-bold text-slate-400">
+                            {f.due_date && (
+                              <span className="flex items-center gap-1.5 text-amber-600">
+                                <Clock className="size-3" /> Prazo {formatDate(f.due_date)}
+                              </span>
+                            )}
+                            {f.uploaded_at && <span>Enviado {formatDate(f.uploaded_at)}</span>}
+                            {f.uploaded_by && viewerRole !== "client" && <span>Enviado pelo cliente</span>}
+                            {f.reviewed_at && <span>Revisado {formatDate(f.reviewed_at)}</span>}
+                          </div>
+                          {f.status === "reprovado" && f.rejection_reason && (
+                            <p className="text-xs text-rose-700 mt-2 bg-rose-50 px-3 py-2 rounded-lg border border-rose-200">
+                              <strong>Motivo:</strong> {f.rejection_reason}
+                            </p>
+                          )}
+                          {f.internal_notes && isAdmin && (
+                            <p className="text-xs text-slate-500 mt-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+                              <MessageSquare className="size-3 inline mr-1" /> {f.internal_notes}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
+                          {canUpload && !isAllView && (
+                            isAdmin ? (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost" size="sm"
+                                    className="text-indigo-600 hover:bg-indigo-50 h-8 gap-1.5"
+                                    disabled={uploading}
+                                    title="Anexar arquivo(s) recebido(s) em nome do cliente"
+                                  >
+                                    {uploading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
+                                    {f.file_path ? "Adicionar arquivo" : "Anexar pelo admin"}
+                                    <ChevronDown className="size-3" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => triggerAttach(f, "email")}>
+                                    <Mail className="size-3.5 mr-2" /> Recebido por Email
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => triggerAttach(f, "whatsapp")}>
+                                    <MessageCircle className="size-3.5 mr-2" /> Recebido por WhatsApp
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => triggerAttach(f, "admin")}>
+                                    <Upload className="size-3.5 mr-2" /> Upload manual
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant={isRequest ? "default" : "outline"}
+                                disabled={uploading}
+                                className="h-8 gap-1.5"
+                                onClick={() => triggerAttach(f)}
+                              >
+                                {uploading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
+                                {isRequest ? "Enviar arquivo" : "Adicionar"}
+                              </Button>
+                            )
+                          )}
+                          {f.source && f.source !== "client" && f.source !== "client_upload" && (
+                            <Badge variant="outline" className="h-6 text-[9px] uppercase tracking-widest bg-indigo-50 border-indigo-200 text-indigo-700">
+                              <Mail className="size-3 mr-1" /> {f.source}
+                            </Badge>
+                          )}
+                          {f.file_path && (
+                            <Button variant="ghost" size="sm" className="h-8 gap-1.5" onClick={() => viewFile(f.file_path)}>
+                              <Eye className="size-3.5" /> Ver
+                            </Button>
+                          )}
+                          {f.file_path && (
+                            <Button variant="ghost" size="icon" className="size-8 text-slate-500 hover:text-slate-900" onClick={() => downloadFile(f.file_path, f.name)} title="Baixar">
+                              <Download className="size-4" />
+                            </Button>
+                          )}
+                          {isAdmin && f.file_path && f.status !== "aprovado" && (
+                            <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-emerald-600 hover:bg-emerald-50" onClick={() => updateDocStatus(f, "aprovado")}>
+                              <Check className="size-3.5" /> Aprovar
+                            </Button>
+                          )}
+                          {isAdmin && f.file_path && f.status !== "em_analise" && f.status !== "aprovado" && (
+                            <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-blue-600 hover:bg-blue-50" onClick={() => updateDocStatus(f, "em_analise")}>
+                              <Loader2 className="size-3.5" /> Analisar
+                            </Button>
+                          )}
+                          {isAdmin && f.status !== "reprovado" && (
+                            <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-rose-600 hover:bg-rose-50" onClick={() => handleReject(f)}>
+                              <X className="size-3.5" /> Rejeitar
+                            </Button>
+                          )}
+                          {isAdmin && f.file_path && (
+                            <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-orange-600 hover:bg-orange-50" onClick={() => handleRequestResend(f)}>
+                              <RefreshCw className="size-3.5" /> Reenvio
+                            </Button>
+                          )}
+                          {isAdmin && (
+                            <Button variant="ghost" size="icon" className="size-8 text-slate-500 hover:text-indigo-600" onClick={() => setEditingDoc(f)} title="Editar solicitação">
+                              <Pencil className="size-4" />
+                            </Button>
+                          )}
+                          {isAdmin && (
+                            <Button variant="ghost" size="icon" className="size-8 text-slate-500 hover:text-slate-900" onClick={() => handleAddNote(f)} title="Comentário interno">
+                              <MessageSquare className="size-4" />
+                            </Button>
+                          )}
+                          {(isAdmin || f.uploaded_by === user?.id) && (
+                            <Button variant="ghost" size="icon" className="size-8 text-slate-500 hover:text-rose-600" onClick={() => removeFile(f)} title="Excluir">
+                              <Trash2 className="size-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </li>
                     );
                   })}
-
                 </ul>
+
               )}
             </div>
           )}
