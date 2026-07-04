@@ -170,6 +170,23 @@ export default function Clients() {
     staleTime: 2 * 60_000,
   });
 
+  // Vendas reais (mesma fonte da página Vendas) para o filtro "Vendas" bater com o que aparece lá
+  const { data: salesSummary = [] } = useQuery({
+    queryKey: ["clients-admin-sales-summary", clientIds.join(",")],
+    enabled: clientIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sales")
+        .select("id, client_id, status, amount")
+        .in("client_id", clientIds)
+        .limit(Math.min(2000, Math.max(200, clientIds.length * 12)));
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 2 * 60_000,
+  });
+
+
   const isLoading = isLoadingClients;
 
   const { data: productsAll = [] } = useProductsRef();
@@ -185,17 +202,15 @@ export default function Clients() {
     return Array.from(set).sort();
   }, [clients]);
 
-  // Status dinâmico: reflete o que realmente existe no banco (inclui "novo_cliente" etc.)
-  const statusOptions = useMemo(() => {
-    const base = ["ativo", "prospecto", "novo_cliente", "inativo"];
-    const fromData = (clients as any[]).map((c) => c.status).filter(Boolean);
-    return Array.from(new Set([...base, ...fromData]));
-  }, [clients]);
+  // Status: lista fixa e explícita (evita opções fantasmas e garante "Ativo/Inativo" sempre visíveis)
+  const statusOptions = useMemo(() => ["ativo", "novo_cliente", "prospecto", "inativo"], []);
+
 
   const enriched = useMemo(() => {
     const today = startOfToday();
     const productsByClient = new Map<string, any[]>();
     const paymentsByClient = new Map<string, any[]>();
+    const salesByClient = new Map<string, any[]>();
 
     for (const p of clientProductsSummary as any[]) {
       if (!p.client_id) continue;
@@ -211,9 +226,17 @@ export default function Clients() {
       paymentsByClient.set(p.client_id, arr);
     }
 
+    for (const s of salesSummary as any[]) {
+      if (!s.client_id) continue;
+      const arr = salesByClient.get(s.client_id) ?? [];
+      arr.push(s);
+      salesByClient.set(s.client_id, arr);
+    }
+
     return clients.map((c: any) => {
       const clientProducts = productsByClient.get(c.id) ?? [];
       const payments = paymentsByClient.get(c.id) ?? [];
+      const sales = salesByClient.get(c.id) ?? [];
       const totalContracted = clientProducts.reduce((acc: number, p: any) => acc + Number(p.value || 0), 0) || 0;
       const totalPaid = payments.filter((p: any) => p.status === "pago")
         .reduce((acc: number, p: any) => acc + Number(p.amount_paid || p.amount || 0), 0) || 0;
@@ -242,6 +265,7 @@ export default function Clients() {
         ...c,
         client_products: clientProducts,
         payments,
+        _sales: sales,
         _totalContracted: totalContracted,
         _totalPaid: totalPaid,
         _totalPending: totalPending,
@@ -252,7 +276,8 @@ export default function Clients() {
         _tags: tags,
       };
     });
-  }, [clients, clientProductsSummary, paymentsSummary]);
+  }, [clients, clientProductsSummary, paymentsSummary, salesSummary]);
+
 
   const filtered = useMemo(() => {
     const qRaw = debouncedSearch.trim().toLowerCase();
@@ -287,14 +312,17 @@ export default function Clients() {
       }
       if (riskFilter !== "all" && c._risk !== riskFilter) return false;
       if (salesFilter !== "all") {
-        const cps: any[] = c.client_products || [];
-        const hasAtiva = cps.some((p) => ["ativo", "em_andamento", "ativa"].includes(String(p.status || "").toLowerCase()));
-        const hasConcluida = cps.some((p) => ["concluido", "concluída", "concluida", "finalizado"].includes(String(p.status || "").toLowerCase()));
+        // Usa a MESMA fonte da página Vendas (tabela sales), com os mesmos status
+        const ss: any[] = c._sales || [];
+        const nonCancel = ss.filter((s) => s.status !== "cancelada");
+        const hasAtiva = nonCancel.some((s) => s.status === "em_andamento" || s.status === "pendente");
+        const hasConcluida = ss.some((s) => s.status === "concluida");
         if (salesFilter === "com_venda_ativa" && !hasAtiva) return false;
         if (salesFilter === "com_venda_concluida" && !hasConcluida) return false;
-        if (salesFilter === "sem_venda" && cps.length > 0) return false;
+        if (salesFilter === "sem_venda" && nonCancel.length > 0) return false;
         if (salesFilter === "com_pendencia" && c._totalPending <= 0) return false;
       }
+
       if (fromStart) {
         const createdAt = new Date(c.created_at);
         if (createdAt < fromStart) return false;
