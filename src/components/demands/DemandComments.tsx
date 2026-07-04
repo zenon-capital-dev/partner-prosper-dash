@@ -51,13 +51,13 @@ export function DemandComments({ clientProductId, role }: Props) {
   const availableVisibilities: Visibility[] = useMemo(() => role === "admin"
     ? ["internal", "provider", "client"]
     : role === "provider"
-      ? ["provider"]
+      ? ["provider", "internal"]
       : ["client"], [role]);
 
 
   useEffect(() => {
     if (availableVisibilities.includes(visibility)) return;
-    setVisibility(role === "admin" ? "internal" : "client");
+    setVisibility(role === "admin" ? "internal" : role === "provider" ? "provider" : "client");
   }, [availableVisibilities, role, visibility]);
 
   const { data: comments = [] } = useQuery({
