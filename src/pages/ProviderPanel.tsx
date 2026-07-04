@@ -887,7 +887,7 @@ export default function ProviderPanel() {
                   <div key={cp.id} className={cn("rounded-xl border p-4 shadow-sm hover:shadow-md transition bg-white", u.border, u.ring)}>
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <Badge variant="outline" className={cn("text-[10px] border", STATUS_META[cp.status]?.tone || "bg-slate-100")}>{STATUS_META[cp.status]?.label || cp.status}</Badge>
+                        <Badge variant="outline" className={cn("text-[10px] border font-medium", u.level === "overdue" ? "bg-rose-50 text-rose-700 border-rose-200" : (STATUS_META[cp.status]?.tone || "bg-slate-100 text-slate-700 border-slate-200"))}>{STATUS_META[cp.status]?.label || prettyStatus(cp.status)}</Badge>
                         {u.level === "overdue" && (
                           <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200 animate-pulse">
                             <AlertTriangle className="size-3 mr-1" /> {u.label}
