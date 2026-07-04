@@ -58,9 +58,10 @@ interface ExpensesTabProps {
   expenses?: Expense[];
   canManage?: boolean;
   showKpis?: boolean;
+  disableInternalDateFilter?: boolean;
 }
 
-export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis = true }: ExpensesTabProps = {}) {
+export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis = true, disableInternalDateFilter = false }: ExpensesTabProps = {}) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const [month, setMonth] = useState<string>(ymNow());
@@ -94,15 +95,17 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
   const today = ymdNow();
   const filtered = useMemo(() => {
     return rows.filter((e) => {
-      const ref = (e.reference_month || e.expense_date || "").slice(0, 7);
-      if (month && ref !== month) return false;
+      if (!disableInternalDateFilter) {
+        const ref = (e.reference_month || e.expense_date || "").slice(0, 7);
+        if (month && ref !== month) return false;
+      }
       if (category !== "todas" && e.category !== category) return false;
       if (status === "pago" && !e.paid) return false;
       if (status === "pendente" && e.paid) return false;
       if (status === "vencidas" && (e.paid || !(e.due_date && e.due_date < today))) return false;
       return true;
     });
-  }, [rows, month, category, status, today]);
+  }, [rows, month, category, status, today, disableInternalDateFilter]);
 
   const kpis = useMemo(() => {
     const total = filtered.reduce((s, e) => s + Number(e.amount || 0), 0);
