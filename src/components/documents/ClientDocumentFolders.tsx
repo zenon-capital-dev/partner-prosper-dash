@@ -218,8 +218,11 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
     try {
       setUploading(true);
       const now = new Date().toISOString();
-      const source = viewerRole === "client" ? "client_upload" : "admin_upload";
+      const chosen = attachSourceRef.current;
+      attachSourceRef.current = null;
+      const source = chosen ?? (viewerRole === "client" ? "client_upload" : "admin_upload");
       const extraRows: any[] = [];
+
 
       for (const [index, file] of files.entries()) {
         const safe = sanitizeStorageFileName(file.name);
