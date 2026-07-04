@@ -15,9 +15,10 @@ import { Switch } from "@/components/ui/switch";
 import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Plus, Pencil, Trash2, CheckCircle2, RotateCcw, TrendingDown, Wallet, AlertTriangle, Receipt, FileText, Tag, Calendar, CreditCard, Building2, StickyNote, Repeat, Banknote, Zap, Landmark, Coins, Settings2 } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, RotateCcw, TrendingDown, Wallet, AlertTriangle, Receipt, FileText, Tag, Calendar, CreditCard, Building2, StickyNote, Repeat, Banknote, Zap, Landmark, Coins, Settings2, Paperclip, Upload, X, ExternalLink, Loader2 } from "lucide-react";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { ManageExpenseCategoriesDialog } from "@/components/finance/ManageExpenseCategoriesDialog";
+import { getCurrentUserId } from "@/lib/current-user";
 
 
 type Expense = {
