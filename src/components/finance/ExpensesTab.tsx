@@ -701,14 +701,62 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
               </section>
             )}
 
-            {/* 6. Observações */}
+            {/* 6. Comprovante */}
+            <section>
+              <SectionTitle icon={<Paperclip className="size-3.5" />} label="Comprovante (opcional)" />
+              {form.receipt_url ? (
+                <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3">
+                  <div className="size-9 rounded-lg bg-white border border-emerald-200 flex items-center justify-center text-emerald-600">
+                    <FileText className="size-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12.5px] font-semibold text-emerald-800">Comprovante anexado</p>
+                    <p className="text-[10.5px] text-emerald-700/80 truncate font-mono">{form.receipt_url.split("/").pop()}</p>
+                  </div>
+                  <Button type="button" size="sm" variant="outline" className="h-8 gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-100" onClick={() => openReceipt(form.receipt_url)}>
+                    <ExternalLink className="size-3.5" /> Ver
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" className="h-8 gap-1 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={removeReceipt}>
+                    <X className="size-3.5" /> Remover
+                  </Button>
+                </div>
+              ) : (
+                <label className={cn(
+                  "flex items-center gap-3 rounded-xl border-2 border-dashed p-4 cursor-pointer transition-colors",
+                  uploading ? "border-indigo-300 bg-indigo-50/40" : "border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30"
+                )}>
+                  <div className="size-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                    {uploading ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold text-slate-800">
+                      {uploading ? "Enviando..." : "Anexar comprovante"}
+                    </p>
+                    <p className="text-[10.5px] text-slate-500">PDF, imagem ou documento (até 15 MB)</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf,.doc,.docx"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleReceiptUpload(f);
+                      e.currentTarget.value = "";
+                    }}
+                  />
+                </label>
+              )}
+            </section>
+
+            {/* 7. Observações */}
             <section>
               <SectionTitle icon={<StickyNote className="size-3.5" />} label="Observações (opcional)" />
               <Textarea
                 rows={2}
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                placeholder="Notas internas, comprovante, contrato…"
+                placeholder="Notas internas, contrato, contato do fornecedor…"
               />
             </section>
           </div>
