@@ -35,14 +35,28 @@ const NAV = [
 ];
 
 const STATUS_META: Record<string, { label: string; tone: string }> = {
-  aguardando_inicio: { label: "Aguardando", tone: "bg-slate-100 text-slate-700 border-slate-200" },
-  em_andamento:      { label: "Em andamento", tone: "bg-teal-50 text-teal-700 border-teal-200" },
-  em_execucao:       { label: "Em execução", tone: "bg-teal-50 text-teal-700 border-teal-200" },
-  pausado:           { label: "Pausada", tone: "bg-amber-50 text-amber-700 border-amber-200" },
-  concluido:         { label: "Concluída", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  concluida:         { label: "Concluída", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  cancelado:         { label: "Cancelada", tone: "bg-rose-50 text-rose-700 border-rose-200" },
+  aguardando_inicio:      { label: "Aguardando início", tone: "bg-slate-100 text-slate-700 border-slate-200" },
+  aguardando_cliente:     { label: "Aguardando cliente", tone: "bg-amber-50 text-amber-700 border-amber-200" },
+  aguardando_documentos:  { label: "Aguardando documentos", tone: "bg-amber-50 text-amber-700 border-amber-200" },
+  aguardando_aprovacao:   { label: "Aguardando aprovação", tone: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+  aguardando_pagamento:   { label: "Aguardando pagamento", tone: "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200" },
+  em_andamento:           { label: "Em andamento", tone: "bg-teal-50 text-teal-700 border-teal-200" },
+  em_execucao:            { label: "Em execução", tone: "bg-teal-50 text-teal-700 border-teal-200" },
+  em_analise:             { label: "Em análise", tone: "bg-blue-50 text-blue-700 border-blue-200" },
+  atrasado:               { label: "Atrasada", tone: "bg-rose-50 text-rose-700 border-rose-200" },
+  atrasada:               { label: "Atrasada", tone: "bg-rose-50 text-rose-700 border-rose-200" },
+  bloqueado:              { label: "Bloqueada", tone: "bg-rose-50 text-rose-700 border-rose-200" },
+  pausado:                { label: "Pausada", tone: "bg-amber-50 text-amber-700 border-amber-200" },
+  pausada:                { label: "Pausada", tone: "bg-amber-50 text-amber-700 border-amber-200" },
+  concluido:              { label: "Concluída", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  concluida:              { label: "Concluída", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  entregue:               { label: "Entregue", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  cancelado:              { label: "Cancelada", tone: "bg-slate-100 text-slate-500 border-slate-200 line-through" },
+  cancelada:              { label: "Cancelada", tone: "bg-slate-100 text-slate-500 border-slate-200 line-through" },
 };
+
+// Formatter para status desconhecidos: substitui _ por espaço e capitaliza
+const prettyStatus = (s?: string) => (s || "—").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 function KpiTile({ icon: Icon, label, value, hint, accent, progress }: {
   icon: any; label: string; value: React.ReactNode; hint?: string; accent?: string; progress?: number;
