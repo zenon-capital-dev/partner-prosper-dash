@@ -16,10 +16,25 @@ import { sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 import { downloadStorageFile } from "@/lib/download";
 import {
   FolderPlus, Folder, Upload, FileText, Download, Eye, Trash2, Users, Pencil,
-  Loader2, FilePlus2,
+  Loader2, FilePlus2, Clock, CheckCircle2, AlertCircle, RefreshCw,
+  MessageSquare, Mail, MessageCircle, ChevronDown, Check, X,
 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
 import { cn } from "@/lib/utils";
+
+const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = {
+  solicitado: { label: "Solicitado", tone: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
+  enviado: { label: "Enviado", tone: "bg-blue-50 text-blue-700 border-blue-200", icon: Loader2 },
+  em_analise: { label: "Em análise", tone: "bg-indigo-50 text-indigo-700 border-indigo-200", icon: Loader2 },
+  aprovado: { label: "Aprovado", tone: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: CheckCircle2 },
+  reprovado: { label: "Rejeitado", tone: "bg-rose-50 text-rose-700 border-rose-200", icon: AlertCircle },
+  pendente_correcao: { label: "Reenvio", tone: "bg-orange-50 text-orange-700 border-orange-200", icon: RefreshCw },
+  vencido: { label: "Vencido", tone: "bg-slate-100 text-slate-700 border-slate-200", icon: Clock },
+};
+
 
 type Role = "admin" | "client" | "provider";
 
