@@ -778,6 +778,22 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
         />
       )}
 
+      {editingDoc && (
+        <DocumentDialog
+          open
+          onOpenChange={(v) => !v && setEditingDoc(null)}
+          clientId={clientId}
+          document={editingDoc}
+          folderId={editingDoc.folder_id ?? null}
+          onSuccess={() => {
+            setEditingDoc(null);
+            qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
+          }}
+        />
+      )}
+
+
+
       {/* Novo contrato */}
       <Dialog open={creatingContract} onOpenChange={setCreatingContract}>
         <DialogContent className="max-w-sm">
