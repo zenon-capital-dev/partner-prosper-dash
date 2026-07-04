@@ -35,6 +35,7 @@ type Expense = {
   payment_method: string | null;
   vendor: string | null;
   notes: string | null;
+  receipt_url: string | null;
 };
 
 const ymNow = () => new Date().toISOString().slice(0, 7);
@@ -53,6 +54,7 @@ const emptyForm = () => ({
   vendor: "",
   notes: "",
   recurringMonths: 1,
+  receipt_url: "" as string,
 });
 
 interface ExpensesTabProps {
