@@ -15,9 +15,10 @@ import { Switch } from "@/components/ui/switch";
 import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Plus, Pencil, Trash2, CheckCircle2, RotateCcw, TrendingDown, Wallet, AlertTriangle, Receipt, FileText, Tag, Calendar, CreditCard, Building2, StickyNote, Repeat, Banknote, Zap, Landmark, Coins, Settings2 } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, RotateCcw, TrendingDown, Wallet, AlertTriangle, Receipt, FileText, Tag, Calendar, CreditCard, Building2, StickyNote, Repeat, Banknote, Zap, Landmark, Coins, Settings2, Paperclip, Upload, X, ExternalLink, Loader2 } from "lucide-react";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { ManageExpenseCategoriesDialog } from "@/components/finance/ManageExpenseCategoriesDialog";
+import { getCurrentUserId } from "@/lib/current-user";
 
 
 type Expense = {
@@ -34,6 +35,7 @@ type Expense = {
   payment_method: string | null;
   vendor: string | null;
   notes: string | null;
+  receipt_url: string | null;
 };
 
 const ymNow = () => new Date().toISOString().slice(0, 7);
@@ -52,6 +54,7 @@ const emptyForm = () => ({
   vendor: "",
   notes: "",
   recurringMonths: 1,
+  receipt_url: "" as string,
 });
 
 interface ExpensesTabProps {
@@ -154,8 +157,46 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
       vendor: e.vendor ?? "",
       notes: e.notes ?? "",
       recurringMonths: 1,
+      receipt_url: e.receipt_url ?? "",
     });
     setDialogOpen(true);
+  }
+
+  // Upload de comprovante para o bucket privado. Devolve a "path" salva no storage.
+  const [uploading, setUploading] = useState(false);
+  async function handleReceiptUpload(file: File) {
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) return toast.error("Arquivo grande demais (máx 15 MB)");
+    setUploading(true);
+    try {
+      const uid = await getCurrentUserId();
+      const ext = (file.name.split(".").pop() || "bin").toLowerCase();
+      const path = `${uid ?? "anon"}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("expense-receipts").upload(path, file, {
+        contentType: file.type || undefined,
+        upsert: false,
+      });
+      if (error) throw error;
+      setForm((f) => ({ ...f, receipt_url: path }));
+      toast.success("Comprovante anexado");
+    } catch (e: any) {
+      toast.error(e?.message || "Falha ao subir comprovante");
+    } finally {
+      setUploading(false);
+    }
+  }
+  async function removeReceipt() {
+    if (!form.receipt_url) return;
+    try {
+      await supabase.storage.from("expense-receipts").remove([form.receipt_url]);
+    } catch {}
+    setForm((f) => ({ ...f, receipt_url: "" }));
+  }
+  async function openReceipt(path: string) {
+    if (!path) return;
+    const { data, error } = await supabase.storage.from("expense-receipts").createSignedUrl(path, 60 * 5);
+    if (error || !data?.signedUrl) return toast.error("Não foi possível abrir o comprovante");
+    window.open(data.signedUrl, "_blank");
   }
 
   async function save() {
@@ -174,6 +215,7 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
       payment_method: form.payment_method || null,
       vendor: form.vendor.trim() || null,
       notes: form.notes.trim() || null,
+      receipt_url: form.receipt_url || null,
     };
     if (editing) {
       const { error } = await supabase
@@ -196,6 +238,8 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
           // future recurrences start unpaid
           paid: i === 0 ? base.paid : false,
           paid_at: i === 0 ? base.paid_at : null,
+          // Comprovante anexa só à primeira parcela para não duplicar o arquivo.
+          receipt_url: i === 0 ? base.receipt_url : null,
         });
       }
       const { error } = await supabase.from("expenses").insert(rowsToInsert as any);
@@ -357,7 +401,19 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
                   return (
                     <tr key={e.id} className="hover:bg-slate-50/70">
                       <td className="px-3 py-2">
-                        <div className="font-medium text-slate-900">{e.description}</div>
+                        <div className="font-medium text-slate-900 flex items-center gap-1.5">
+                          {e.description}
+                          {e.receipt_url && (
+                            <button
+                              type="button"
+                              onClick={() => openReceipt(e.receipt_url!)}
+                              className="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 rounded px-1.5 py-0.5"
+                              title="Ver comprovante"
+                            >
+                              <Paperclip className="size-3" /> comprovante
+                            </button>
+                          )}
+                        </div>
                         {e.notes && <div className="text-[10.5px] text-slate-500 truncate max-w-[280px]">{e.notes}</div>}
                       </td>
                       <td className="px-3 py-2">
@@ -645,14 +701,62 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
               </section>
             )}
 
-            {/* 6. Observações */}
+            {/* 6. Comprovante */}
+            <section>
+              <SectionTitle icon={<Paperclip className="size-3.5" />} label="Comprovante (opcional)" />
+              {form.receipt_url ? (
+                <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3">
+                  <div className="size-9 rounded-lg bg-white border border-emerald-200 flex items-center justify-center text-emerald-600">
+                    <FileText className="size-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12.5px] font-semibold text-emerald-800">Comprovante anexado</p>
+                    <p className="text-[10.5px] text-emerald-700/80 truncate font-mono">{form.receipt_url.split("/").pop()}</p>
+                  </div>
+                  <Button type="button" size="sm" variant="outline" className="h-8 gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-100" onClick={() => openReceipt(form.receipt_url)}>
+                    <ExternalLink className="size-3.5" /> Ver
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" className="h-8 gap-1 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={removeReceipt}>
+                    <X className="size-3.5" /> Remover
+                  </Button>
+                </div>
+              ) : (
+                <label className={cn(
+                  "flex items-center gap-3 rounded-xl border-2 border-dashed p-4 cursor-pointer transition-colors",
+                  uploading ? "border-indigo-300 bg-indigo-50/40" : "border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30"
+                )}>
+                  <div className="size-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                    {uploading ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold text-slate-800">
+                      {uploading ? "Enviando..." : "Anexar comprovante"}
+                    </p>
+                    <p className="text-[10.5px] text-slate-500">PDF, imagem ou documento (até 15 MB)</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf,.doc,.docx"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleReceiptUpload(f);
+                      e.currentTarget.value = "";
+                    }}
+                  />
+                </label>
+              )}
+            </section>
+
+            {/* 7. Observações */}
             <section>
               <SectionTitle icon={<StickyNote className="size-3.5" />} label="Observações (opcional)" />
               <Textarea
                 rows={2}
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                placeholder="Notas internas, comprovante, contrato…"
+                placeholder="Notas internas, contrato, contato do fornecedor…"
               />
             </section>
           </div>
