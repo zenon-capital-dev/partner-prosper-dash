@@ -131,6 +131,13 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
     setForm(emptyForm());
     setDialogOpen(true);
   }
+
+  // Permite abrir o diálogo a partir de um botão externo (ex.: "Nova despesa" no topo da página).
+  useEffect(() => {
+    if (openNewSignal !== undefined && openNewSignal > 0) openNew();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openNewSignal]);
+
   function openEdit(e: Expense) {
     setEditing(e);
     setForm({
