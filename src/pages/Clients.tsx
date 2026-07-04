@@ -170,6 +170,23 @@ export default function Clients() {
     staleTime: 2 * 60_000,
   });
 
+  // Vendas reais (mesma fonte da página Vendas) para o filtro "Vendas" bater com o que aparece lá
+  const { data: salesSummary = [] } = useQuery({
+    queryKey: ["clients-admin-sales-summary", clientIds.join(",")],
+    enabled: clientIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sales")
+        .select("id, client_id, status, amount")
+        .in("client_id", clientIds)
+        .limit(Math.min(2000, Math.max(200, clientIds.length * 12)));
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 2 * 60_000,
+  });
+
+
   const isLoading = isLoadingClients;
 
   const { data: productsAll = [] } = useProductsRef();
@@ -185,12 +202,9 @@ export default function Clients() {
     return Array.from(set).sort();
   }, [clients]);
 
-  // Status dinâmico: reflete o que realmente existe no banco (inclui "novo_cliente" etc.)
-  const statusOptions = useMemo(() => {
-    const base = ["ativo", "prospecto", "novo_cliente", "inativo"];
-    const fromData = (clients as any[]).map((c) => c.status).filter(Boolean);
-    return Array.from(new Set([...base, ...fromData]));
-  }, [clients]);
+  // Status: lista fixa e explícita (evita opções fantasmas e garante "Ativo/Inativo" sempre visíveis)
+  const statusOptions = useMemo(() => ["ativo", "novo_cliente", "prospecto", "inativo"], []);
+
 
   const enriched = useMemo(() => {
     const today = startOfToday();
