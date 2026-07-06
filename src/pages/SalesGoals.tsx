@@ -60,8 +60,9 @@ export default function SalesGoals() {
   });
 
   // Realizado a partir das tabelas existentes
-  const { matchesClientId, stageIds } = useStageMatcher();
+  const { stageIds } = useStageMatcher();
   const stageKey = stageIds.slice().sort().join(",");
+  const stageFilterActive = stageIds.length > 0;
 
   const { data: actual } = useQuery({
     queryKey: ["sales_goals_actual", month, stageKey],
@@ -76,19 +77,28 @@ export default function SalesGoals() {
           .gte("created_at", start).lt("created_at", end),
         (supabase as any).from("proposals").select("id", { count: "exact", head: true })
           .gte("created_at", start).lt("created_at", end),
-        (supabase as any).from("sales").select("id, client_id")
+        (supabase as any).from("sales").select("id, client_id, stage_id_at_sale")
           .eq("status", "concluida").gte("created_at", start).lt("created_at", end).limit(2000),
-        (supabase as any).from("payments").select("amount, sale_id, sales(id, status, client_id)")
+        (supabase as any).from("payments").select("amount, sale_id, sales(id, status, client_id, stage_id_at_sale)")
           .eq("status", "pago").gte("paid_at", start).lt("paid_at", end).limit(1000),
         (supabase as any).from("client_timeline").select("id", { count: "exact", head: true })
           .eq("event_type", "journey_stage_change").gte("created_at", start).lt("created_at", end),
         (supabase as any).from("leads").select("id", { count: "exact", head: true })
           .eq("status", "won").gte("updated_at", start).lt("updated_at", end),
       ]);
-      const saleRows = ((salesR.data ?? []) as any[]).filter((s) => matchesClientId(s.client_id));
+
+      // Filtro histórico: usa o snapshot do estágio no momento da venda
+      // (stage_id_at_sale) para não distorcer números quando o cliente muda
+      // de estágio depois. Vendas sem snapshot ficam de fora quando o filtro
+      // de estágio está ativo.
+      const stageSet = new Set(stageIds);
+      const saleMatches = (row: any) =>
+        !stageFilterActive || (row?.stage_id_at_sale && stageSet.has(row.stage_id_at_sale));
+
+      const saleRows = ((salesR.data ?? []) as any[]).filter(saleMatches);
       const payRows = ((paymentsR.data ?? []) as any[])
         .filter(paymentSaleIsFinalized)
-        .filter((p) => matchesClientId(p.sales?.client_id));
+        .filter((p) => saleMatches(p.sales));
       return {
         leads: leadsR.count ?? 0,
         proposals: propR.count ?? 0,

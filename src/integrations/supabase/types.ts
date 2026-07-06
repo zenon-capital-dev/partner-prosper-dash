@@ -5756,6 +5756,7 @@ export type Database = {
           revenue_type: string
           sale_date: string
           service_provider_id: string | null
+          stage_id_at_sale: string | null
           status: Database["public"]["Enums"]["sale_status"]
           updated_at: string
           zenon_cost: number
@@ -5786,6 +5787,7 @@ export type Database = {
           revenue_type?: string
           sale_date?: string
           service_provider_id?: string | null
+          stage_id_at_sale?: string | null
           status?: Database["public"]["Enums"]["sale_status"]
           updated_at?: string
           zenon_cost?: number
@@ -5816,6 +5818,7 @@ export type Database = {
           revenue_type?: string
           sale_date?: string
           service_provider_id?: string | null
+          stage_id_at_sale?: string | null
           status?: Database["public"]["Enums"]["sale_status"]
           updated_at?: string
           zenon_cost?: number

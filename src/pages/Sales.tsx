@@ -20,11 +20,14 @@ import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
 import { ReceivePaymentDialog } from "@/components/sales/ReceivePaymentDialog";
 import { FilterPresets } from "@/components/filters/FilterPresets";
 import { StageFilterBar } from "@/components/filters/StageFilterBar";
-import { useStageMatcher } from "@/hooks/useSharedStageFilter";
+import { useStageMatcher, useClientStageMap } from "@/hooks/useSharedStageFilter";
+import { InlineStageSelect } from "@/components/clients/InlineStageSelect";
+import { StageQuickMenu } from "@/components/clients/StageQuickMenu";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { ComposedChart, Area, Bar, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
@@ -242,6 +245,7 @@ export default function Sales() {
   const usingManualRange = !!dateFrom || !!dateTo;
 
   const { matchesClientId, stageIds: sharedStageIds } = useStageMatcher();
+  const { data: clientStageMap } = useClientStageMap();
 
   const filtered = useMemo(() => {
     const today = nowBR();
@@ -1160,6 +1164,11 @@ export default function Sales() {
                                 <HandCoins className="size-3.5 mr-2 text-emerald-600" /> Registrar Recebimento
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
+                              <StageQuickMenu
+                                clientId={s.clients?.id ?? s.client_id}
+                                currentStageId={clientStageMap?.get(s.clients?.id ?? s.client_id ?? "") ?? null}
+                              />
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem disabled={s.status === "concluida"} onClick={() => updateStatus(s, "concluida")}>
                                 <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" /> Marcar finalizada
                               </DropdownMenuItem>
@@ -1226,14 +1235,21 @@ export default function Sales() {
                       )}
                       {visibleCols.client && (
                         <Td>
-                          <div className="min-w-0">
+                          <div className="min-w-0 space-y-1">
                             <Link
                               className="font-semibold text-slate-900 truncate hover:text-indigo-700 transition-colors text-left block"
                               to={s.clients?.id ? `/clientes/${s.clients.id}` : "#"}
                             >
                               {s.clients?.full_name ?? "—"}
                             </Link>
-                            <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
+                            <p className="text-[11px] font-medium text-slate-500 truncate">{s.clients?.company || "Conta Pessoal"}</p>
+                            {s.clients?.id && (
+                              <InlineStageSelect
+                                clientId={s.clients.id}
+                                stageId={clientStageMap?.get(s.clients.id) ?? null}
+                                variant="compact"
+                              />
+                            )}
                           </div>
                         </Td>
                       )}
