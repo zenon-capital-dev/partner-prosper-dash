@@ -245,6 +245,7 @@ export default function Sales() {
   const usingManualRange = !!dateFrom || !!dateTo;
 
   const { matchesClientId, stageIds: sharedStageIds } = useStageMatcher();
+  const { data: clientStageMap } = useClientStageMap();
 
   const filtered = useMemo(() => {
     const today = nowBR();
