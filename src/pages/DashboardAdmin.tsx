@@ -497,36 +497,17 @@ export default function DashboardAdmin() {
               <span className="text-slate-300">·</span>
               <span className="text-[10px] text-slate-500 capitalize font-semibold truncate max-w-[150px] sm:max-w-none">{todayLabel}</span>
             </div>
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-              <div className="space-y-3">
-                <h1 className="font-display text-[32px] sm:text-[36px] lg:text-[44px] font-bold tracking-[-0.025em] text-slate-900 leading-[1.1]">
-                  {greeting}, <span className="text-indigo-600">{firstName}</span>.
-                </h1>
-                <p className="text-[13.5px] sm:text-[14px] text-slate-600 leading-relaxed max-w-xl">
-                  Visão consolidada de receita, operação e pipeline. Tudo o que importa, em um único lugar.
-                </p>
-              </div>
-              
-              {/* Avisos de Atraso em cima do negócio (dashboard header) */}
-              {(stats.todayTasksList.filter((t: any) => t.isOverdue).length + (stats.todayAgendaList as any[]).filter(i => i.isOverdue).length) > 0 && (
-                <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <div className="bg-rose-50 border border-rose-100 rounded-2xl px-5 py-3 flex items-center gap-4 shadow-[0_4px_12px_-4px_rgba(244,63,94,0.2)]">
-                    <div className="size-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
-                      <AlertTriangle className="size-5 text-rose-600 animate-bounce" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-rose-500 uppercase tracking-[0.2em]">Atenção imediata</p>
-                      <p className="text-[15px] font-bold text-rose-950">
-                        {stats.todayTasksList.filter((t: any) => t.isOverdue).length + (stats.todayAgendaList as any[]).filter(i => i.isOverdue).length} pendências com horário atrasado
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div className="space-y-3">
+              <h1 className="font-display text-[32px] sm:text-[36px] lg:text-[44px] font-bold tracking-[-0.025em] text-slate-900 leading-[1.1]">
+                {greeting}, <span className="text-indigo-600">{firstName}</span>.
+              </h1>
+              <p className="text-[13.5px] sm:text-[14px] text-slate-600 leading-relaxed max-w-xl">
+                Visão consolidada de receita, operação e pipeline. Tudo o que importa, em um único lugar.
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 scrollbar-none">
+          <div className="flex items-center gap-3 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 scrollbar-none shrink-0">
             <StageFilterBar />
             <div className="inline-flex items-center bg-white border border-slate-200/80 rounded-xl p-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)] shrink-0">
               {(["HOJE", "7D", "30D", "MÊS"] as const).map((k) => (
@@ -553,6 +534,24 @@ export default function DashboardAdmin() {
             </Link>
           </div>
         </header>
+
+        {/* Banner de atraso — largura total, fora do header, para não competir com o título */}
+        {(stats.todayTasksList.filter((t: any) => t.isOverdue).length + (stats.todayAgendaList as any[]).filter(i => i.isOverdue).length) > 0 && (
+          <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+            <div className="w-full bg-rose-50 border border-rose-100 rounded-2xl px-5 py-3 flex items-center gap-4 shadow-[0_4px_12px_-4px_rgba(244,63,94,0.2)]">
+              <div className="size-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+                <AlertTriangle className="size-5 text-rose-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold text-rose-500 uppercase tracking-[0.2em]">Atenção imediata</p>
+                <p className="text-[14px] sm:text-[15px] font-bold text-rose-950 whitespace-nowrap overflow-hidden text-ellipsis">
+                  {stats.todayTasksList.filter((t: any) => t.isOverdue).length + (stats.todayAgendaList as any[]).filter(i => i.isOverdue).length} pendências com horário atrasado
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {/* ============ HERO BAND — Featured Revenue + 3 KPIs ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
