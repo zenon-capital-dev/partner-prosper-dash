@@ -935,7 +935,12 @@ export default function Clients() {
                           {c.email && <Mail className="size-3" />}
                         </div>
                       </td>
-                      <td className="px-4 py-3.5"><StatusBadge status={c.status} /></td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex flex-col gap-1.5">
+                          <StatusBadge status={c.status} />
+                          <InlineStageSelect clientId={c.id} stageId={c.journey_stage_id} variant="compact" />
+                        </div>
+                      </td>
                       <td className="px-4 py-3.5"><HealthBar value={c._health} /></td>
                       <td className="px-4 py-3.5"><RiskBadge risk={c._risk} overdue={c._overdue} /></td>
                       <td className="px-4 py-3.5 max-w-[180px]">
