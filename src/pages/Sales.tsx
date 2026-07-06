@@ -20,11 +20,14 @@ import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
 import { ReceivePaymentDialog } from "@/components/sales/ReceivePaymentDialog";
 import { FilterPresets } from "@/components/filters/FilterPresets";
 import { StageFilterBar } from "@/components/filters/StageFilterBar";
-import { useStageMatcher } from "@/hooks/useSharedStageFilter";
+import { useStageMatcher, useClientStageMap } from "@/hooks/useSharedStageFilter";
+import { InlineStageSelect } from "@/components/clients/InlineStageSelect";
+import { StageQuickMenu } from "@/components/clients/StageQuickMenu";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { ComposedChart, Area, Bar, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
