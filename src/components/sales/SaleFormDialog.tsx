@@ -749,9 +749,22 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                         <SelectItem value="cancelada" className="text-slate-500 font-semibold">Cancelada</SelectItem>
                       </SelectContent>
                     </Select>
-                    {form.status !== "concluida" && (
-                      <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-medium leading-snug text-amber-800">
-                        Enquanto estiver em negociação, esta venda fica fora do fluxo financeiro, comissões, metas de receita e cronograma de cobrança.
+                    {form.status !== "concluida" ? (
+                      <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 space-y-2">
+                        <p className="text-[11px] font-medium leading-snug text-amber-800">
+                          Enquanto estiver em negociação, esta venda fica <b>fora</b> do fluxo financeiro, comissões, metas de receita e cronograma de cobrança.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, status: "concluida" })}
+                          className="w-full h-9 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold uppercase tracking-wider transition-colors inline-flex items-center justify-center gap-1.5"
+                        >
+                          ✓ Finalizar venda agora
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold leading-snug text-emerald-800">
+                        ✓ Venda finalizada — parcelas, comissões e cronograma serão gerados ao salvar.
                       </p>
                     )}
                   </Field>

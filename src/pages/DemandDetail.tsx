@@ -326,7 +326,7 @@ export default function DemandDetail() {
         client_product_id: id!,
         title: deliveryForm.title,
         description: deliveryForm.description || null,
-        status: "pending",
+        status: "delivered",
         files: uploaded as any,
       });
       if (error) throw error;
@@ -974,9 +974,14 @@ export default function DemandDetail() {
                         </Button>}
                     </div>
                     {(!demand.deliveries || demand.deliveries.length === 0) ? (
-                       <div className="text-center py-12 text-muted-foreground/60">
-                          <Package className="size-10 mx-auto mb-3 opacity-20" />
-                          <p className="text-sm">Nenhuma entrega formalizada para este produto.</p>
+                       <div className="text-center py-12">
+                          <Package className="size-10 mx-auto mb-3 text-muted-foreground/30" />
+                          <p className="text-sm text-muted-foreground/80 mb-4">Nenhuma entrega formalizada para este produto.</p>
+                          {canReport && (
+                            <Button size="sm" className="gap-2" onClick={() => setDeliveryOpen(true)}>
+                              <Plus className="size-3.5" /> Registrar primeira entrega
+                            </Button>
+                          )}
                        </div>
                     ) : (
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
