@@ -326,7 +326,7 @@ export default function DemandDetail() {
         client_product_id: id!,
         title: deliveryForm.title,
         description: deliveryForm.description || null,
-        status: "pending",
+        status: "delivered",
         files: uploaded as any,
       });
       if (error) throw error;
