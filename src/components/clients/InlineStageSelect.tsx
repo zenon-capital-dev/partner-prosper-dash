@@ -1,23 +1,41 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Route } from "lucide-react";
+import { Route, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { deriveClientStatusFromStageName, invalidateJourneyStageCaches } from "@/lib/journey-stage-sync";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  deriveClientStatusFromStageName,
+  invalidateJourneyStageCaches,
+} from "@/lib/journey-stage-sync";
 
 interface Props {
   clientId: string;
   stageId: string | null;
-  /** Aparência: full (com borda destacada por cor) ou compact (chip enxuto). */
+  /** Aparência: full (pílula colorida) ou compact (chip enxuto). */
   variant?: "full" | "compact";
   className?: string;
 }
 
+const NONE_VALUE = "__none__";
+
 /**
- * Seletor compacto de estágio, usado nos cards/linhas de listagem de clientes
- * para permitir mover o cliente na esteira sem abrir o dossiê.
+ * Seletor inline de estágio da esteira. Usa Select do shadcn (portalizado)
+ * para evitar bubbling/navegação quando renderizado dentro de cards clicáveis
+ * e para ficar visualmente consistente com o resto do admin.
  */
-export function InlineStageSelect({ clientId, stageId, variant = "full", className }: Props) {
+export function InlineStageSelect({
+  clientId,
+  stageId,
+  variant = "full",
+  className,
+}: Props) {
   const qc = useQueryClient();
 
   const { data: stages = [] } = useQuery({
@@ -34,16 +52,15 @@ export function InlineStageSelect({ clientId, stageId, variant = "full", classNa
   });
 
   const current = stages.find((s: any) => s.id === stageId);
-  const color = current?.color || "#94a3b8";
+  const color = current?.color || "#64748b";
 
   const onChange = async (raw: string) => {
-    const newId = raw || null;
+    const newId = raw === NONE_VALUE ? null : raw;
     if ((stageId ?? "") === (newId ?? "")) return;
 
     const nextStage = stages.find((s: any) => s.id === newId);
     const derivedStatus = deriveClientStatusFromStageName(nextStage?.name);
 
-    // Otimista
     qc.setQueryData<Map<string, string | null>>(["client-stage-map"], (old) => {
       if (!old) return old;
       const next = new Map(old);
@@ -69,42 +86,71 @@ export function InlineStageSelect({ clientId, stageId, variant = "full", classNa
     invalidateJourneyStageCaches(qc, clientId);
   };
 
+  // Para não navegar quando estiver dentro de <a>/card clicável
+  const stop = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+    if ((e as any).preventDefault) (e as any).preventDefault();
+  };
+
   return (
     <div
-      className={cn("inline-flex items-center gap-1.5 min-w-0", className)}
-      onClick={(e) => e.stopPropagation()}
+      className={cn("inline-flex items-center min-w-0 max-w-full", className)}
+      onClick={stop}
+      onMouseDown={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
     >
-      <span
-        className="inline-flex size-5 items-center justify-center rounded-md shrink-0"
-        style={{ background: `${color}1a`, color }}
-        aria-hidden
-      >
-        <Route className="size-3" />
-      </span>
-      <select
-        value={stageId ?? ""}
-        onChange={(e) => onChange(e.target.value)}
-        onClick={(e) => e.stopPropagation()}
-        className={cn(
-          "min-w-0 max-w-full truncate rounded-md border bg-white px-2 py-1 text-[11px] font-bold uppercase tracking-wider cursor-pointer transition-colors",
-          variant === "full"
-            ? "border-slate-200 hover:border-indigo-300 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-100"
-            : "border-transparent hover:border-slate-200",
-        )}
-        style={{
-          color,
-          borderColor: variant === "full" ? `${color}40` : undefined,
-          background: variant === "full" ? `${color}0d` : undefined,
-        }}
-        title={current?.name || "Definir estágio"}
-      >
-        <option value="">Sem estágio</option>
-        {stages.map((s: any) => (
-          <option key={s.id} value={s.id}>
-            {s.name}
-          </option>
-        ))}
-      </select>
+      <Select value={stageId ?? NONE_VALUE} onValueChange={onChange}>
+        <SelectTrigger
+          onClick={stop}
+          className={cn(
+            "group h-7 gap-1.5 rounded-full border pl-2 pr-2 text-[11px] font-bold uppercase tracking-wider transition-all",
+            "focus:ring-2 focus:ring-offset-0 focus:ring-indigo-100",
+            variant === "full" ? "min-w-[160px]" : "min-w-[120px]",
+          )}
+          style={{
+            color,
+            borderColor: `${color}55`,
+            background: `${color}12`,
+          }}
+        >
+          <span
+            className="inline-flex size-4 items-center justify-center rounded-full shrink-0"
+            style={{ background: `${color}22`, color }}
+            aria-hidden
+          >
+            <Route className="size-2.5" />
+          </span>
+          <SelectValue placeholder="Sem estágio" className="truncate">
+            <span className="truncate">{current?.name ?? "Sem estágio"}</span>
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent
+          position="popper"
+          sideOffset={6}
+          className="z-[80] min-w-[220px]"
+          onClick={stop}
+        >
+          <SelectItem value={NONE_VALUE} className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Sem estágio
+          </SelectItem>
+          {stages.map((s: any) => (
+            <SelectItem
+              key={s.id}
+              value={s.id}
+              className="text-[11px] font-bold uppercase tracking-wider"
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className="inline-block size-2 rounded-full"
+                  style={{ background: s.color || "#64748b" }}
+                  aria-hidden
+                />
+                <span style={{ color: s.color || undefined }}>{s.name}</span>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
