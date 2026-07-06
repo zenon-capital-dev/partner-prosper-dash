@@ -41,6 +41,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageSize } from "@/hooks/usePageSize";
+import { InlineStageSelect } from "@/components/clients/InlineStageSelect";
 
 type SortKey = "name" | "revenue" | "created" | "health";
 type SortDir = "asc" | "desc";
