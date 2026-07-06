@@ -90,7 +90,7 @@ export default function Clients() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, dateRange, view]);
+  }, [debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, dateRange, view, stageIds]);
 
   useEffect(() => {
     try {
