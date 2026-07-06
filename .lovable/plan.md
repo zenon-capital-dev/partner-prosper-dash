@@ -1,46 +1,69 @@
-Vou tratar os 5 pontos do print em sequência. Antes de codar, preciso confirmar alguns detalhes para não fazer errado.
+# Filtro de estágio global + seletor inline em Vendas
 
-## 1. Dashboard/Início do Prestador — status coloridos nas demandas
-Nos cards da tela "Demandas atribuídas" (print 1), aplicar cor semântica no badge de status + borda lateral do card:
-- **Vermelho** → SLA vencido (data limite passou) OU status "atrasado"
-- **Âmbar** → SLA próximo do vencimento (≤ 3 dias) OU "aguardando cliente" há muito tempo
-- **Azul** → "em andamento" no prazo
-- **Cinza** → "aguardando início"
-- **Verde** → "concluído"
+## Objetivo
 
-Escopo: `src/pages/ProviderPanel.tsx` (lista de demandas). Sem mudança de lógica de negócio.
+- Ter **um único filtro de estágio da esteira** reutilizável, presente em Clientes, Vendas, Metas Comerciais, Demandas e Esteira.
+- Poder mudar o estágio de um cliente **direto do card/linha em qualquer aba** (não só em Clientes), sem abrir o dossiê.
+- Toda alteração reflete em tempo real nas outras abas.
+- Não perder histórico: Metas continuam medindo corretamente mesmo quando o estágio muda depois.
 
-## 2. Prestador não consegue lançar "Entrega" (print 2)
-Na tela de detalhe da demanda, aba **Entregas**, o prestador só vê "Nenhuma entrega formalizada" e não tem botão para criar. Vou habilitar o botão "Nova entrega" para o prestador responsável pela demanda, respeitando RLS (`client_products.provider_id = auth.uid()` ou responsável). Preciso confirmar 1 coisa:
+## O que muda
 
-**Pergunta:** a entrega precisa passar por aprovação do admin antes de virar "entregue", ou o prestador marca direto como entregue e o cliente/admin só visualiza?
+### 1. Componente único de filtro `StageFilter`
 
-## 3. Portal do Cliente — pasta "TODOS OS DOC" (print 3)
-Na tela de Documentos do cliente, além das pastas por categoria (FATURAMENTO FISCAL, GERENCIAL, SALES…), adicionar uma pasta virtual fixa no topo chamada **"Todos os documentos"** que lista todos os arquivos do cliente independente da categoria, ordenados por data desc. É só uma view agregada — não cria pasta física no storage.
+Novo `src/components/filters/StageFilter.tsx` — chip com contador + dropdown multi-seleção de estágios (busca `client_journey_stages` uma única vez, cache global). Usado em:
 
-Escopo: `src/pages/ClientPortal*` / componente de documentos do cliente.
+- Clientes (substitui o filtro atual)
+- Vendas — filtra pelo estágio **atual do cliente** da venda
+- Metas Comerciais — mesmo filtro, aplicado sobre as vendas usadas no cálculo
+- Demandas — filtra pelo estágio do cliente da demanda
+- Esteira — já usa estágios, só padroniza o visual
 
-## 4. Admin — flag "Venda finalizada" vs "Em negociação" (print 4)
-Hoje toda venda cadastrada já entra no fluxo (gera pendências, aparece em "atuar no cliente"). Precisa separar **projeção** de **venda efetivada**.
+### 2. Seletor inline em Vendas
 
-Proposta:
-- Adicionar coluna `is_finalized boolean default false` (ou usar um enum `sale_stage`: `negociacao | finalizada | perdida`) na tabela `sales`.
-- Cards, esteira, financeiro, dashboards do admin passam a **ignorar** vendas com `is_finalized=false` nas métricas de "a atuar / pendências / receita a realizar".
-- Vendas em negociação aparecem apenas em uma aba/filtro **"Pipeline / Em negociação"**.
-- Botão "Finalizar venda" no detalhe da venda muda a flag e dispara a geração das parcelas/comissões/tarefas (o que hoje acontece na criação).
+- No menu de ações "..." de cada venda (o mesmo da print) adiciono um sub-item **"Mover estágio →"** com a lista de estágios.
+- No card/linha, ao lado do badge do parceiro, mostro uma pílula pequena com o estágio atual (mesmo componente `InlineStageSelect` já corrigido em Clientes), portalizado, sem abrir a venda.
+- Mudar por ali atualiza `clients.journey_stage_id` do cliente da venda → reflete em Clientes, Demandas, Esteira e Metas automaticamente (invalidação de cache já existe em `invalidateJourneyStageCaches`).
 
-**Pergunta:** vendas já existentes hoje devem ser marcadas como `finalizada` (mantém tudo como está) ou como `em negociação` (você revisa uma a uma)?
+### 3. "Itens por página" onde falta
 
-## 5. Central Financeira — filtro por mês fechado (print 5)
-Substituir/complementar o seletor atual ("Mês atual", "Últimos 30", etc.) por um **seletor de mês** (Junho/2026, Julho/2026, Agosto/2026…) que filtra todos os KPIs, gráficos e abas da Central por competência daquele mês fechado. Mantém "Mês atual" como opção default.
+- Padronizar `PaginationControl` (10/25/50/Todos) em Vendas, Metas, Demandas e Leads — hoje algumas abas não têm ou não persistem a escolha.
 
-Escopo: `src/pages/CentralFinanceira*` ou equivalente.
+### 4. Histórico de estágio (para Metas não mentirem)
 
----
+Hoje `clients.journey_stage_id` é sobrescrito. Se uma venda foi fechada em Junho quando o cliente estava em "Prospecção" e hoje está em "Ativo", a Meta de Junho mostra "Ativo" — errado.
 
-## Ordem de execução sugerida
-1. Rápidos e independentes: (1) cores no dashboard prestador, (3) pasta "Todos os documentos", (5) filtro por mês.
-2. Médio: (2) liberar entrega para prestador.
-3. Maior impacto (schema + várias telas): (4) flag venda finalizada.
+Solução: **snapshot do estágio no momento da venda**.
 
-Posso começar pelos 3 rápidos em paralelo enquanto você responde as 2 perguntas (item 2 e 4). Confirma?
+- Adicionar coluna `stage_id_at_sale uuid` em `sales` (nullable, sem FK obrigatória).
+- Preencher automaticamente no insert/update (trigger) com o `journey_stage_id` atual do cliente quando a venda é marcada como `concluida`.
+- Metas passam a agrupar/filtrar por `stage_id_at_sale` (fallback para o estágio atual se null, para vendas antigas).
+- Já existe a tabela `client_stage_history` — uso ela para auditoria e para reconstruir estágio "na data X" se você quiser relatórios retroativos depois.
+
+Assim: mudar o estágio **agora** não altera o número histórico de Junho, mas altera o filtro de Clientes/Vendas em aberto. É o comportamento correto de CRM.
+
+## Detalhes técnicos
+
+- `StageFilter` recebe `value: string[]`, `onChange`, opcional `showCounts` que conta ocorrências no dataset atual.
+- `InlineStageSelect` (já refeito com shadcn Select portalizado) é reusado em Vendas — só passo `clientId` da venda.
+- Migração:
+  ```sql
+  ALTER TABLE public.sales ADD COLUMN stage_id_at_sale uuid;
+  -- trigger BEFORE INSERT/UPDATE que copia clients.journey_stage_id
+  -- quando NEW.status = 'concluida' e stage_id_at_sale IS NULL
+  ```
+- Invalidação: qualquer mudança de estágio invalida `["clients"]`, `["sales"]`, `["demands"]`, `["goals"]`, `["client-stage-map"]`.
+
+## Ordem de execução
+
+1. Criar `StageFilter` e trocar em Clientes (baseline visual).
+2. Migração `stage_id_at_sale` + trigger.
+3. Vendas: filtro no topo + `InlineStageSelect` no card e no menu "...".
+4. Metas: trocar filtro interno pelo `StageFilter`, usar `stage_id_at_sale`.
+5. Demandas e Esteira: aplicar `StageFilter`.
+6. `PaginationControl` (10/25/50/Todos) onde falta.
+7. Teste manual: mudar estágio em cada aba e conferir reflexo nas outras + número da Meta do mês anterior não muda.
+
+## Ponto que preciso confirmar
+
+Para a Meta, o snapshot deve travar **quando a venda vira `concluida`** (minha proposta) ou **na data em que a venda foi criada**? A primeira é a que faz sentido pra faturamento; confirma?
