@@ -742,7 +742,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                       <SelectTrigger className="h-11 bg-white border-slate-200 shadow-sm rounded-xl">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl">
+                      <SelectContent position="popper" sideOffset={6} className="rounded-xl">
                         <SelectItem value="pendente" className="text-amber-600 font-semibold">Pendente</SelectItem>
                         <SelectItem value="em_andamento" className="text-blue-600 font-semibold">Em andamento</SelectItem>
                         <SelectItem value="concluida" className="text-emerald-600 font-semibold">Finalizada</SelectItem>

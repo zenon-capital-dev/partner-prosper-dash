@@ -41,6 +41,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageSize } from "@/hooks/usePageSize";
+import { InlineStageSelect } from "@/components/clients/InlineStageSelect";
 
 type SortKey = "name" | "revenue" | "created" | "health";
 type SortDir = "asc" | "desc";
@@ -90,7 +91,7 @@ export default function Clients() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, dateRange, view]);
+  }, [debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, salesFilter, dateRange, view, stageIds]);
 
   useEffect(() => {
     try {
@@ -797,6 +798,10 @@ export default function Clients() {
                     <RiskBadge risk={c._risk} overdue={c._overdue} />
                   </div>
 
+                  <div className="mb-3">
+                    <InlineStageSelect clientId={c.id} stageId={c.journey_stage_id} />
+                  </div>
+
                   <div className="space-y-2.5 text-xs mb-4">
                     {c.email && (
                       <div className="flex items-center gap-2 text-slate-500 truncate">
@@ -930,7 +935,12 @@ export default function Clients() {
                           {c.email && <Mail className="size-3" />}
                         </div>
                       </td>
-                      <td className="px-4 py-3.5"><StatusBadge status={c.status} /></td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex flex-col gap-1.5">
+                          <StatusBadge status={c.status} />
+                          <InlineStageSelect clientId={c.id} stageId={c.journey_stage_id} variant="compact" />
+                        </div>
+                      </td>
                       <td className="px-4 py-3.5"><HealthBar value={c._health} /></td>
                       <td className="px-4 py-3.5"><RiskBadge risk={c._risk} overdue={c._overdue} /></td>
                       <td className="px-4 py-3.5 max-w-[180px]">
