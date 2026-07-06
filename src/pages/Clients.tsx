@@ -798,6 +798,10 @@ export default function Clients() {
                     <RiskBadge risk={c._risk} overdue={c._overdue} />
                   </div>
 
+                  <div className="mb-3">
+                    <InlineStageSelect clientId={c.id} stageId={c.journey_stage_id} />
+                  </div>
+
                   <div className="space-y-2.5 text-xs mb-4">
                     {c.email && (
                       <div className="flex items-center gap-2 text-slate-500 truncate">
