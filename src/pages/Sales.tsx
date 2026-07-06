@@ -1164,6 +1164,11 @@ export default function Sales() {
                                 <HandCoins className="size-3.5 mr-2 text-emerald-600" /> Registrar Recebimento
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
+                              <StageQuickMenu
+                                clientId={s.clients?.id ?? s.client_id}
+                                currentStageId={clientStageMap?.get(s.clients?.id ?? s.client_id ?? "") ?? null}
+                              />
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem disabled={s.status === "concluida"} onClick={() => updateStatus(s, "concluida")}>
                                 <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" /> Marcar finalizada
                               </DropdownMenuItem>
