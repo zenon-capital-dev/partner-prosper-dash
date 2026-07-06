@@ -1229,14 +1229,21 @@ export default function Sales() {
                       )}
                       {visibleCols.client && (
                         <Td>
-                          <div className="min-w-0">
+                          <div className="min-w-0 space-y-1">
                             <Link
                               className="font-semibold text-slate-900 truncate hover:text-indigo-700 transition-colors text-left block"
                               to={s.clients?.id ? `/clientes/${s.clients.id}` : "#"}
                             >
                               {s.clients?.full_name ?? "—"}
                             </Link>
-                            <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
+                            <p className="text-[11px] font-medium text-slate-500 truncate">{s.clients?.company || "Conta Pessoal"}</p>
+                            {s.clients?.id && (
+                              <InlineStageSelect
+                                clientId={s.clients.id}
+                                stageId={clientStageMap?.get(s.clients.id) ?? null}
+                                variant="compact"
+                              />
+                            )}
                           </div>
                         </Td>
                       )}
