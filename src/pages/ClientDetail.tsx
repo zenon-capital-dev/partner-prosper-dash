@@ -89,8 +89,11 @@ export default function ClientDetail() {
   const [notesDraft, setNotesDraft] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
   const [interactionOpen, setInteractionOpen] = useState(false);
-  const [interactionTitle, setInteractionTitle] = useState("");
-  const [interactionDesc, setInteractionDesc] = useState("");
+  const [interactionKind, setInteractionKind] = useState<InteractionKind>("abordado");
+  const [interactionChannel, setInteractionChannel] = useState<string>("whatsapp");
+  const [interactionSummary, setInteractionSummary] = useState("");
+  const [interactionNextDate, setInteractionNextDate] = useState("");
+  const [interactionNextNote, setInteractionNextNote] = useState("");
   const [savingInteraction, setSavingInteraction] = useState(false);
   const [companyOpen, setCompanyOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<any>(null);
