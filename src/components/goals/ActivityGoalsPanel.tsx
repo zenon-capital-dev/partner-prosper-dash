@@ -110,7 +110,10 @@ export function ActivityGoalsPanel() {
     const ch = supabase
       .channel(`activity-goals-live:${period}:${startKey}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "client_interactions" },
-        () => qc.invalidateQueries({ queryKey: ["activity-counts", startKey, ymd(end)] }))
+        () => {
+          qc.invalidateQueries({ queryKey: ["activity-counts", startKey, ymd(end)] });
+          qc.invalidateQueries({ queryKey: ["activity-clients-total"] });
+        })
       .on("postgres_changes", { event: "*", schema: "public", table: "activity_goals" },
         () => qc.invalidateQueries({ queryKey: ["activity-goals", period, startKey] }))
       .subscribe();
