@@ -455,6 +455,7 @@ function ClientInteractionDialog({
 }) {
   const qc = useQueryClient();
   const [channel, setChannel] = useState<Channel>("whatsapp");
+  const [kind, setKind] = useState<InteractionKind>("abordado");
   const [summary, setSummary] = useState("");
   const [occurredAt, setOccurredAt] = useState<string>(
     formatBR(new Date(), "yyyy-MM-dd'T'HH:mm")
