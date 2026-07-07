@@ -47,6 +47,36 @@ export type Database = {
         }
         Relationships: []
       }
+      activity_goals: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          period_kind: string
+          period_start: string
+          target_value: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          period_kind: string
+          period_start: string
+          target_value?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          period_kind?: string
+          period_start?: string
+          target_value?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       activity_logs: {
         Row: {
           action: string
@@ -434,6 +464,7 @@ export type Database = {
           created_by: string | null
           done_at: string | null
           id: string
+          kind: string
           next_action_at: string | null
           next_action_note: string | null
           occurred_at: string
@@ -448,6 +479,7 @@ export type Database = {
           created_by?: string | null
           done_at?: string | null
           id?: string
+          kind?: string
           next_action_at?: string | null
           next_action_note?: string | null
           occurred_at?: string
@@ -462,6 +494,7 @@ export type Database = {
           created_by?: string | null
           done_at?: string | null
           id?: string
+          kind?: string
           next_action_at?: string | null
           next_action_note?: string | null
           occurred_at?: string
