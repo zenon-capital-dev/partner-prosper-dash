@@ -16,6 +16,7 @@ import {
 import { formatBRL, initials, formatDoc } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
+import { StageQuickMenu } from "@/components/clients/StageQuickMenu";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
