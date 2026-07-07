@@ -229,12 +229,12 @@ export default function ClientDetail() {
   const { data: interactions = [] } = useQuery({
     queryKey: ["client-interactions", id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("client_timeline")
+      const { data } = await (supabase as any)
+        .from("client_interactions")
         .select("*")
         .eq("client_id", id!)
-        .order("created_at", { ascending: false })
-        .limit(10);
+        .order("occurred_at", { ascending: false })
+        .limit(50);
       return data ?? [];
     },
     enabled: !!id && activeTab === "relacionamento",
