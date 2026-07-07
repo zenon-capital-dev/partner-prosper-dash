@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { PageHero } from "@/components/PageHero";
 import { ActivityGoalsPanel } from "@/components/goals/ActivityGoalsPanel";
+import { ActivityMatrixPanel } from "@/components/goals/ActivityMatrixPanel";
 import { paymentSaleIsFinalized } from "@/lib/financial";
 import { StageFilterBar } from "@/components/filters/StageFilterBar";
 import { useStageMatcher } from "@/hooks/useSharedStageFilter";
