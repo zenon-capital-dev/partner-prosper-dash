@@ -327,7 +327,6 @@ export default function SalesGoals() {
                 ? (stageId ? (stageCounts?.[stageId] ?? 0) : 0)
                 : ((actual as any)?.[g.goal_type] ?? 0);
               const pct = g.target_value > 0 ? Math.min(100, (realized / g.target_value) * 100) : 0;
-              const pct = g.target_value > 0 ? Math.min(100, (realized / g.target_value) * 100) : 0;
               return (
                 <Card key={g.id} className="p-4 bg-white border-slate-200/70">
                   <div className="flex items-start justify-between gap-2">
