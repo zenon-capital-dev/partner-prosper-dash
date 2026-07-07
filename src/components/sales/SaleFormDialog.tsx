@@ -53,6 +53,63 @@ function Field({ label, required, children, className }: { label: string; requir
   );
 }
 
+function StageForClientField({ clientId }: { clientId?: string | null }) {
+  const qc = useQueryClient();
+  const { data: stages = [] } = useJourneyStages();
+  const { data: currentStageId } = useQuery({
+    queryKey: ["sale-form-client-stage", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("clients")
+        .select("journey_stage_id")
+        .eq("id", clientId)
+        .maybeSingle();
+      return (data?.journey_stage_id as string | null) ?? null;
+    },
+  });
+
+  async function change(newId: string | null) {
+    if (!clientId) {
+      toast.error("Selecione um cliente primeiro.");
+      return;
+    }
+    if ((currentStageId ?? null) === newId) return;
+    const nextStage = stages.find((s) => s.id === newId);
+    const { error } = await supabase.from("clients").update({ journey_stage_id: newId } as any).eq("id", clientId);
+    if (error) { toast.error(error.message); return; }
+    const derived = deriveClientStatusFromStageName(nextStage?.name);
+    toast.success(`Estágio movido para "${nextStage?.name ?? "Sem estágio"}"${derived ? ` · ${derived.replace(/_/g, " ")}` : ""}`);
+    qc.invalidateQueries({ queryKey: ["sale-form-client-stage", clientId] });
+    invalidateJourneyStageCaches(qc, clientId);
+  }
+
+  return (
+    <Field label="Estágio do Cliente">
+      <Select
+        value={currentStageId ?? "__none__"}
+        onValueChange={(v) => change(v === "__none__" ? null : v)}
+        disabled={!clientId}
+      >
+        <SelectTrigger className="h-11 bg-white border-slate-200 shadow-sm rounded-xl">
+          <SelectValue placeholder={clientId ? "Selecionar estágio" : "Selecione um cliente"} />
+        </SelectTrigger>
+        <SelectContent position="popper" sideOffset={6} className="rounded-xl">
+          <SelectItem value="__none__" className="text-slate-500 font-semibold">Sem estágio</SelectItem>
+          {stages.map((s) => (
+            <SelectItem key={s.id} value={s.id} className="font-semibold" style={{ color: s.color || undefined }}>
+              {s.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <p className="mt-1.5 text-[10.5px] text-slate-500 leading-snug">
+        Reflete o estágio na esteira do cliente — replica em Clientes, Vendas, Demandas e Metas.
+      </p>
+    </Field>
+  );
+}
+
 export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }: Props) {
   const { user } = useAuth();
   const qc = useQueryClient();
