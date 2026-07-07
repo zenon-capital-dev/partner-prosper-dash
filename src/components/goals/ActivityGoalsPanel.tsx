@@ -60,22 +60,51 @@ export function ActivityGoalsPanel() {
     },
   });
 
-  const { data: counts = {} } = useQuery({
+  // Contagem de interações + clientes únicos no período
+  const { data: agg = { counts: {} as Record<string, number>, clients: {} as Record<string, number> } } = useQuery({
     queryKey: ["activity-counts", startKey, ymd(end)],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("client_interactions")
-        .select("kind, occurred_at")
+        .select("kind, client_id, occurred_at")
         .gte("occurred_at", start.toISOString())
         .lt("occurred_at", end.toISOString())
-        .limit(5000);
+        .limit(10000);
       if (error) throw error;
-      const out: Record<string, number> = {};
-      (data ?? []).forEach((r: any) => { out[r.kind] = (out[r.kind] ?? 0) + 1; });
-      return out;
+      const counts: Record<string, number> = {};
+      const clientsSet: Record<string, Set<string>> = {};
+      (data ?? []).forEach((r: any) => {
+        counts[r.kind] = (counts[r.kind] ?? 0) + 1;
+        (clientsSet[r.kind] ??= new Set()).add(r.client_id);
+      });
+      const clients: Record<string, number> = {};
+      Object.entries(clientsSet).forEach(([k, s]) => { clients[k] = s.size; });
+      return { counts, clients };
     },
     refetchInterval: 60_000,
   });
+
+  // Snapshot total de clientes por tipo (todo o histórico — mostra "onde estamos hoje")
+  const { data: totalsByKind = {} as Record<string, number> } = useQuery({
+    queryKey: ["activity-clients-total"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("client_interactions")
+        .select("kind, client_id")
+        .limit(50000);
+      if (error) throw error;
+      const setMap: Record<string, Set<string>> = {};
+      (data ?? []).forEach((r: any) => { (setMap[r.kind] ??= new Set()).add(r.client_id); });
+      const out: Record<string, number> = {};
+      Object.entries(setMap).forEach(([k, s]) => { out[k] = s.size; });
+      return out;
+    },
+    refetchInterval: 120_000,
+  });
+
+  const counts = agg.counts;
+  const clientsInPeriod = agg.clients;
+
 
   useEffect(() => {
     const ch = supabase
