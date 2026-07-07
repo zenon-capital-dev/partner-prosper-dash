@@ -48,6 +48,8 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { INTERACTION_KINDS, kindMeta, type InteractionKind } from "@/lib/interaction-kinds";
 import { PageHeader } from "@/components/PageHeader";
 import { ClientJourneyBadge } from "@/components/clients/ClientJourneyBadge";
 
@@ -87,8 +89,11 @@ export default function ClientDetail() {
   const [notesDraft, setNotesDraft] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
   const [interactionOpen, setInteractionOpen] = useState(false);
-  const [interactionTitle, setInteractionTitle] = useState("");
-  const [interactionDesc, setInteractionDesc] = useState("");
+  const [interactionKind, setInteractionKind] = useState<InteractionKind>("abordado");
+  const [interactionChannel, setInteractionChannel] = useState<string>("whatsapp");
+  const [interactionSummary, setInteractionSummary] = useState("");
+  const [interactionNextDate, setInteractionNextDate] = useState("");
+  const [interactionNextNote, setInteractionNextNote] = useState("");
   const [savingInteraction, setSavingInteraction] = useState(false);
   const [companyOpen, setCompanyOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<any>(null);
@@ -108,27 +113,33 @@ export default function ClientDetail() {
     qc.invalidateQueries({ queryKey: ["client", id] });
   };
   const saveInteraction = async () => {
-    if (!id || !interactionTitle.trim()) return toast.error("Informe um título");
+    if (!id || !interactionSummary.trim()) return toast.error("Descreva o que aconteceu");
     setSavingInteraction(true);
     const uid = await getCurrentUserId();
-    const { error } = await supabase.from("client_timeline").insert({
+    const { error } = await (supabase as any).from("client_interactions").insert({
       client_id: id,
-      user_id: uid,
-      event_type: "note_added",
-      title: interactionTitle.trim(),
-      description: interactionDesc.trim() || null,
+      kind: interactionKind,
+      channel: interactionChannel,
+      summary: interactionSummary.trim(),
+      occurred_at: new Date().toISOString(),
+      next_action_at: interactionNextDate || null,
+      next_action_note: interactionNextNote.trim() || null,
+      created_by: uid,
     });
     setSavingInteraction(false);
-    if (error) return toast.error("Erro ao salvar registro");
+    if (error) return toast.error(error.message || "Erro ao salvar registro");
     toast.success("Interação registrada");
-    setInteractionTitle("");
-    setInteractionDesc("");
+    setInteractionSummary("");
+    setInteractionNextDate("");
+    setInteractionNextNote("");
     setInteractionOpen(false);
     qc.invalidateQueries({ queryKey: ["client", id] });
     qc.invalidateQueries({ queryKey: ["client-history", id] });
     qc.invalidateQueries({ queryKey: ["client-interactions", id] });
     qc.invalidateQueries({ queryKey: ["client-timeline", id] });
+    qc.invalidateQueries({ queryKey: ["activity-counts"] });
   };
+
 
   const { data: client, isLoading: clientLoading } = useQuery({
     queryKey: ["client", id],
@@ -218,12 +229,12 @@ export default function ClientDetail() {
   const { data: interactions = [] } = useQuery({
     queryKey: ["client-interactions", id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("client_timeline")
+      const { data } = await (supabase as any)
+        .from("client_interactions")
         .select("*")
         .eq("client_id", id!)
-        .order("created_at", { ascending: false })
-        .limit(10);
+        .order("occurred_at", { ascending: false })
+        .limit(50);
       return data ?? [];
     },
     enabled: !!id && activeTab === "relacionamento",
@@ -593,24 +604,38 @@ export default function ClientDetail() {
                   <Plus className="size-3.5 mr-1" /> Novo Registro
                 </Button>
               </div>
+              {/* Resumo do relacionamento */}
+              <ClientRelationshipSummary interactions={interactions} />
+
               {interactions.length === 0 ? (
                 <div className="p-8 text-center text-sm text-muted-foreground border border-dashed border-border/40 rounded-xl">
                   Nenhuma interação registrada ainda. Clique em "Novo Registro" para começar o histórico de relacionamento.
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {interactions.map((it: any) => (
-                    <div key={it.id} className="flex gap-3 p-3 rounded-xl bg-muted/30 border border-border/40">
-                      <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <MessageSquare className="size-4 text-primary" />
+                  {interactions.map((it: any) => {
+                    const km = kindMeta(it.kind);
+                    return (
+                      <div key={it.id} className="flex gap-3 p-3 rounded-xl bg-muted/30 border border-border/40">
+                        <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <MessageSquare className="size-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <Badge variant="outline" className={cn("text-[10px]", km.color)}>{km.label}</Badge>
+                            {it.channel && <Badge variant="outline" className="text-[10px] capitalize">{it.channel}</Badge>}
+                            <span className="text-[10px] text-muted-foreground/70">{formatDate(it.occurred_at || it.created_at)}</span>
+                          </div>
+                          <p className="text-xs text-foreground/90 whitespace-pre-wrap">{it.summary || it.title}</p>
+                          {it.next_action_at && (
+                            <p className="text-[11px] text-indigo-700 mt-1.5">
+                              → {it.next_action_note || "Próxima ação"} <b>({formatDate(it.next_action_at)})</b>
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold truncate">{it.title}</p>
-                        {it.description && <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{it.description}</p>}
-                        <p className="text-[10px] text-muted-foreground/70 mt-1">{formatDate(it.created_at)}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>}
@@ -667,13 +692,56 @@ export default function ClientDetail() {
       </Dialog>
 
       <Dialog open={interactionOpen} onOpenChange={setInteractionOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
             <DialogTitle>Novo Registro de Interação</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <Input placeholder="Título (ex: Ligação, Reunião, E-mail...)" value={interactionTitle} onChange={(e) => setInteractionTitle(e.target.value)} />
-            <Textarea rows={6} placeholder="Detalhes da interação..." value={interactionDesc} onChange={(e) => setInteractionDesc(e.target.value)} />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo</label>
+                <Select value={interactionKind} onValueChange={(v) => setInteractionKind(v as InteractionKind)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {INTERACTION_KINDS.map((k) => (
+                      <SelectItem key={k.value} value={k.value}>
+                        <span className="inline-flex items-center gap-2">
+                          <span className={cn("size-2 rounded-full", k.dot)} />{k.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Canal</label>
+                <Select value={interactionChannel} onValueChange={setInteractionChannel}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                    <SelectItem value="ligacao">Ligação</SelectItem>
+                    <SelectItem value="email">E-mail</SelectItem>
+                    <SelectItem value="reuniao">Reunião</SelectItem>
+                    <SelectItem value="presencial">Presencial</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">O que aconteceu</label>
+              <Textarea rows={5} placeholder="Resumo da conversa, próximos passos combinados..." value={interactionSummary} onChange={(e) => setInteractionSummary(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/40">
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">📅 Próxima ação</label>
+                <Input type="date" value={interactionNextDate} onChange={(e) => setInteractionNextDate(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">O que fazer</label>
+                <Input placeholder="Ex: ligar para confirmar contrato" value={interactionNextNote} onChange={(e) => setInteractionNextNote(e.target.value)} />
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setInteractionOpen(false)}>Cancelar</Button>
@@ -684,6 +752,33 @@ export default function ClientDetail() {
     </div>
   );
 }
+
+function ClientRelationshipSummary({ interactions }: { interactions: any[] }) {
+  const now = new Date();
+  const startOfDay = new Date(now); startOfDay.setHours(0, 0, 0, 0);
+  const startOfWeek = new Date(startOfDay); startOfWeek.setDate(startOfDay.getDate() - ((startOfDay.getDay() + 6) % 7));
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const count = (from: Date) => interactions.filter((i) => new Date(i.occurred_at || i.created_at) >= from).length;
+  const items = [
+    { label: "Hoje", value: count(startOfDay), color: "bg-emerald-50 text-emerald-700 border-emerald-100" },
+    { label: "Semana", value: count(startOfWeek), color: "bg-blue-50 text-blue-700 border-blue-100" },
+    { label: "Mês", value: count(startOfMonth), color: "bg-violet-50 text-violet-700 border-violet-100" },
+    { label: "Ano", value: count(startOfYear), color: "bg-indigo-50 text-indigo-700 border-indigo-100" },
+    { label: "Total", value: interactions.length, color: "bg-slate-50 text-slate-700 border-slate-200" },
+  ];
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+      {items.map((it) => (
+        <div key={it.label} className={cn("rounded-lg border p-2 text-center", it.color)}>
+          <div className="text-[9px] font-bold uppercase tracking-widest opacity-75">{it.label}</div>
+          <div className="text-lg font-black font-mono">{it.value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
 function StatusCluster({ label, value, tone }: { label: string; value?: string; tone: 'success' | 'warning' | 'danger' | 'info' }) {
   const colors = {

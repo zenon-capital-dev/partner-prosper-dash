@@ -42,6 +42,7 @@ import { TableSkeleton } from "@/components/TableSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageSize } from "@/hooks/usePageSize";
 import { InlineStageSelect } from "@/components/clients/InlineStageSelect";
+import { QuickTaskDialog } from "@/components/tasks/QuickTaskDialog";
 
 type SortKey = "name" | "revenue" | "created" | "health";
 type SortDir = "asc" | "desc";
@@ -60,6 +61,7 @@ export default function Clients() {
   const debouncedSearch = useDebounce(search, 400);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const [taskDialog, setTaskDialog] = useState<{ id: string; name: string } | null>(null);
   const [showFilters, setShowFilters] = useState<boolean>(saved.showFilters ?? false);
   const [view, setView] = useState<"grid" | "table">(saved.view ?? "grid");
   const [currentPage, setCurrentPage] = useState<number>(saved.currentPage ?? 1);
@@ -775,7 +777,7 @@ export default function Clients() {
                             <FileText className="size-3.5 mr-2" /> Documentos
                           </DropdownMenuItem>
                           {canWrite && (
-                            <DropdownMenuItem onClick={() => navigate(`/agenda?new=1&client=${c.id}`)}>
+                            <DropdownMenuItem onClick={() => setTaskDialog({ id: c.id, name: c.full_name })}>
                               <CalendarClock className="size-3.5 mr-2" /> Nova tarefa
                             </DropdownMenuItem>
                           )}
@@ -989,7 +991,7 @@ export default function Clients() {
                             <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}><Eye className="size-3.5 mr-2" /> Ver perfil</DropdownMenuItem>
                             {canWrite && <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="size-3.5 mr-2" /> Editar cadastro</DropdownMenuItem>}
                             <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=financeiro`)}><CreditCard className="size-3.5 mr-2" /> Financeiro</DropdownMenuItem>
-                            {canWrite && <DropdownMenuItem onClick={() => navigate(`/agenda?new=1&client=${c.id}`)}><CalendarClock className="size-3.5 mr-2" /> Nova tarefa</DropdownMenuItem>}
+                            {canWrite && <DropdownMenuItem onClick={() => setTaskDialog({ id: c.id, name: c.full_name })}><CalendarClock className="size-3.5 mr-2" /> Nova tarefa</DropdownMenuItem>}
                             {canWrite && <>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => handleArchive(c)}>
@@ -1019,6 +1021,13 @@ export default function Clients() {
           onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}
           client={editing}
           onCreated={() => { qc.invalidateQueries({ queryKey: ["clients-admin-list"] }); qc.invalidateQueries({ queryKey: ["ref:clients"] }); }}
+        />
+
+        <QuickTaskDialog
+          open={!!taskDialog}
+          onOpenChange={(v) => { if (!v) setTaskDialog(null); }}
+          clientId={taskDialog?.id}
+          clientName={taskDialog?.name}
         />
 
       </div>

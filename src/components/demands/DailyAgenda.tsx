@@ -27,6 +27,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { INTERACTION_KINDS, kindMeta, type InteractionKind } from "@/lib/interaction-kinds";
 
 type Channel = "whatsapp" | "ligacao" | "email" | "reuniao" | "presencial" | "outro";
 
@@ -454,6 +455,7 @@ function ClientInteractionDialog({
 }) {
   const qc = useQueryClient();
   const [channel, setChannel] = useState<Channel>("whatsapp");
+  const [kind, setKind] = useState<InteractionKind>("abordado");
   const [summary, setSummary] = useState("");
   const [occurredAt, setOccurredAt] = useState<string>(
     formatBR(new Date(), "yyyy-MM-dd'T'HH:mm")
@@ -467,6 +469,7 @@ function ClientInteractionDialog({
       const payload: any = {
         client_id: client.id,
         channel,
+        kind,
         summary,
         occurred_at: toBR(occurredAt).toISOString(),
         next_action_at: nextActionAt || null,
@@ -478,6 +481,7 @@ function ClientInteractionDialog({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client-interactions"] });
+      qc.invalidateQueries({ queryKey: ["activity-counts"] });
       toast.success("Atendimento registrado");
       setSummary(""); setNextActionNote(""); setNextActionAt("");
     },
@@ -520,7 +524,23 @@ function ClientInteractionDialog({
           <div className="flex items-center gap-2 text-sm font-semibold text-indigo-800">
             <Plus className="size-4" /> Novo atendimento
           </div>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs font-medium text-slate-600">Tipo da atividade</label>
+              <Select value={kind} onValueChange={(v) => setKind(v as InteractionKind)}>
+                <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {INTERACTION_KINDS.map((k) => (
+                    <SelectItem key={k.value} value={k.value}>
+                      <span className="inline-flex items-center gap-2">
+                        <span className={cn("size-2 rounded-full", k.dot)} />
+                        {k.label}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <label className="text-xs font-medium text-slate-600">Canal</label>
               <Select value={channel} onValueChange={(v) => setChannel(v as Channel)}>
@@ -605,6 +625,7 @@ function ClientInteractionDialog({
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline" className={cn("text-[10px]", kindMeta(i.kind).color)}>{kindMeta(i.kind).label}</Badge>
                           <Badge variant="outline" className="text-[10px]">{meta.label}</Badge>
                           <span className="text-[11px] text-slate-400">
                             {formatBR(parseISO(i.occurred_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}

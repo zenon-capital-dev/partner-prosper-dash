@@ -17,6 +17,7 @@ import { Target, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { PageHero } from "@/components/PageHero";
+import { ActivityGoalsPanel } from "@/components/goals/ActivityGoalsPanel";
 import { paymentSaleIsFinalized } from "@/lib/financial";
 import { StageFilterBar } from "@/components/filters/StageFilterBar";
 import { useStageMatcher } from "@/hooks/useSharedStageFilter";
@@ -179,6 +180,10 @@ export default function SalesGoals() {
         title="Metas Comerciais"
         description="Converte a esteira de atendimento em números: leads → propostas → vendas."
       />
+
+      <ActivityGoalsPanel />
+
+
 
       <div className="flex flex-wrap items-center gap-2">
         <Label className="text-xs font-bold uppercase text-slate-600">Período</Label>
