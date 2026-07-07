@@ -242,6 +242,10 @@ export function ActivityGoalsPanel() {
                     </div>
                   </td>
                   <td className="text-right px-3 py-2 font-mono font-bold text-slate-900">{done}</td>
+                  <td className="text-right px-3 py-2 font-mono text-indigo-700">
+                    <span className="font-bold">{clientsInPeriod[k] ?? 0}</span>
+                    <span className="text-[10px] text-slate-400"> / {totalsByKind[k] ?? 0}</span>
+                  </td>
                   <td className="text-right px-3 py-2">
                     <Input
                       type="number" min={0}
