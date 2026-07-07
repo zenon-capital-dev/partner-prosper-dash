@@ -313,10 +313,20 @@ export default function SalesGoals() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {goals.map((g: any) => {
               const isCustom = typeof g.goal_type === "string" && g.goal_type.startsWith("custom:");
+              const isStage = typeof g.goal_type === "string" && g.goal_type.startsWith("stage:");
+              const stageId = isStage ? g.goal_type.slice("stage:".length) : null;
+              const stageMeta = stageId ? journeyStages.find((s) => s.id === stageId) : null;
               const t = isCustom
                 ? { label: g.goal_type.split(":").slice(2).join(":") || "Personalizado", isCurrency: g.goal_type.startsWith("custom:money:") }
+                : isStage
+                ? { label: `Clientes em ${stageMeta?.name ?? "estágio"}`, isCurrency: false }
                 : TYPES.find((x) => x.value === g.goal_type) ?? { label: g.goal_type, isCurrency: false };
-              const realized = isCustom ? Number(g.actual_value ?? 0) : ((actual as any)?.[g.goal_type] ?? 0);
+              const realized = isCustom
+                ? Number(g.actual_value ?? 0)
+                : isStage
+                ? (stageId ? (stageCounts?.[stageId] ?? 0) : 0)
+                : ((actual as any)?.[g.goal_type] ?? 0);
+              const pct = g.target_value > 0 ? Math.min(100, (realized / g.target_value) * 100) : 0;
               const pct = g.target_value > 0 ? Math.min(100, (realized / g.target_value) * 100) : 0;
               return (
                 <Card key={g.id} className="p-4 bg-white border-slate-200/70">
