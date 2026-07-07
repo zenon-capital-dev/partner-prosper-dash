@@ -27,6 +27,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { INTERACTION_KINDS, kindMeta, type InteractionKind } from "@/lib/interaction-kinds";
 
 type Channel = "whatsapp" | "ligacao" | "email" | "reuniao" | "presencial" | "outro";
 
