@@ -180,6 +180,10 @@ export default function SalesGoals() {
         description="Converte a esteira de atendimento em números: leads → propostas → vendas."
       />
 
+      <ActivityGoalsPanel />
+
+
+
       <div className="flex flex-wrap items-center gap-2">
         <Label className="text-xs font-bold uppercase text-slate-600">Período</Label>
         <Input type="month" value={month.slice(0, 7)} onChange={(e) => setMonth(e.target.value + "-01")} className="w-44" />
