@@ -753,6 +753,33 @@ export default function ClientDetail() {
   );
 }
 
+function ClientRelationshipSummary({ interactions }: { interactions: any[] }) {
+  const now = new Date();
+  const startOfDay = new Date(now); startOfDay.setHours(0, 0, 0, 0);
+  const startOfWeek = new Date(startOfDay); startOfWeek.setDate(startOfDay.getDate() - ((startOfDay.getDay() + 6) % 7));
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const count = (from: Date) => interactions.filter((i) => new Date(i.occurred_at || i.created_at) >= from).length;
+  const items = [
+    { label: "Hoje", value: count(startOfDay), color: "bg-emerald-50 text-emerald-700 border-emerald-100" },
+    { label: "Semana", value: count(startOfWeek), color: "bg-blue-50 text-blue-700 border-blue-100" },
+    { label: "Mês", value: count(startOfMonth), color: "bg-violet-50 text-violet-700 border-violet-100" },
+    { label: "Ano", value: count(startOfYear), color: "bg-indigo-50 text-indigo-700 border-indigo-100" },
+    { label: "Total", value: interactions.length, color: "bg-slate-50 text-slate-700 border-slate-200" },
+  ];
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+      {items.map((it) => (
+        <div key={it.label} className={cn("rounded-lg border p-2 text-center", it.color)}>
+          <div className="text-[9px] font-bold uppercase tracking-widest opacity-75">{it.label}</div>
+          <div className="text-lg font-black font-mono">{it.value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
 function StatusCluster({ label, value, tone }: { label: string; value?: string; tone: 'success' | 'warning' | 'danger' | 'info' }) {
   const colors = {
     success: 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-[0_1px_2px_rgba(16,185,129,0.05)]',
