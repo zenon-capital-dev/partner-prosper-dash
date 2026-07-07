@@ -113,27 +113,33 @@ export default function ClientDetail() {
     qc.invalidateQueries({ queryKey: ["client", id] });
   };
   const saveInteraction = async () => {
-    if (!id || !interactionTitle.trim()) return toast.error("Informe um título");
+    if (!id || !interactionSummary.trim()) return toast.error("Descreva o que aconteceu");
     setSavingInteraction(true);
     const uid = await getCurrentUserId();
-    const { error } = await supabase.from("client_timeline").insert({
+    const { error } = await (supabase as any).from("client_interactions").insert({
       client_id: id,
-      user_id: uid,
-      event_type: "note_added",
-      title: interactionTitle.trim(),
-      description: interactionDesc.trim() || null,
+      kind: interactionKind,
+      channel: interactionChannel,
+      summary: interactionSummary.trim(),
+      occurred_at: new Date().toISOString(),
+      next_action_at: interactionNextDate || null,
+      next_action_note: interactionNextNote.trim() || null,
+      created_by: uid,
     });
     setSavingInteraction(false);
-    if (error) return toast.error("Erro ao salvar registro");
+    if (error) return toast.error(error.message || "Erro ao salvar registro");
     toast.success("Interação registrada");
-    setInteractionTitle("");
-    setInteractionDesc("");
+    setInteractionSummary("");
+    setInteractionNextDate("");
+    setInteractionNextNote("");
     setInteractionOpen(false);
     qc.invalidateQueries({ queryKey: ["client", id] });
     qc.invalidateQueries({ queryKey: ["client-history", id] });
     qc.invalidateQueries({ queryKey: ["client-interactions", id] });
     qc.invalidateQueries({ queryKey: ["client-timeline", id] });
+    qc.invalidateQueries({ queryKey: ["activity-counts"] });
   };
+
 
   const { data: client, isLoading: clientLoading } = useQuery({
     queryKey: ["client", id],
