@@ -999,6 +999,12 @@ export default function Clients() {
                             {canWrite && <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="size-3.5 mr-2" /> Editar cadastro</DropdownMenuItem>}
                             <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=financeiro`)}><CreditCard className="size-3.5 mr-2" /> Financeiro</DropdownMenuItem>
                             {canWrite && <DropdownMenuItem onClick={() => setTaskDialog({ id: c.id, name: c.full_name })}><CalendarClock className="size-3.5 mr-2" /> Nova tarefa</DropdownMenuItem>}
+                            {canWrite && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <StageQuickMenu clientId={c.id} currentStageId={c.journey_stage_id} label="Mover estágio" />
+                              </>
+                            )}
                             {canWrite && <>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => handleArchive(c)}>
