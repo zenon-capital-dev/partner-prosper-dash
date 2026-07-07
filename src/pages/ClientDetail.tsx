@@ -692,13 +692,56 @@ export default function ClientDetail() {
       </Dialog>
 
       <Dialog open={interactionOpen} onOpenChange={setInteractionOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
             <DialogTitle>Novo Registro de Interação</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <Input placeholder="Título (ex: Ligação, Reunião, E-mail...)" value={interactionTitle} onChange={(e) => setInteractionTitle(e.target.value)} />
-            <Textarea rows={6} placeholder="Detalhes da interação..." value={interactionDesc} onChange={(e) => setInteractionDesc(e.target.value)} />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo</label>
+                <Select value={interactionKind} onValueChange={(v) => setInteractionKind(v as InteractionKind)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {INTERACTION_KINDS.map((k) => (
+                      <SelectItem key={k.value} value={k.value}>
+                        <span className="inline-flex items-center gap-2">
+                          <span className={cn("size-2 rounded-full", k.dot)} />{k.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Canal</label>
+                <Select value={interactionChannel} onValueChange={setInteractionChannel}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                    <SelectItem value="ligacao">Ligação</SelectItem>
+                    <SelectItem value="email">E-mail</SelectItem>
+                    <SelectItem value="reuniao">Reunião</SelectItem>
+                    <SelectItem value="presencial">Presencial</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">O que aconteceu</label>
+              <Textarea rows={5} placeholder="Resumo da conversa, próximos passos combinados..." value={interactionSummary} onChange={(e) => setInteractionSummary(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/40">
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">📅 Próxima ação</label>
+                <Input type="date" value={interactionNextDate} onChange={(e) => setInteractionNextDate(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">O que fazer</label>
+                <Input placeholder="Ex: ligar para confirmar contrato" value={interactionNextNote} onChange={(e) => setInteractionNextNote(e.target.value)} />
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setInteractionOpen(false)}>Cancelar</Button>
