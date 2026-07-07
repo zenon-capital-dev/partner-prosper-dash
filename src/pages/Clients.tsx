@@ -42,6 +42,7 @@ import { TableSkeleton } from "@/components/TableSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageSize } from "@/hooks/usePageSize";
 import { InlineStageSelect } from "@/components/clients/InlineStageSelect";
+import { QuickTaskDialog } from "@/components/tasks/QuickTaskDialog";
 
 type SortKey = "name" | "revenue" | "created" | "health";
 type SortDir = "asc" | "desc";
