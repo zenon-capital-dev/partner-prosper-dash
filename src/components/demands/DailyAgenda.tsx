@@ -524,7 +524,23 @@ function ClientInteractionDialog({
           <div className="flex items-center gap-2 text-sm font-semibold text-indigo-800">
             <Plus className="size-4" /> Novo atendimento
           </div>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs font-medium text-slate-600">Tipo da atividade</label>
+              <Select value={kind} onValueChange={(v) => setKind(v as InteractionKind)}>
+                <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {INTERACTION_KINDS.map((k) => (
+                    <SelectItem key={k.value} value={k.value}>
+                      <span className="inline-flex items-center gap-2">
+                        <span className={cn("size-2 rounded-full", k.dot)} />
+                        {k.label}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <label className="text-xs font-medium text-slate-600">Canal</label>
               <Select value={channel} onValueChange={(v) => setChannel(v as Channel)}>
