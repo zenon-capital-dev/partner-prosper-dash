@@ -212,10 +212,25 @@ export default function SalesGoals() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                    <SelectItem value="stage">🎯 Clientes em um estágio…</SelectItem>
                     <SelectItem value="custom">✨ Índice personalizado…</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              {form.goal_type === "stage" && (
+                <div className="space-y-1.5">
+                  <Label>Estágio da jornada</Label>
+                  <Select value={form.stage_id} onValueChange={(v) => setForm({ ...form, stage_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar estágio" /></SelectTrigger>
+                    <SelectContent>
+                      {journeyStages.map((s) => (
+                        <SelectItem key={s.id} value={s.id} style={{ color: s.color || undefined }}>{s.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-slate-500">Meta = quantos clientes devem estar neste estágio ao final do mês.</p>
+                </div>
+              )}
               {form.goal_type === "custom" && (
                 <>
                   <div className="space-y-1.5">
