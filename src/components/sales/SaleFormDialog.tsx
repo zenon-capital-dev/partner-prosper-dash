@@ -14,6 +14,8 @@ import { CircleDollarSign, Users, Package, Handshake, Sparkles, UserCircle, Cale
 import { cn } from "@/lib/utils";
 import { formatBR, nowBR, ymdBR } from "@/lib/datetime";
 import { saleIsFinalized } from "@/lib/financial";
+import { useJourneyStages } from "@/hooks/useSharedStageFilter";
+import { deriveClientStatusFromStageName, invalidateJourneyStageCaches } from "@/lib/journey-stage-sync";
 
 interface Props {
   open: boolean;
