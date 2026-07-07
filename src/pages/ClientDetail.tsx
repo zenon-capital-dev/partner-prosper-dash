@@ -48,6 +48,8 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { INTERACTION_KINDS, kindMeta, type InteractionKind } from "@/lib/interaction-kinds";
 import { PageHeader } from "@/components/PageHeader";
 import { ClientJourneyBadge } from "@/components/clients/ClientJourneyBadge";
 
