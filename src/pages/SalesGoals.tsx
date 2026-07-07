@@ -21,7 +21,7 @@ import { ActivityGoalsPanel } from "@/components/goals/ActivityGoalsPanel";
 import { ActivityMatrixPanel } from "@/components/goals/ActivityMatrixPanel";
 import { paymentSaleIsFinalized } from "@/lib/financial";
 import { StageFilterBar } from "@/components/filters/StageFilterBar";
-import { useStageMatcher } from "@/hooks/useSharedStageFilter";
+import { useStageMatcher, useJourneyStages } from "@/hooks/useSharedStageFilter";
 
 type GoalType = "leads" | "proposals" | "sales_count" | "revenue" | "stage_movements" | "clients_closed";
 const TYPES: { value: GoalType; label: string; isCurrency: boolean }[] = [
