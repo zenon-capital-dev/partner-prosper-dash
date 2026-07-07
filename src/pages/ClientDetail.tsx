@@ -604,24 +604,38 @@ export default function ClientDetail() {
                   <Plus className="size-3.5 mr-1" /> Novo Registro
                 </Button>
               </div>
+              {/* Resumo do relacionamento */}
+              <ClientRelationshipSummary interactions={interactions} />
+
               {interactions.length === 0 ? (
                 <div className="p-8 text-center text-sm text-muted-foreground border border-dashed border-border/40 rounded-xl">
                   Nenhuma interação registrada ainda. Clique em "Novo Registro" para começar o histórico de relacionamento.
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {interactions.map((it: any) => (
-                    <div key={it.id} className="flex gap-3 p-3 rounded-xl bg-muted/30 border border-border/40">
-                      <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <MessageSquare className="size-4 text-primary" />
+                  {interactions.map((it: any) => {
+                    const km = kindMeta(it.kind);
+                    return (
+                      <div key={it.id} className="flex gap-3 p-3 rounded-xl bg-muted/30 border border-border/40">
+                        <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <MessageSquare className="size-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <Badge variant="outline" className={cn("text-[10px]", km.color)}>{km.label}</Badge>
+                            {it.channel && <Badge variant="outline" className="text-[10px] capitalize">{it.channel}</Badge>}
+                            <span className="text-[10px] text-muted-foreground/70">{formatDate(it.occurred_at || it.created_at)}</span>
+                          </div>
+                          <p className="text-xs text-foreground/90 whitespace-pre-wrap">{it.summary || it.title}</p>
+                          {it.next_action_at && (
+                            <p className="text-[11px] text-indigo-700 mt-1.5">
+                              → {it.next_action_note || "Próxima ação"} <b>({formatDate(it.next_action_at)})</b>
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold truncate">{it.title}</p>
-                        {it.description && <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{it.description}</p>}
-                        <p className="text-[10px] text-muted-foreground/70 mt-1">{formatDate(it.created_at)}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>}
