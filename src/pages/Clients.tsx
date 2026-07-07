@@ -61,6 +61,7 @@ export default function Clients() {
   const debouncedSearch = useDebounce(search, 400);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const [taskDialog, setTaskDialog] = useState<{ id: string; name: string } | null>(null);
   const [showFilters, setShowFilters] = useState<boolean>(saved.showFilters ?? false);
   const [view, setView] = useState<"grid" | "table">(saved.view ?? "grid");
   const [currentPage, setCurrentPage] = useState<number>(saved.currentPage ?? 1);
