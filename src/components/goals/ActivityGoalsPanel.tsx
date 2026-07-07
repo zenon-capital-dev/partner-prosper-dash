@@ -193,15 +193,36 @@ export function ActivityGoalsPanel() {
         </div>
       </div>
 
+      {/* Snapshot: quantos clientes estão em cada tipo hoje (todo histórico) */}
+      <div className="mb-4">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Clientes por tipo · snapshot atual</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+          {GOAL_KINDS.map((k) => {
+            const meta = kindMeta(k);
+            const n = totalsByKind[k] ?? 0;
+            return (
+              <div key={k} className={cn("rounded-lg border p-2", meta.color)}>
+                <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider opacity-80">
+                  <span className={cn("size-1.5 rounded-full", meta.dot)} />
+                  {meta.label}
+                </div>
+                <div className="text-lg font-black font-mono mt-0.5">{n}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="overflow-hidden rounded-lg border border-slate-200">
         <table className="w-full text-sm">
           <thead className="bg-slate-50">
             <tr className="text-[10px] uppercase tracking-wider text-slate-500">
               <th className="text-left px-3 py-2 font-bold">Atividade</th>
               <th className="text-right px-3 py-2 font-bold w-20">Feito</th>
+              <th className="text-right px-3 py-2 font-bold w-24">Clientes</th>
               <th className="text-right px-3 py-2 font-bold w-24">Meta</th>
               <th className="text-right px-3 py-2 font-bold w-20">Falta</th>
-              <th className="text-left px-3 py-2 font-bold w-[35%]">Progresso</th>
+              <th className="text-left px-3 py-2 font-bold w-[30%]">Progresso</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
