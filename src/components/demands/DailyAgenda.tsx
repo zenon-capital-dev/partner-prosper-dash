@@ -469,6 +469,7 @@ function ClientInteractionDialog({
       const payload: any = {
         client_id: client.id,
         channel,
+        kind,
         summary,
         occurred_at: toBR(occurredAt).toISOString(),
         next_action_at: nextActionAt || null,
