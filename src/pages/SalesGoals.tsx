@@ -129,7 +129,10 @@ export default function SalesGoals() {
       .on("postgres_changes", { event: "*", schema: "public", table: "sales" }, invalidateActual)
       .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, invalidateActual)
       .on("postgres_changes", { event: "*", schema: "public", table: "client_timeline" }, invalidateActual)
-      .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, invalidateActual)
+      .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, () => {
+        invalidateActual();
+        qc.invalidateQueries({ queryKey: ["sales_goals_stage_counts"] });
+      })
       .on("postgres_changes", { event: "*", schema: "public", table: "sales_goals" }, invalidateAll)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
