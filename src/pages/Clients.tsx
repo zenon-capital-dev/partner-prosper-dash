@@ -777,7 +777,7 @@ export default function Clients() {
                             <FileText className="size-3.5 mr-2" /> Documentos
                           </DropdownMenuItem>
                           {canWrite && (
-                            <DropdownMenuItem onClick={() => navigate(`/agenda?new=1&client=${c.id}`)}>
+                            <DropdownMenuItem onClick={() => setTaskDialog({ id: c.id, name: c.full_name })}>
                               <CalendarClock className="size-3.5 mr-2" /> Nova tarefa
                             </DropdownMenuItem>
                           )}
