@@ -60,28 +60,60 @@ export function ActivityGoalsPanel() {
     },
   });
 
-  const { data: counts = {} } = useQuery({
+  // Contagem de interações + clientes únicos no período
+  const { data: agg = { counts: {} as Record<string, number>, clients: {} as Record<string, number> } } = useQuery({
     queryKey: ["activity-counts", startKey, ymd(end)],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("client_interactions")
-        .select("kind, occurred_at")
+        .select("kind, client_id, occurred_at")
         .gte("occurred_at", start.toISOString())
         .lt("occurred_at", end.toISOString())
-        .limit(5000);
+        .limit(10000);
       if (error) throw error;
-      const out: Record<string, number> = {};
-      (data ?? []).forEach((r: any) => { out[r.kind] = (out[r.kind] ?? 0) + 1; });
-      return out;
+      const counts: Record<string, number> = {};
+      const clientsSet: Record<string, Set<string>> = {};
+      (data ?? []).forEach((r: any) => {
+        counts[r.kind] = (counts[r.kind] ?? 0) + 1;
+        (clientsSet[r.kind] ??= new Set()).add(r.client_id);
+      });
+      const clients: Record<string, number> = {};
+      Object.entries(clientsSet).forEach(([k, s]) => { clients[k] = s.size; });
+      return { counts, clients };
     },
     refetchInterval: 60_000,
   });
+
+  // Snapshot total de clientes por tipo (todo o histórico — mostra "onde estamos hoje")
+  const { data: totalsByKind = {} as Record<string, number> } = useQuery({
+    queryKey: ["activity-clients-total"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("client_interactions")
+        .select("kind, client_id")
+        .limit(50000);
+      if (error) throw error;
+      const setMap: Record<string, Set<string>> = {};
+      (data ?? []).forEach((r: any) => { (setMap[r.kind] ??= new Set()).add(r.client_id); });
+      const out: Record<string, number> = {};
+      Object.entries(setMap).forEach(([k, s]) => { out[k] = s.size; });
+      return out;
+    },
+    refetchInterval: 120_000,
+  });
+
+  const counts = agg.counts;
+  const clientsInPeriod = agg.clients;
+
 
   useEffect(() => {
     const ch = supabase
       .channel(`activity-goals-live:${period}:${startKey}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "client_interactions" },
-        () => qc.invalidateQueries({ queryKey: ["activity-counts", startKey, ymd(end)] }))
+        () => {
+          qc.invalidateQueries({ queryKey: ["activity-counts", startKey, ymd(end)] });
+          qc.invalidateQueries({ queryKey: ["activity-clients-total"] });
+        })
       .on("postgres_changes", { event: "*", schema: "public", table: "activity_goals" },
         () => qc.invalidateQueries({ queryKey: ["activity-goals", period, startKey] }))
       .subscribe();
@@ -161,15 +193,36 @@ export function ActivityGoalsPanel() {
         </div>
       </div>
 
+      {/* Snapshot: quantos clientes estão em cada tipo hoje (todo histórico) */}
+      <div className="mb-4">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Clientes por tipo · snapshot atual</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+          {GOAL_KINDS.map((k) => {
+            const meta = kindMeta(k);
+            const n = totalsByKind[k] ?? 0;
+            return (
+              <div key={k} className={cn("rounded-lg border p-2", meta.color)}>
+                <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider opacity-80">
+                  <span className={cn("size-1.5 rounded-full", meta.dot)} />
+                  {meta.label}
+                </div>
+                <div className="text-lg font-black font-mono mt-0.5">{n}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="overflow-hidden rounded-lg border border-slate-200">
         <table className="w-full text-sm">
           <thead className="bg-slate-50">
             <tr className="text-[10px] uppercase tracking-wider text-slate-500">
               <th className="text-left px-3 py-2 font-bold">Atividade</th>
               <th className="text-right px-3 py-2 font-bold w-20">Feito</th>
+              <th className="text-right px-3 py-2 font-bold w-24">Clientes</th>
               <th className="text-right px-3 py-2 font-bold w-24">Meta</th>
               <th className="text-right px-3 py-2 font-bold w-20">Falta</th>
-              <th className="text-left px-3 py-2 font-bold w-[35%]">Progresso</th>
+              <th className="text-left px-3 py-2 font-bold w-[30%]">Progresso</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -189,6 +242,10 @@ export function ActivityGoalsPanel() {
                     </div>
                   </td>
                   <td className="text-right px-3 py-2 font-mono font-bold text-slate-900">{done}</td>
+                  <td className="text-right px-3 py-2 font-mono text-indigo-700">
+                    <span className="font-bold">{clientsInPeriod[k] ?? 0}</span>
+                    <span className="text-[10px] text-slate-400"> / {totalsByKind[k] ?? 0}</span>
+                  </td>
                   <td className="text-right px-3 py-2">
                     <Input
                       type="number" min={0}
