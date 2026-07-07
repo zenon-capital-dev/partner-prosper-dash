@@ -625,6 +625,7 @@ function ClientInteractionDialog({
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline" className={cn("text-[10px]", kindMeta(i.kind).color)}>{kindMeta(i.kind).label}</Badge>
                           <Badge variant="outline" className="text-[10px]">{meta.label}</Badge>
                           <span className="text-[11px] text-slate-400">
                             {formatBR(parseISO(i.occurred_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
