@@ -14,6 +14,8 @@ import { CircleDollarSign, Users, Package, Handshake, Sparkles, UserCircle, Cale
 import { cn } from "@/lib/utils";
 import { formatBR, nowBR, ymdBR } from "@/lib/datetime";
 import { saleIsFinalized } from "@/lib/financial";
+import { useJourneyStages } from "@/hooks/useSharedStageFilter";
+import { deriveClientStatusFromStageName, invalidateJourneyStageCaches } from "@/lib/journey-stage-sync";
 
 interface Props {
   open: boolean;
@@ -48,6 +50,63 @@ function Field({ label, required, children, className }: { label: string; requir
       </Label>
       {children}
     </div>
+  );
+}
+
+function StageForClientField({ clientId }: { clientId?: string | null }) {
+  const qc = useQueryClient();
+  const { data: stages = [] } = useJourneyStages();
+  const { data: currentStageId } = useQuery({
+    queryKey: ["sale-form-client-stage", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("clients")
+        .select("journey_stage_id")
+        .eq("id", clientId)
+        .maybeSingle();
+      return (data?.journey_stage_id as string | null) ?? null;
+    },
+  });
+
+  async function change(newId: string | null) {
+    if (!clientId) {
+      toast.error("Selecione um cliente primeiro.");
+      return;
+    }
+    if ((currentStageId ?? null) === newId) return;
+    const nextStage = stages.find((s) => s.id === newId);
+    const { error } = await supabase.from("clients").update({ journey_stage_id: newId } as any).eq("id", clientId);
+    if (error) { toast.error(error.message); return; }
+    const derived = deriveClientStatusFromStageName(nextStage?.name);
+    toast.success(`Estágio movido para "${nextStage?.name ?? "Sem estágio"}"${derived ? ` · ${derived.replace(/_/g, " ")}` : ""}`);
+    qc.invalidateQueries({ queryKey: ["sale-form-client-stage", clientId] });
+    invalidateJourneyStageCaches(qc, clientId);
+  }
+
+  return (
+    <Field label="Estágio do Cliente">
+      <Select
+        value={currentStageId ?? "__none__"}
+        onValueChange={(v) => change(v === "__none__" ? null : v)}
+        disabled={!clientId}
+      >
+        <SelectTrigger className="h-11 bg-white border-slate-200 shadow-sm rounded-xl">
+          <SelectValue placeholder={clientId ? "Selecionar estágio" : "Selecione um cliente"} />
+        </SelectTrigger>
+        <SelectContent position="popper" sideOffset={6} className="rounded-xl">
+          <SelectItem value="__none__" className="text-slate-500 font-semibold">Sem estágio</SelectItem>
+          {stages.map((s) => (
+            <SelectItem key={s.id} value={s.id} className="font-semibold" style={{ color: s.color || undefined }}>
+              {s.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <p className="mt-1.5 text-[10.5px] text-slate-500 leading-snug">
+        Reflete o estágio na esteira do cliente — replica em Clientes, Vendas, Demandas e Metas.
+      </p>
+    </Field>
   );
 }
 
@@ -737,20 +796,10 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                   <Field label="Data da Venda">
                     <Input type="date" className="h-11 bg-white border-slate-200 shadow-sm rounded-xl" value={form.sale_date} onChange={(e) => setForm({ ...form, sale_date: e.target.value })} />
                   </Field>
-                  <Field label="Status Atual">
-                    <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                      <SelectTrigger className="h-11 bg-white border-slate-200 shadow-sm rounded-xl">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent position="popper" sideOffset={6} className="rounded-xl">
-                        <SelectItem value="pendente" className="text-amber-600 font-semibold">Pendente</SelectItem>
-                        <SelectItem value="em_andamento" className="text-blue-600 font-semibold">Em andamento</SelectItem>
-                        <SelectItem value="concluida" className="text-emerald-600 font-semibold">Finalizada</SelectItem>
-                        <SelectItem value="cancelada" className="text-slate-500 font-semibold">Cancelada</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <StageForClientField clientId={form.client_id} />
+                  <Field label="Situação da Venda">
                     {form.status !== "concluida" ? (
-                      <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 space-y-2">
+                      <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 space-y-2">
                         <p className="text-[11px] font-medium leading-snug text-amber-800">
                           Enquanto estiver em negociação, esta venda fica <b>fora</b> do fluxo financeiro, comissões, metas de receita e cronograma de cobrança.
                         </p>
@@ -763,9 +812,18 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                         </button>
                       </div>
                     ) : (
-                      <p className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold leading-snug text-emerald-800">
-                        ✓ Venda finalizada — parcelas, comissões e cronograma serão gerados ao salvar.
-                      </p>
+                      <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 flex items-center justify-between gap-2">
+                        <p className="text-[11px] font-semibold leading-snug text-emerald-800">
+                          ✓ Venda finalizada — parcelas, comissões e cronograma serão gerados ao salvar.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, status: "pendente" })}
+                          className="text-[10px] font-bold uppercase text-emerald-700 hover:text-emerald-900 underline"
+                        >
+                          reverter
+                        </button>
+                      </div>
                     )}
                   </Field>
                 </div>

@@ -21,7 +21,7 @@ import { ActivityGoalsPanel } from "@/components/goals/ActivityGoalsPanel";
 import { ActivityMatrixPanel } from "@/components/goals/ActivityMatrixPanel";
 import { paymentSaleIsFinalized } from "@/lib/financial";
 import { StageFilterBar } from "@/components/filters/StageFilterBar";
-import { useStageMatcher } from "@/hooks/useSharedStageFilter";
+import { useStageMatcher, useJourneyStages } from "@/hooks/useSharedStageFilter";
 
 type GoalType = "leads" | "proposals" | "sales_count" | "revenue" | "stage_movements" | "clients_closed";
 const TYPES: { value: GoalType; label: string; isCurrency: boolean }[] = [
@@ -48,7 +48,8 @@ export default function SalesGoals() {
   const qc = useQueryClient();
   const [month, setMonth] = useState(monthKey());
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ goal_type: "revenue" as GoalType | "custom", custom_name: "", is_currency: false, target_value: "" });
+  const [form, setForm] = useState({ goal_type: "revenue" as GoalType | "custom" | "stage", stage_id: "", custom_name: "", is_currency: false, target_value: "" });
+  const { data: journeyStages = [] } = useJourneyStages();
 
   const { data: goals = [] } = useQuery({
     queryKey: ["sales_goals", month],
@@ -128,7 +129,10 @@ export default function SalesGoals() {
       .on("postgres_changes", { event: "*", schema: "public", table: "sales" }, invalidateActual)
       .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, invalidateActual)
       .on("postgres_changes", { event: "*", schema: "public", table: "client_timeline" }, invalidateActual)
-      .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, invalidateActual)
+      .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, () => {
+        invalidateActual();
+        qc.invalidateQueries({ queryKey: ["sales_goals_stage_counts"] });
+      })
       .on("postgres_changes", { event: "*", schema: "public", table: "sales_goals" }, invalidateAll)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
@@ -144,6 +148,23 @@ export default function SalesGoals() {
     };
   }, [actual]);
 
+  // Contagem atual de clientes por estágio (para metas do tipo stage:*)
+  const { data: stageCounts } = useQuery({
+    queryKey: ["sales_goals_stage_counts"],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("clients").select("journey_stage_id");
+      const map: Record<string, number> = {};
+      (data ?? []).forEach((c: any) => {
+        const k = c.journey_stage_id;
+        if (!k) return;
+        map[k] = (map[k] ?? 0) + 1;
+      });
+      return map;
+    },
+    enabled: isAdmin,
+    refetchInterval: 60_000,
+  });
+
   async function saveGoal() {
     const value = parseFloat(form.target_value.replace(",", "."));
     if (!value || value <= 0) { toast.error("Valor da meta inválido"); return; }
@@ -153,12 +174,16 @@ export default function SalesGoals() {
       if (!name) { toast.error("Dê um nome ao índice personalizado"); return; }
       goalTypeKey = `custom:${form.is_currency ? "money" : "num"}:${name}`;
     }
+    if (form.goal_type === "stage") {
+      if (!form.stage_id) { toast.error("Escolha o estágio da jornada"); return; }
+      goalTypeKey = `stage:${form.stage_id}`;
+    }
     const { error } = await (supabase as any).from("sales_goals").upsert({
       period_month: month, goal_type: goalTypeKey, target_value: value, responsible_id: null,
     }, { onConflict: "period_month,goal_type" });
     if (error) { toast.error(error.message); return; }
     toast.success("Meta salva");
-    setOpen(false); setForm({ goal_type: "revenue", custom_name: "", is_currency: false, target_value: "" });
+    setOpen(false); setForm({ goal_type: "revenue", stage_id: "", custom_name: "", is_currency: false, target_value: "" });
     qc.invalidateQueries({ queryKey: ["sales_goals", month] });
   }
 
@@ -207,10 +232,25 @@ export default function SalesGoals() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                    <SelectItem value="stage">🎯 Clientes em um estágio…</SelectItem>
                     <SelectItem value="custom">✨ Índice personalizado…</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              {form.goal_type === "stage" && (
+                <div className="space-y-1.5">
+                  <Label>Estágio da jornada</Label>
+                  <Select value={form.stage_id} onValueChange={(v) => setForm({ ...form, stage_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar estágio" /></SelectTrigger>
+                    <SelectContent>
+                      {journeyStages.map((s) => (
+                        <SelectItem key={s.id} value={s.id} style={{ color: s.color || undefined }}>{s.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-slate-500">Meta = quantos clientes devem estar neste estágio ao final do mês.</p>
+                </div>
+              )}
               {form.goal_type === "custom" && (
                 <>
                   <div className="space-y-1.5">
@@ -276,10 +316,19 @@ export default function SalesGoals() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {goals.map((g: any) => {
               const isCustom = typeof g.goal_type === "string" && g.goal_type.startsWith("custom:");
+              const isStage = typeof g.goal_type === "string" && g.goal_type.startsWith("stage:");
+              const stageId = isStage ? g.goal_type.slice("stage:".length) : null;
+              const stageMeta = stageId ? journeyStages.find((s) => s.id === stageId) : null;
               const t = isCustom
                 ? { label: g.goal_type.split(":").slice(2).join(":") || "Personalizado", isCurrency: g.goal_type.startsWith("custom:money:") }
+                : isStage
+                ? { label: `Clientes em ${stageMeta?.name ?? "estágio"}`, isCurrency: false }
                 : TYPES.find((x) => x.value === g.goal_type) ?? { label: g.goal_type, isCurrency: false };
-              const realized = isCustom ? Number(g.actual_value ?? 0) : ((actual as any)?.[g.goal_type] ?? 0);
+              const realized = isCustom
+                ? Number(g.actual_value ?? 0)
+                : isStage
+                ? (stageId ? (stageCounts?.[stageId] ?? 0) : 0)
+                : ((actual as any)?.[g.goal_type] ?? 0);
               const pct = g.target_value > 0 ? Math.min(100, (realized / g.target_value) * 100) : 0;
               return (
                 <Card key={g.id} className="p-4 bg-white border-slate-200/70">
