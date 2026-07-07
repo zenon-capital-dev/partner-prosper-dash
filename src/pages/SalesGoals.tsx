@@ -145,6 +145,23 @@ export default function SalesGoals() {
     };
   }, [actual]);
 
+  // Contagem atual de clientes por estágio (para metas do tipo stage:*)
+  const { data: stageCounts } = useQuery({
+    queryKey: ["sales_goals_stage_counts"],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("clients").select("journey_stage_id");
+      const map: Record<string, number> = {};
+      (data ?? []).forEach((c: any) => {
+        const k = c.journey_stage_id;
+        if (!k) return;
+        map[k] = (map[k] ?? 0) + 1;
+      });
+      return map;
+    },
+    enabled: isAdmin,
+    refetchInterval: 60_000,
+  });
+
   async function saveGoal() {
     const value = parseFloat(form.target_value.replace(",", "."));
     if (!value || value <= 0) { toast.error("Valor da meta inválido"); return; }
