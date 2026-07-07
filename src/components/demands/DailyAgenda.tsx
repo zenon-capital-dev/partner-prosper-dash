@@ -481,6 +481,7 @@ function ClientInteractionDialog({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client-interactions"] });
+      qc.invalidateQueries({ queryKey: ["activity-counts"] });
       toast.success("Atendimento registrado");
       setSummary(""); setNextActionNote(""); setNextActionAt("");
     },
