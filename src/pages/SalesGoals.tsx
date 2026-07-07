@@ -154,12 +154,16 @@ export default function SalesGoals() {
       if (!name) { toast.error("Dê um nome ao índice personalizado"); return; }
       goalTypeKey = `custom:${form.is_currency ? "money" : "num"}:${name}`;
     }
+    if (form.goal_type === "stage") {
+      if (!form.stage_id) { toast.error("Escolha o estágio da jornada"); return; }
+      goalTypeKey = `stage:${form.stage_id}`;
+    }
     const { error } = await (supabase as any).from("sales_goals").upsert({
       period_month: month, goal_type: goalTypeKey, target_value: value, responsible_id: null,
     }, { onConflict: "period_month,goal_type" });
     if (error) { toast.error(error.message); return; }
     toast.success("Meta salva");
-    setOpen(false); setForm({ goal_type: "revenue", custom_name: "", is_currency: false, target_value: "" });
+    setOpen(false); setForm({ goal_type: "revenue", stage_id: "", custom_name: "", is_currency: false, target_value: "" });
     qc.invalidateQueries({ queryKey: ["sales_goals", month] });
   }
 
