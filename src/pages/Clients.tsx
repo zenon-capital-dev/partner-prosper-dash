@@ -991,7 +991,7 @@ export default function Clients() {
                             <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}><Eye className="size-3.5 mr-2" /> Ver perfil</DropdownMenuItem>
                             {canWrite && <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="size-3.5 mr-2" /> Editar cadastro</DropdownMenuItem>}
                             <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=financeiro`)}><CreditCard className="size-3.5 mr-2" /> Financeiro</DropdownMenuItem>
-                            {canWrite && <DropdownMenuItem onClick={() => navigate(`/agenda?new=1&client=${c.id}`)}><CalendarClock className="size-3.5 mr-2" /> Nova tarefa</DropdownMenuItem>}
+                            {canWrite && <DropdownMenuItem onClick={() => setTaskDialog({ id: c.id, name: c.full_name })}><CalendarClock className="size-3.5 mr-2" /> Nova tarefa</DropdownMenuItem>}
                             {canWrite && <>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => handleArchive(c)}>
