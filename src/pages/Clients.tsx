@@ -782,6 +782,12 @@ export default function Clients() {
                               <CalendarClock className="size-3.5 mr-2" /> Nova tarefa
                             </DropdownMenuItem>
                           )}
+                          {canWrite && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <StageQuickMenu clientId={c.id} currentStageId={c.journey_stage_id} label="Mover estágio" />
+                            </>
+                          )}
                           {canWrite && <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleArchive(c)}>
