@@ -184,6 +184,8 @@ export default function SalesGoals() {
 
       <ActivityGoalsPanel />
 
+      <ActivityMatrixPanel />
+
 
 
       <div className="flex flex-wrap items-center gap-2">
