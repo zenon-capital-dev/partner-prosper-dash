@@ -1023,6 +1023,13 @@ export default function Clients() {
           onCreated={() => { qc.invalidateQueries({ queryKey: ["clients-admin-list"] }); qc.invalidateQueries({ queryKey: ["ref:clients"] }); }}
         />
 
+        <QuickTaskDialog
+          open={!!taskDialog}
+          onOpenChange={(v) => { if (!v) setTaskDialog(null); }}
+          clientId={taskDialog?.id}
+          clientName={taskDialog?.name}
+        />
+
       </div>
     </div>
     </TooltipProvider>
