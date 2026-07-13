@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.enforce_partner_contract_field_scope() FROM PUBLIC, anon, authenticated;
