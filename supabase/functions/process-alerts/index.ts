@@ -60,7 +60,9 @@ Deno.serve(async (req) => {
     const alerts = [];
 
     for (const c of commissions || []) {
-      const partnerName = c.partners?.full_name || "Parceiro";
+      // O relate pode vir como objeto ou array conforme o schema: normaliza.
+      const partner = Array.isArray(c.partners) ? c.partners[0] : c.partners;
+      const partnerName = partner?.full_name || "Parceiro";
       const message = `A comissão de ${partnerName} no valor de R$ ${c.amount} está pendente há mais de 7 dias.`;
       
       // Check if we already notified recently
@@ -97,7 +99,8 @@ Deno.serve(async (req) => {
     if (docError) throw docError;
 
     for (const d of docs || []) {
-      const clientName = d.clients?.full_name || "Cliente";
+      const client = Array.isArray(d.clients) ? d.clients[0] : d.clients;
+      const clientName = client?.full_name || "Cliente";
       const message = `O documento "${d.title}" do cliente ${clientName} está com o prazo vencido.`;
 
       const { data: existing } = await admin
