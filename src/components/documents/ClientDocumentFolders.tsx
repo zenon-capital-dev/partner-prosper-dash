@@ -772,11 +772,11 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
         />
       )}
 
-      {requestingInFolder && (
       {isAdmin && (
         <BulkShareDocumentsDialog open={sharingOpen} onOpenChange={setSharingOpen}
           documents={(files as any[]).map((f) => ({ id: f.id, name: f.name, file_path: f.file_path }))} />
       )}
+      {requestingInFolder && (
         <DocumentDialog
           open
           onOpenChange={(v) => !v && setRequestingInFolder(null)}
