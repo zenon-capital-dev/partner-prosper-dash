@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Briefcase, ClipboardCheck, FileText, UserCog, Inbox, Clock, Wallet, MessageSquare,
   TrendingUp, AlertTriangle, CheckCircle2, CalendarClock, Sparkles, ArrowUpRight, Activity, Bell,
-  Package, Zap, Target,
+  Package, Zap, Target, LifeBuoy, Share2,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -24,14 +24,18 @@ import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
 import { DemandRequestsPanel } from "@/components/demands/DemandRequestsPanel";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { ClientDocumentFolders } from "@/components/documents/ClientDocumentFolders";
+import { SharedWithMeDocuments } from "@/components/provider/SharedWithMeDocuments";
+import { UserSupportCenter } from "@/components/support/UserSupportCenter";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
   { key: "demandas",   label: "Demandas",   icon: Briefcase },
   { key: "reportes",   label: "Reportes",   icon: ClipboardCheck, shortLabel: "Reportes" },
   { key: "documentos", label: "Documentos", icon: FileText, shortLabel: "Docs" },
+  { key: "compartilhados", label: "Compartilhados comigo", icon: Share2, shortLabel: "Recebidos" },
   { key: "comissoes",  label: "Comissões",  icon: Wallet, shortLabel: "Comissões" },
   { key: "perfil",     label: "Perfil",     icon: UserCog },
+  { key: "suporte",    label: "Suporte",    icon: LifeBuoy },
 ];
 
 const STATUS_META: Record<string, { label: string; tone: string }> = {
@@ -1022,6 +1026,9 @@ export default function ProviderPanel() {
           </>
         )}
 
+
+        {activeKey === "compartilhados" && <SharedWithMeDocuments />}
+        {activeKey === "suporte" && <UserSupportCenter role="prestador" />}
 
         {activeKey === "comissoes" && (() => {
           const splits = commissions as any[];

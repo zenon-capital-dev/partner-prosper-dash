@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   LayoutDashboard, ClipboardList, ListChecks, Users, FileText, UserCog,
   CheckCircle2, AlertCircle, Calendar, Inbox, Clock, Flame, Search,
-  ChevronRight, Mail, Phone, Wallet,
+  ChevronRight, Mail, Phone, Wallet, LifeBuoy,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatDate, initials, formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { UserSupportCenter } from "@/components/support/UserSupportCenter";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     shortLabel: "Início",   icon: LayoutDashboard },
@@ -29,6 +30,7 @@ const NAV = [
   { key: "documentos", label: "Documentos", shortLabel: "Docs",     icon: FileText       },
   { key: "perfil",     label: "Perfil",     shortLabel: "Perfil",   icon: UserCog        },
   { key: "clientes",   label: "Clientes",                            icon: Users          },
+  { key: "suporte",    label: "Suporte",                             icon: LifeBuoy       },
 ];
 
 const STATUS_META: Record<string, { label: string; tone: string }> = {
@@ -462,6 +464,7 @@ export default function CollaboratorPanel() {
         )}
 
         {activeKey === "perfil" && <PerfilTab />}
+        {activeKey === "suporte" && <UserSupportCenter role="colaborador" />}
       </PanelContainer>
     </PanelShell>
   );
