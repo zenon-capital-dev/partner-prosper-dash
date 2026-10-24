@@ -259,7 +259,8 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
       const now = new Date().toISOString();
       const chosen = attachSourceRef.current;
       attachSourceRef.current = null;
-      const source = chosen ?? (viewerRole === "client" ? "client_upload" : "admin_upload");
+      // O banco só aceita: client_upload, admin_upload, email, whatsapp, provider_upload, imported
+      const source = chosen === "admin" || !chosen ? (viewerRole === "client" ? "client_upload" : "admin_upload") : chosen;
       const extraRows: any[] = [];
 
 
@@ -617,7 +618,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                               </span>
                             )}
                             {f.uploaded_at && <span>Enviado {formatDate(f.uploaded_at)}</span>}
-                            {f.uploaded_by && viewerRole !== "client" && <span>Enviado pelo cliente</span>}
+                            {f.uploaded_by && viewerRole !== "client" && <span>{f.source === "client_upload" ? "Enviado pelo cliente" : "Enviado pela Zenon"}</span>}
                             {f.reviewed_at && <span>Revisado {formatDate(f.reviewed_at)}</span>}
                           </div>
                           {f.status === "reprovado" && f.rejection_reason && (

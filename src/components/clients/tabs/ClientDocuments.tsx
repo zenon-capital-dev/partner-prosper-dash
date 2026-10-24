@@ -153,7 +153,8 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
         mime_type: file.type,
         uploaded_at: now,
         uploaded_by: user?.id ?? null,
-        source: pendingUpload.source,
+        // O banco só aceita: client_upload, admin_upload, email, whatsapp, provider_upload, imported
+        source: pendingUpload.source === "admin" ? "admin_upload" : pendingUpload.source,
         status: "em_analise" as const,
       };
 
@@ -344,7 +345,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                               </span>
                             )}
                             {doc.uploaded_at && <span>Enviado {formatDate(doc.uploaded_at)}</span>}
-                            {doc.uploaded_by && <span>Enviado pelo cliente</span>}
+                            {doc.uploaded_by && <span>{doc.source === "client_upload" ? "Enviado pelo cliente" : "Enviado pela Zenon"}</span>}
                             {doc.reviewed_at && <span>Revisado {formatDate(doc.reviewed_at)}</span>}
                           </div>
                           {doc.status === "reprovado" && doc.rejection_reason && (
@@ -384,7 +385,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          {doc.source && doc.source !== "client" && (
+                          {doc.source && doc.source !== "client_upload" && (
                             <Badge variant="outline" className="h-6 text-[9px] uppercase tracking-widest bg-indigo-50 border-indigo-200 text-indigo-700">
                               <Mail className="size-3 mr-1" /> {doc.source}
                             </Badge>

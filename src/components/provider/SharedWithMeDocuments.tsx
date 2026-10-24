@@ -16,7 +16,7 @@ interface SharedDoc {
   expires_at: string | null;
   viewed_at: string | null;
   created_at: string;
-  documents: { id: string; name: string; file_path: string | null; client_id: string | null; clients: { name: string | null } | null } | null;
+  documents: { id: string; name: string; file_path: string | null; client_id: string | null; clients: { full_name: string | null; company: string | null } | null } | null;
 }
 
 /** Documentos que a equipe compartilhou com o prestador logado, agrupados por cliente. */
@@ -24,12 +24,12 @@ export function SharedWithMeDocuments() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
 
-  const { data = [], isLoading } = useQuery({
+  const { data = [], isLoading, error: loadError } = useQuery({
     queryKey: ["shared-with-me"],
     queryFn: async (): Promise<SharedDoc[]> => {
       const { data, error } = await (supabase as any)
         .from("document_shares")
-        .select("id, can_download, message, expires_at, viewed_at, created_at, documents(id, name, file_path, client_id, clients(name))")
+        .select("id, can_download, message, expires_at, viewed_at, created_at, documents(id, name, file_path, client_id, clients(full_name, company))")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -42,9 +42,9 @@ export function SharedWithMeDocuments() {
     const map = new Map<string, SharedDoc[]>();
     data
       .filter((d) => d.documents && (!d.expires_at || new Date(d.expires_at).getTime() > now))
-      .filter((d) => !s || d.documents!.name.toLowerCase().includes(s) || d.documents!.clients?.name?.toLowerCase().includes(s))
+      .filter((d) => !s || d.documents!.name.toLowerCase().includes(s) || (d.documents!.clients?.company || d.documents!.clients?.full_name || "").toLowerCase().includes(s))
       .forEach((d) => {
-        const k = d.documents!.clients?.name ?? "Sem cliente";
+        const k = d.documents!.clients?.company || d.documents!.clients?.full_name || "Sem cliente";
         map.set(k, [...(map.get(k) ?? []), d]);
       });
     return [...map.entries()];
@@ -78,6 +78,11 @@ export function SharedWithMeDocuments() {
 
       {isLoading ? (
         <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}</div>
+      ) : loadError ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center">
+          <p className="text-sm font-medium text-rose-700">Não foi possível carregar os documentos compartilhados.</p>
+          <p className="text-xs text-rose-600 mt-1">{(loadError as any)?.message || "Erro desconhecido"}</p>
+        </div>
       ) : groups.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
           <FolderOpen className="size-8 mx-auto text-slate-300" />
@@ -104,7 +109,7 @@ export function SharedWithMeDocuments() {
                   </div>
                   {d.message && <p className="text-xs text-slate-600 mt-1 italic">“{d.message}”</p>}
                 </div>
-                <Button size="sm" variant="ghost" onClick={() => open(d, false)} disabled={!d.can_download}><Eye className="size-3.5 mr-1" />Ver</Button>
+                <Button size="sm" variant="ghost" onClick={() => open(d, false)}><Eye className="size-3.5 mr-1" />Ver</Button>
                 {d.can_download && <Button size="sm" variant="outline" onClick={() => open(d, true)}><Download className="size-3.5 mr-1" />Baixar</Button>}
               </li>
             ))}

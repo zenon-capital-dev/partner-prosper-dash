@@ -23,7 +23,12 @@ export function assertUploadFile(file: File) {
 }
 
 export function uploadErrorMessage(error: unknown) {
-  const msg = error instanceof Error ? error.message : String(error || "");
+  const msg = error instanceof Error
+    ? error.message
+    : typeof error === "object" && error && "message" in error
+      ? String((error as any).message)
+      : String(error || "");
+  if (/violates check constraint .*source/i.test(msg)) return "Origem do arquivo inválida. Atualize a página e tente de novo.";
   if (/bucket not found/i.test(msg)) return "Pasta de upload não encontrada. Atualize a página e tente novamente.";
   if (/payload too large|too large|maximum/i.test(msg)) return "Arquivo muito grande. Envie um arquivo de até 20MB.";
   if (/row-level security|permission|not authorized|unauthorized/i.test(msg)) return "Sem permissão para enviar este arquivo. Verifique o vínculo do usuário com este cliente/demanda.";
