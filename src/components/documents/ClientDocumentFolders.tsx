@@ -17,8 +17,9 @@ import { downloadStorageFile } from "@/lib/download";
 import {
   FolderPlus, Folder, Upload, FileText, Download, Eye, Trash2, Users, Pencil,
   Loader2, FilePlus2, Clock, CheckCircle2, AlertCircle, RefreshCw,
-  MessageSquare, Mail, MessageCircle, ChevronDown, Check, X,
+  MessageSquare, Mail, MessageCircle, ChevronDown, Check, X, Share2,
 } from "lucide-react";
+import { BulkShareDocumentsDialog } from "@/components/documents/BulkShareDocumentsDialog";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
@@ -57,6 +58,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   const [newName, setNewName] = useState("");
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
   const [providersFor, setProvidersFor] = useState<string | null>(null);
+  const [sharingOpen, setSharingOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [requestingInFolder, setRequestingInFolder] = useState<string | null>(null);
   const [newContractName, setNewContractName] = useState("");
@@ -467,6 +469,11 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
+                  {isAdmin && files.some((f: any) => f.file_path) && (
+                    <Button size="sm" variant="outline" className="border-indigo-200 text-indigo-700 hover:bg-indigo-50" onClick={() => setSharingOpen(true)}>
+                      <Share2 className="size-3.5 mr-1" /> Compartilhar com prestadores
+                    </Button>
+                  )}
                   {isAdmin && !isAllView && (
                     <>
                       <Button size="sm" variant="default" onClick={() => setRequestingInFolder(currentFolderId)}>
@@ -765,6 +772,10 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
         />
       )}
 
+      {isAdmin && (
+        <BulkShareDocumentsDialog open={sharingOpen} onOpenChange={setSharingOpen}
+          documents={(files as any[]).map((f) => ({ id: f.id, name: f.name, file_path: f.file_path }))} />
+      )}
       {requestingInFolder && (
         <DocumentDialog
           open
