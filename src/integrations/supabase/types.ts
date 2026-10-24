@@ -303,7 +303,7 @@ export type Database = {
             foreignKeyName: "client_collaborators_collaborator_id_fkey"
             columns: ["collaborator_id"]
             isOneToOne: false
-            referencedRelation: "employees"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1702,7 +1702,7 @@ export type Database = {
             foreignKeyName: "clients_collaborator_id_fkey"
             columns: ["collaborator_id"]
             isOneToOne: false
-            referencedRelation: "employees"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -3085,6 +3085,57 @@ export type Database = {
           },
           {
             foreignKeyName: "document_requests_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_shares: {
+        Row: {
+          can_download: boolean
+          created_at: string
+          document_id: string
+          expires_at: string | null
+          id: string
+          message: string | null
+          provider_id: string
+          shared_by: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          can_download?: boolean
+          created_at?: string
+          document_id: string
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          provider_id: string
+          shared_by?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          can_download?: boolean
+          created_at?: string
+          document_id?: string
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          provider_id?: string
+          shared_by?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_shares_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_shares_provider_id_fkey"
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "service_providers"
@@ -5875,7 +5926,7 @@ export type Database = {
             foreignKeyName: "sales_collaborator_id_fkey"
             columns: ["collaborator_id"]
             isOneToOne: false
-            referencedRelation: "employees"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -6270,6 +6321,80 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      support_ticket_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sender_role: string
+          sender_user_id: string
+          ticket_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sender_role: string
+          sender_user_id?: string
+          ticket_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sender_role?: string
+          sender_user_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          created_at: string
+          id: string
+          priority: string
+          requester_id: string
+          requester_role: string
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          priority?: string
+          requester_id?: string
+          requester_role: string
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          priority?: string
+          requester_id?: string
+          requester_role?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       system_settings: {
         Row: {
@@ -6749,8 +6874,16 @@ export type Database = {
         Returns: undefined
       }
       notify_tasks_due_today: { Args: never; Returns: undefined }
+      provider_can_read_shared_file: {
+        Args: { _path: string; _user_id: string }
+        Returns: boolean
+      }
       provider_has_demand_access: {
         Args: { _client_product_id: string; _user_id: string }
+        Returns: boolean
+      }
+      provider_has_document_share: {
+        Args: { _document_id: string; _user_id: string }
         Returns: boolean
       }
       recompute_sales_goals_for_month: {
