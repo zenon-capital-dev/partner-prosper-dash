@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
 import { cn } from "@/lib/utils";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = {
   solicitado: { label: "Solicitado", tone: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
@@ -67,6 +68,10 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   const [phaseLabel, setPhaseLabel] = useState("");
   const phaseFileRef = useRef<HTMLInputElement>(null);
   const phaseUploadCtx = useRef<{ parentId: string; label: string } | null>(null);
+  // Todo documento de cliente precisa de uma demanda (client_product_id) no banco.
+  // Guarda a demanda escolhida para o próximo envio.
+  const demandRef = useRef<string | null>(null);
+  const [demandPicker, setDemandPicker] = useState<{ selected: string; onPick: (id: string) => void } | null>(null);
 
 
   const isAdmin = viewerRole === "admin";
@@ -99,6 +104,45 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, isLoading, clientId, folders.length]);
+
+  const { data: demands = [] } = useQuery({
+    queryKey: ["cdf-demands", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_products")
+        .select("id, custom_product_name, created_at, products(name)")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((cp: any) => {
+        const name = cp.products?.name || cp.custom_product_name || "Demanda";
+        return { id: cp.id as string, label: cp.created_at ? `${name} · aberta em ${formatDate(cp.created_at)}` : name };
+      });
+    },
+  });
+
+  // Usa a demanda já conhecida; senão a única do cliente; se houver várias, pergunta qual.
+  function withDemand(preferred: string | null | undefined, run: (clientProductId: string) => void) {
+    if (preferred) return run(preferred);
+    if (demands.length === 1) return run(demands[0].id);
+    if (demands.length > 1) return setDemandPicker({ selected: "", onPick: run });
+    toast.error("Este cliente não tem demanda cadastrada. Crie uma demanda antes de enviar arquivos.");
+  }
+
+  function confirmDemandPicker() {
+    if (!demandPicker?.selected) return toast.error("Selecione a demanda");
+    const { selected, onPick } = demandPicker;
+    setDemandPicker(null);
+    onPick(selected);
+  }
+
+  function startUpload() {
+    withDemand(null, (cpId) => {
+      demandRef.current = cpId;
+      setTimeout(() => fileRef.current?.click(), 0);
+    });
+  }
 
   const ALL_ID = "__all__";
   const currentFolderId = activeId ?? ALL_ID;
@@ -157,7 +201,9 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const selectedFiles = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (!selectedFiles.length || !currentFolderId) return;
+    const clientProductId = demandRef.current;
+    demandRef.current = null;
+    if (!selectedFiles.length || !currentFolderId || !clientProductId) return;
     try {
       setUploading(true);
       const rows: any[] = [];
@@ -168,6 +214,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
         if (up.error) throw up.error;
         rows.push({
           client_id: clientId,
+          client_product_id: clientProductId,
           folder_id: currentFolderId,
           name: file.name,
           file_path: path,
@@ -212,9 +259,11 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   }
 
   function triggerAttach(doc: any, source?: "email" | "whatsapp" | "admin") {
-    attachSourceRef.current = source ?? null;
-    setAttachingDoc(doc);
-    setTimeout(() => attachRef.current?.click(), 0);
+    withDemand(doc.client_product_id, (cpId) => {
+      attachSourceRef.current = source ?? null;
+      setAttachingDoc({ ...doc, client_product_id: cpId });
+      setTimeout(() => attachRef.current?.click(), 0);
+    });
   }
 
   async function updateDocStatus(doc: any, status: string, extra: Record<string, any> = {}) {
@@ -284,6 +333,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
         } else {
           extraRows.push({
             client_id: clientId,
+            client_product_id: doc.client_product_id ?? null,
             folder_id: currentFolderId,
             product_id: doc.product_id ?? null,
             name: `${doc.name} — ${file.name}`,
@@ -330,11 +380,16 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
     return m;
   }, [isContratos, files]);
 
-  async function createContract() {
+  function createContract() {
     const name = newContractName.trim();
     if (!name || !currentFolderId) return;
+    withDemand(null, (cpId) => insertContract(name, cpId));
+  }
+
+  async function insertContract(name: string, clientProductId: string) {
     const { error } = await supabase.from("documents").insert({
       client_id: clientId,
+      client_product_id: clientProductId,
       folder_id: currentFolderId,
       name,
       status: "em_analise",
@@ -364,9 +419,15 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
 
   async function confirmAddPhase() {
     if (!addingPhaseTo || !phaseLabel.trim()) return;
-    phaseUploadCtx.current = { parentId: addingPhaseTo, label: phaseLabel.trim() };
+    const parentId = addingPhaseTo;
+    const label = phaseLabel.trim();
+    const parent = (files as any[]).find((f) => f.id === parentId);
     setAddingPhaseTo(null);
-    setTimeout(() => phaseFileRef.current?.click(), 0);
+    withDemand(parent?.client_product_id, (cpId) => {
+      demandRef.current = cpId;
+      phaseUploadCtx.current = { parentId, label };
+      setTimeout(() => phaseFileRef.current?.click(), 0);
+    });
   }
 
   async function onPhaseFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
@@ -374,7 +435,9 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
     e.target.value = "";
     const ctx = phaseUploadCtx.current;
     phaseUploadCtx.current = null;
-    if (!file || !ctx || !currentFolderId) return;
+    const clientProductId = demandRef.current;
+    demandRef.current = null;
+    if (!file || !ctx || !currentFolderId || !clientProductId) return;
     try {
       setUploading(true);
       const safe = sanitizeStorageFileName(file.name);
@@ -383,6 +446,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
       if (up.error) throw up.error;
       const { error } = await supabase.from("documents").insert({
         client_id: clientId,
+        client_product_id: clientProductId,
         folder_id: currentFolderId,
         parent_document_id: ctx.parentId,
         phase_label: ctx.label,
@@ -498,7 +562,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                     <>
                       <input ref={fileRef} type="file" multiple hidden onChange={onUpload} />
                       <input ref={attachRef} type="file" multiple hidden onChange={onAttachToRequest} />
-                      <Button size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
+                      <Button size="sm" disabled={uploading} onClick={startUpload}>
                         {uploading ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Upload className="size-3.5 mr-1" />}
                         Enviar arquivos
                       </Button>
@@ -735,6 +799,29 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
           )}
         </>
       )}
+
+      {/* Escolha da demanda quando o cliente tem mais de uma */}
+      <Dialog open={!!demandPicker} onOpenChange={(v) => { if (!v) setDemandPicker(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Vincular a qual demanda?</DialogTitle></DialogHeader>
+          <p className="text-xs text-slate-500">Este cliente tem mais de uma demanda. Escolha a que o arquivo pertence.</p>
+          <Select
+            value={demandPicker?.selected || ""}
+            onValueChange={(v) => setDemandPicker((p) => (p ? { ...p, selected: v } : p))}
+          >
+            <SelectTrigger><SelectValue placeholder="Selecione a demanda" /></SelectTrigger>
+            <SelectContent>
+              {demands.map((d) => (
+                <SelectItem key={d.id} value={d.id}>{d.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDemandPicker(null)}>Cancelar</Button>
+            <Button onClick={confirmDemandPicker} disabled={!demandPicker?.selected}>Continuar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Create folder */}
       <Dialog open={creating} onOpenChange={setCreating}>
