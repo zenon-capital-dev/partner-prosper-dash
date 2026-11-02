@@ -23,6 +23,14 @@ import { logTimeline } from "@/lib/timeline";
 import { confirmAction } from "@/lib/confirm";
 import { sanitizeStorageFileName, assertUploadFile, uploadErrorMessage } from "@/lib/uploads";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
+} from "@/components/ui/dialog";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+
+type UploadSource = "email" | "whatsapp" | "admin";
+type DemandOption = { id: string; label: string };
+type AdminUploadOpts = { doc?: any; productId?: string | null; clientProductId?: string | null; source: UploadSource };
 
 const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = {
   solicitado: { label: "Solicitado", tone: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
@@ -41,7 +49,9 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
   const [defaultProductId, setDefaultProductId] = useState<string | null>(null);
   const adminFileRef = useRef<HTMLInputElement>(null);
-  const [pendingUpload, setPendingUpload] = useState<{ doc?: any; productId?: string | null; source: "email" | "whatsapp" | "admin" } | null>(null);
+  const [pendingUpload, setPendingUpload] = useState<AdminUploadOpts | null>(null);
+  // Quando o produto tem mais de uma demanda, o admin escolhe a qual o arquivo pertence
+  const [demandPicker, setDemandPicker] = useState<{ opts: AdminUploadOpts; demands: DemandOption[]; selected: string } | null>(null);
   const [uploading, setUploading] = useState(false);
 
   const { data: docs = [], isLoading } = useQuery({
@@ -62,8 +72,9 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
     queryFn: async () => {
       const { data } = await supabase
         .from("client_products")
-        .select("id, custom_product_name, products(id,name)")
-        .eq("client_id", clientId);
+        .select("id, custom_product_name, created_at, products(id,name)")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: true });
       return data ?? [];
     },
   });
@@ -120,9 +131,27 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
     refresh();
   };
 
-  const triggerAdminUpload = (opts: { doc?: any; productId?: string | null; source: "email" | "whatsapp" | "admin" }) => {
+  const openFilePicker = (opts: AdminUploadOpts) => {
     setPendingUpload(opts);
     setTimeout(() => adminFileRef.current?.click(), 0);
+  };
+
+  // Todo documento de cliente precisa estar vinculado a uma demanda (client_product_id).
+  // Usa a demanda do documento solicitado; senão, a única demanda do produto;
+  // se houver várias, pergunta qual.
+  const triggerAdminUpload = (opts: AdminUploadOpts, demands: DemandOption[]) => {
+    const fromDoc = opts.doc?.client_product_id as string | null | undefined;
+    if (fromDoc) return openFilePicker({ ...opts, clientProductId: fromDoc });
+    if (demands.length === 1) return openFilePicker({ ...opts, clientProductId: demands[0].id });
+    if (demands.length > 1) return setDemandPicker({ opts, demands, selected: "" });
+    toast.error("Este produto não tem demanda cadastrada para o cliente. Crie a demanda antes de anexar o arquivo.");
+  };
+
+  const confirmDemandPicker = () => {
+    if (!demandPicker?.selected) return toast.error("Selecione a demanda");
+    const { opts, selected } = demandPicker;
+    setDemandPicker(null);
+    openFilePicker({ ...opts, clientProductId: selected });
   };
 
   const handleAdminFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,6 +198,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
       } else {
         rows.push({
           client_id: clientId,
+          client_product_id: pendingUpload.clientProductId ?? null,
           product_id: pendingUpload.productId ?? null,
           name: pendingUpload.doc?.id ? `${pendingUpload.doc.name} · ${file.name}` : file.name,
           description: pendingUpload.doc?.id ? `Arquivo adicional de ${pendingUpload.doc.name}` : `Anexado pelo admin (${pendingUpload.source})`,
@@ -188,19 +218,21 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
   };
 
   const grouped = useMemo(() => {
-    const groups = new Map<string, { name: string; productId: string | null; items: any[] }>();
+    const groups = new Map<string, { name: string; productId: string | null; items: any[]; demands: DemandOption[] }>();
     // Inicializa um bucket por produto contratado para que o admin veja produtos sem documentos ainda
     for (const cp of clientProducts) {
       const name = cp.products?.name || cp.custom_product_name || "Produto";
       const pid = cp.products?.id || null;
       const key = pid || `cp_${cp.id}`;
-      if (!groups.has(key)) groups.set(key, { name, productId: pid, items: [] });
+      if (!groups.has(key)) groups.set(key, { name, productId: pid, items: [], demands: [] });
+      const label = cp.created_at ? `${name} · aberta em ${formatDate(cp.created_at)}` : name;
+      groups.get(key)!.demands.push({ id: cp.id, label });
     }
     for (const d of docs) {
       const pid = d.products?.id || null;
       const key = pid || "__geral__";
       if (!groups.has(key)) {
-        groups.set(key, { name: d.products?.name || "Documentos gerais", productId: pid, items: [] });
+        groups.set(key, { name: d.products?.name || "Documentos gerais", productId: pid, items: [], demands: [] });
       }
       groups.get(key)!.items.push(d);
     }
@@ -276,13 +308,13 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => triggerAdminUpload({ productId: group.productId, source: "email" })}>
+                      <DropdownMenuItem onClick={() => triggerAdminUpload({ productId: group.productId, source: "email" }, group.demands)}>
                         <Mail className="size-3.5 mr-2" /> Recebido por Email
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => triggerAdminUpload({ productId: group.productId, source: "whatsapp" })}>
+                      <DropdownMenuItem onClick={() => triggerAdminUpload({ productId: group.productId, source: "whatsapp" }, group.demands)}>
                         <MessageCircle className="size-3.5 mr-2" /> Recebido por WhatsApp
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => triggerAdminUpload({ productId: group.productId, source: "admin" })}>
+                      <DropdownMenuItem onClick={() => triggerAdminUpload({ productId: group.productId, source: "admin" }, group.demands)}>
                         <Upload className="size-3.5 mr-2" /> Upload manual
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -374,13 +406,13 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => triggerAdminUpload({ doc, productId: doc.product_id, source: "email" })}>
+                              <DropdownMenuItem onClick={() => triggerAdminUpload({ doc, productId: doc.product_id, source: "email" }, group.demands)}>
                                 <Mail className="size-3.5 mr-2" /> Recebido por Email
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => triggerAdminUpload({ doc, productId: doc.product_id, source: "whatsapp" })}>
+                              <DropdownMenuItem onClick={() => triggerAdminUpload({ doc, productId: doc.product_id, source: "whatsapp" }, group.demands)}>
                                 <MessageCircle className="size-3.5 mr-2" /> Recebido por WhatsApp
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => triggerAdminUpload({ doc, productId: doc.product_id, source: "admin" })}>
+                              <DropdownMenuItem onClick={() => triggerAdminUpload({ doc, productId: doc.product_id, source: "admin" }, group.demands)}>
                                 <Upload className="size-3.5 mr-2" /> Upload manual
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -480,6 +512,34 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
         defaultProductId={defaultProductId}
         onSuccess={refresh}
       />
+      <Dialog open={!!demandPicker} onOpenChange={(v) => { if (!v) setDemandPicker(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Vincular a qual demanda?</DialogTitle>
+            <DialogDescription>
+              Este cliente tem mais de uma demanda deste produto. Escolha a que o arquivo pertence.
+            </DialogDescription>
+          </DialogHeader>
+          <Select
+            value={demandPicker?.selected || ""}
+            onValueChange={(v) => setDemandPicker((p) => (p ? { ...p, selected: v } : p))}
+          >
+            <SelectTrigger>
+              <Package className="size-3.5 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Selecione a demanda" />
+            </SelectTrigger>
+            <SelectContent>
+              {demandPicker?.demands.map((d) => (
+                <SelectItem key={d.id} value={d.id}>{d.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDemandPicker(null)}>Cancelar</Button>
+            <Button onClick={confirmDemandPicker} disabled={!demandPicker?.selected}>Escolher arquivo</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <input
         ref={adminFileRef}
         type="file"
