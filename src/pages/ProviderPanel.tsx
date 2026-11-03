@@ -44,8 +44,8 @@ const STATUS_META: Record<string, { label: string; tone: string }> = {
   aguardando_documentos:  { label: "Aguardando documentos", tone: "bg-amber-50 text-amber-700 border-amber-200" },
   aguardando_aprovacao:   { label: "Aguardando aprovação", tone: "bg-indigo-50 text-indigo-700 border-indigo-200" },
   aguardando_pagamento:   { label: "Aguardando pagamento", tone: "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200" },
-  em_andamento:           { label: "Em andamento", tone: "bg-teal-50 text-teal-700 border-teal-200" },
-  em_execucao:            { label: "Em execução", tone: "bg-teal-50 text-teal-700 border-teal-200" },
+  em_andamento:           { label: "Em andamento", tone: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+  em_execucao:            { label: "Em execução", tone: "bg-indigo-50 text-indigo-700 border-indigo-200" },
   em_analise:             { label: "Em análise", tone: "bg-blue-50 text-blue-700 border-blue-200" },
   atrasado:               { label: "Atrasada", tone: "bg-rose-50 text-rose-700 border-rose-200" },
   atrasada:               { label: "Atrasada", tone: "bg-rose-50 text-rose-700 border-rose-200" },
@@ -79,7 +79,7 @@ function KpiTile({ icon: Icon, label, value, hint, accent, progress }: {
       </div>
       {typeof progress === "number" && (
         <div className="mt-3 h-1 bg-slate-100 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all" style={{ width: `${progress}%` }} />
+          <div className="h-full bg-gradient-to-r from-emerald-500 to-indigo-500 transition-all" style={{ width: `${progress}%` }} />
         </div>
       )}
     </div>
@@ -516,7 +516,7 @@ export default function ProviderPanel() {
         {activeKey === "dashboard" && (
           <div className="space-y-5">
             {/* Hero premium */}
-            <div className="relative overflow-hidden rounded-2xl border border-teal-100/60 bg-gradient-to-br from-teal-600 via-emerald-600 to-cyan-600 text-white shadow-[0_10px_40px_-15px_rgba(20,184,166,0.5)]">
+            <div className="relative overflow-hidden rounded-2xl border border-indigo-100/60 bg-gradient-to-br from-indigo-600 via-indigo-600 to-indigo-500 text-white shadow-[0_10px_40px_-15px_rgba(23,45,68,0.45)]">
               <div className="absolute inset-0 opacity-[0.15] bg-[radial-gradient(circle_at_20%_20%,white_0%,transparent_40%),radial-gradient(circle_at_80%_60%,white_0%,transparent_35%)]" />
               <div className="absolute -right-10 -top-10 size-56 rounded-full bg-white/10 blur-3xl" />
               <div className="relative p-6 sm:p-8 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
@@ -559,7 +559,7 @@ export default function ProviderPanel() {
                 label="Reportes no mês"
                 value={reportsThisMonth}
                 hint={`${reports.length} total`}
-                accent="text-teal-600 bg-teal-50 border-teal-100"
+                accent="text-indigo-600 bg-indigo-50 border-indigo-100"
               />
               <KpiTile
                 icon={CalendarClock}
@@ -591,7 +591,7 @@ export default function ProviderPanel() {
               <SectionCard
                 title="Próximos prazos"
                 icon={CalendarClock}
-                action={<Button size="sm" variant="ghost" className="text-teal-700 hover:text-teal-800" onClick={() => onNavigate("demandas")}>Ver todas <ArrowUpRight className="w-3 h-3 ml-1" /></Button>}
+                action={<Button size="sm" variant="ghost" className="text-indigo-700 hover:text-indigo-800" onClick={() => onNavigate("demandas")}>Ver todas <ArrowUpRight className="w-3 h-3 ml-1" /></Button>}
               >
                 {upcoming.length === 0 ? (
                   <EmptyState icon={CalendarClock} title="Sem prazos próximos" description="Nenhuma demanda vence nos próximos 14 dias." />
@@ -602,7 +602,7 @@ export default function ProviderPanel() {
                       const days = Math.ceil((new Date(due).getTime() - Date.now()) / 86400000);
                       return (
                         <li key={cp.id} className="flex items-center gap-3 px-3 py-2.5">
-                          <div className="size-9 rounded-full bg-teal-50 text-teal-700 flex items-center justify-center text-[10px] font-semibold shrink-0">{initials(cp.clients?.full_name || "?")}</div>
+                          <div className="size-9 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center text-[10px] font-semibold shrink-0">{initials(cp.clients?.full_name || "?")}</div>
                           <div className="min-w-0 flex-1">
                             <p className="text-[13px] font-medium text-slate-900 truncate">{cp.clients?.full_name || "—"}</p>
                             <p className="text-[11px] text-slate-500 truncate">{cp.products?.name}</p>
@@ -658,7 +658,7 @@ export default function ProviderPanel() {
               <SectionCard
                 title="Últimos reportes"
                 icon={ClipboardCheck}
-                action={<Button size="sm" variant="ghost" className="text-teal-700 hover:text-teal-800" onClick={() => onNavigate("reportes")}>Ver todos <ArrowUpRight className="w-3 h-3 ml-1" /></Button>}
+                action={<Button size="sm" variant="ghost" className="text-indigo-700 hover:text-indigo-800" onClick={() => onNavigate("reportes")}>Ver todos <ArrowUpRight className="w-3 h-3 ml-1" /></Button>}
               >
                 {reports.length === 0 ? (
                   <EmptyState icon={ClipboardCheck} title="Sem reportes" description="Envie seu primeiro reporte pela aba Demandas." />
@@ -671,7 +671,7 @@ export default function ProviderPanel() {
                         : r.status === "em_analise" ? "bg-amber-50 text-amber-700 border-amber-200"
                         : "bg-blue-50 text-blue-700 border-blue-200";
                       return (
-                        <li key={r.id} className="rounded-lg border border-slate-100 hover:border-teal-200 hover:bg-teal-50/30 transition-colors p-2.5 cursor-pointer" onClick={() => setReportView({ ...r, _cp: cp })}>
+                        <li key={r.id} className="rounded-lg border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors p-2.5 cursor-pointer" onClick={() => setReportView({ ...r, _cp: cp })}>
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-[12px] font-medium text-slate-900 truncate flex-1">
                               {cp?.clients?.full_name || "—"} · {cp?.products?.name || ""}
@@ -726,13 +726,13 @@ export default function ProviderPanel() {
                             className={cn(
                               "w-full rounded-t-md transition-all",
                               isLast
-                                ? "bg-gradient-to-t from-emerald-500 to-teal-400"
-                                : "bg-gradient-to-t from-slate-200 to-slate-300 group-hover:from-teal-200 group-hover:to-teal-100"
+                                ? "bg-gradient-to-t from-emerald-500 to-indigo-400"
+                                : "bg-gradient-to-t from-slate-200 to-slate-300 group-hover:from-indigo-200 group-hover:to-indigo-100"
                             )}
                             style={{ height: `${Math.max(h, 4)}%` }}
                           />
                         </div>
-                        <div className={cn("text-[10px] uppercase tracking-wider", isLast ? "text-teal-700 font-semibold" : "text-slate-400")}>
+                        <div className={cn("text-[10px] uppercase tracking-wider", isLast ? "text-indigo-700 font-semibold" : "text-slate-400")}>
                           {b.label}
                         </div>
                       </div>
@@ -803,7 +803,7 @@ export default function ProviderPanel() {
                       <li key={it.id} className="pl-4 relative">
                         <span className={cn(
                           "absolute -left-[6px] top-1.5 size-3 rounded-full ring-4 ring-white",
-                          it.tone === "teal" ? "bg-teal-500" : "bg-indigo-500",
+                          it.tone === "teal" ? "bg-indigo-500" : "bg-indigo-500",
                         )} />
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
@@ -824,7 +824,7 @@ export default function ProviderPanel() {
                 className="lg:col-span-2"
                 action={
                   recentNotifications.length > 0 && (
-                    <Badge variant="outline" className="text-[10px] bg-teal-50 text-teal-700 border-teal-200">
+                    <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200">
                       {(recentNotifications as any[]).filter((n) => !n.read_at).length} nova(s)
                     </Badge>
                   )
@@ -843,12 +843,12 @@ export default function ProviderPanel() {
                             {...(clickable ? { type: "button", onClick: () => navigate(n.link) } : {})}
                             className={cn(
                               "w-full text-left rounded-md p-2 border text-[12px] transition",
-                              n.read_at ? "border-slate-100 bg-white" : "border-teal-100 bg-teal-50/40",
-                              clickable && "hover:border-teal-300 hover:bg-teal-50 cursor-pointer",
+                              n.read_at ? "border-slate-100 bg-white" : "border-indigo-100 bg-indigo-50/40",
+                              clickable && "hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer",
                             )}
                           >
                             <div className="flex items-start gap-2">
-                              <div className={cn("size-1.5 rounded-full mt-1.5 shrink-0", n.read_at ? "bg-slate-300" : "bg-teal-500")} />
+                              <div className={cn("size-1.5 rounded-full mt-1.5 shrink-0", n.read_at ? "bg-slate-300" : "bg-indigo-500")} />
                               <div className="min-w-0 flex-1">
                                 <p className="font-medium text-slate-900 truncate">{n.title || n.kind}</p>
                                 {n.message && <p className="text-[11px] text-slate-500 truncate">{n.message}</p>}
@@ -868,7 +868,7 @@ export default function ProviderPanel() {
             {/* Ações rápidas */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: "Reportar status", icon: ClipboardCheck, tone: "from-teal-500 to-emerald-500", onClick: () => onNavigate("demandas") },
+                { label: "Reportar status", icon: ClipboardCheck, tone: "from-indigo-500 to-emerald-500", onClick: () => onNavigate("demandas") },
                 { label: "Nova solicitação", icon: MessageSquare, tone: "from-amber-500 to-orange-500", onClick: () => navigate("/minhas-solicitacoes") },
                 { label: "Ver documentos", icon: FileText, tone: "from-indigo-500 to-blue-500", onClick: () => onNavigate("documentos") },
                 { label: "Comissões", icon: Wallet, tone: "from-emerald-500 to-green-500", onClick: () => onNavigate("comissoes") },
@@ -876,7 +876,7 @@ export default function ProviderPanel() {
                 <button
                   key={a.label}
                   onClick={a.onClick}
-                  className="group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white p-4 text-left shadow-sm hover:shadow-md hover:border-teal-300 transition-all"
+                  className="group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white p-4 text-left shadow-sm hover:shadow-md hover:border-indigo-300 transition-all"
                 >
                   <div className={cn("absolute -right-6 -top-6 size-20 rounded-full bg-gradient-to-br opacity-10 group-hover:opacity-20 transition", a.tone)} />
                   <div className={cn("size-9 rounded-lg bg-gradient-to-br text-white flex items-center justify-center shadow-sm", a.tone)}>
@@ -884,7 +884,7 @@ export default function ProviderPanel() {
                   </div>
                   <div className="mt-3 text-[13px] font-semibold text-slate-900 flex items-center justify-between">
                     {a.label}
-                    <ArrowUpRight className="size-3.5 text-slate-400 group-hover:text-teal-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" />
+                    <ArrowUpRight className="size-3.5 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" />
                   </div>
                 </button>
               ))}
@@ -937,7 +937,7 @@ export default function ProviderPanel() {
                           <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setRequestsTarget({ id: cp.id, clientName: cp.clients?.full_name })}>
                             <MessageSquare className="size-3 mr-1" /> Solicitar
                           </Button>
-                          <Button size="sm" className={cn("h-8 text-[11px] text-white", u.level === "overdue" ? "bg-rose-600 hover:bg-rose-700" : u.level === "stale" ? "bg-amber-600 hover:bg-amber-700" : "bg-teal-600 hover:bg-teal-700")} onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}>Reportar status</Button>
+                          <Button size="sm" className={cn("h-8 text-[11px] text-white", u.level === "overdue" ? "bg-rose-600 hover:bg-rose-700" : u.level === "stale" ? "bg-amber-600 hover:bg-amber-700" : "bg-indigo-600 hover:bg-indigo-700")} onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}>Reportar status</Button>
                         </div>
                       </div>
                     </div>
@@ -970,7 +970,7 @@ export default function ProviderPanel() {
                         <button
                           type="button"
                           onClick={() => setReportView({ ...r, _clientName: clientName, _productName: productName })}
-                          className="w-full text-left group cursor-pointer rounded-xl border border-slate-200/70 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition"
+                          className="w-full text-left group cursor-pointer rounded-xl border border-slate-200/70 bg-white p-4 hover:border-indigo-300 hover:shadow-sm transition"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
@@ -984,7 +984,7 @@ export default function ProviderPanel() {
                             {r.pending && <span className="inline-flex items-center gap-1"><span className="size-1.5 rounded-full bg-amber-400" /> Pendências</span>}
                             {r.next_steps && <span className="inline-flex items-center gap-1"><span className="size-1.5 rounded-full bg-blue-400" /> Próximos passos</span>}
                             {Array.isArray(r.attachments) && r.attachments.length > 0 && <span>{r.attachments.length} anexo(s)</span>}
-                            <span className="ml-auto text-teal-700 font-medium">Ver detalhes →</span>
+                            <span className="ml-auto text-indigo-700 font-medium">Ver detalhes →</span>
                           </div>
                         </button>
                       </li>
@@ -1076,7 +1076,7 @@ export default function ProviderPanel() {
 
           return (
             <>
-              <div className="relative overflow-hidden rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-6 sm:p-8 mb-5 shadow-sm">
+              <div className="relative overflow-hidden rounded-2xl border border-indigo-200/60 bg-gradient-to-br from-indigo-600 via-indigo-600 to-indigo-500 p-6 sm:p-8 mb-5 shadow-sm">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_60%)]" />
                 <div className="relative">
                   <div className="text-[10.5px] uppercase tracking-[0.18em] font-semibold text-emerald-50/90">Financeiro</div>
@@ -1109,12 +1109,12 @@ export default function ProviderPanel() {
                         {clientRows.map((row) => (
                           <details key={row.clientId} className="group rounded-lg border border-slate-200/70 bg-white overflow-hidden">
                             <summary className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50/60 list-none">
-                              <div className="size-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-[11px] font-semibold shrink-0">{initials(row.clientName)}</div>
+                              <div className="size-9 rounded-lg bg-gradient-to-br from-emerald-500 to-indigo-600 text-white flex items-center justify-center text-[11px] font-semibold shrink-0">{initials(row.clientName)}</div>
                               <div className="min-w-0 flex-1">
                                 <div className="text-[13px] font-semibold text-slate-900 truncate">{row.clientName}</div>
                                 <div className="text-[11px] text-slate-500 mt-0.5">
                                   {row.items.length} demanda(s)
-                                  {row.recorrente > 0 && <> · <span className="text-teal-700 font-medium">{formatBRL(row.recorrente)}/mês</span></>}
+                                  {row.recorrente > 0 && <> · <span className="text-indigo-700 font-medium">{formatBRL(row.recorrente)}/mês</span></>}
                                 </div>
                               </div>
                               <div className="text-right shrink-0 hidden sm:block">
@@ -1141,7 +1141,7 @@ export default function ProviderPanel() {
                                     <div className="min-w-0 flex-1">
                                       <div className="text-[12.5px] font-medium text-slate-900 truncate">{it.products?.name || "Demanda"}</div>
                                       <div className="text-[10.5px] text-slate-500 mt-0.5">
-                                        {isRec ? <span className="text-teal-700 font-medium">Recorrente {it.sales?.recurrence_months}m</span> : <span>Avulso</span>}
+                                        {isRec ? <span className="text-indigo-700 font-medium">Recorrente {it.sales?.recurrence_months}m</span> : <span>Avulso</span>}
                                         {it.deadline && <> · vence {formatDate(it.deadline)}</>}
                                         {it.sales?.paid_at && <> · pago {formatDate(it.sales.paid_at)}</>}
                                       </div>
@@ -1216,7 +1216,7 @@ export default function ProviderPanel() {
             <>
               <PanelHero role="prestador" eyebrow="Perfil" title="Sua conta" subtitle={provider.email} />
 
-              <div className={cn("rounded-lg border px-3 py-2.5 text-[12px] mb-4", editingProfile ? "border-teal-200 bg-teal-50 text-teal-800" : "border-slate-200 bg-slate-50 text-slate-700")}>
+              <div className={cn("rounded-lg border px-3 py-2.5 text-[12px] mb-4", editingProfile ? "border-indigo-200 bg-indigo-50 text-indigo-800" : "border-slate-200 bg-slate-50 text-slate-700")}>
                 {editingProfile
                   ? "Preencha seus dados e clique em Salvar. Você pode editar quando quiser."
                   : "Mantenha seus dados atualizados. Clique em Editar para preencher ou corrigir."}
@@ -1229,10 +1229,10 @@ export default function ProviderPanel() {
                   editingProfile ? (
                     <div className="flex gap-2">
                       <Button size="sm" variant="ghost" onClick={() => { setEditingProfile(false); if (provider) setProfileForm(hydrateProfile(provider)); }}>Cancelar</Button>
-                      <Button size="sm" className="bg-teal-600 hover:bg-teal-700" onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending}>{saveProfile.isPending ? "Salvando..." : "Salvar"}</Button>
+                      <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending}>{saveProfile.isPending ? "Salvando..." : "Salvar"}</Button>
                     </div>
                   ) : (
-                    <Button size="sm" className="bg-teal-600 hover:bg-teal-700" onClick={() => setEditingProfile(true)}>Editar dados</Button>
+                    <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" onClick={() => setEditingProfile(true)}>Editar dados</Button>
                   )
                 }
               >
@@ -1252,7 +1252,7 @@ export default function ProviderPanel() {
                       rows={3}
                       maxLength={500}
                       placeholder="Um resumo curto sobre você e sua atuação (até 500 caracteres)"
-                      className={cn("w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-teal-500/30", !editingProfile && "bg-slate-50/70")}
+                      className={cn("w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500/30", !editingProfile && "bg-slate-50/70")}
                     />
                   </div>
                 </div>
@@ -1283,7 +1283,7 @@ export default function ProviderPanel() {
                       value={profileForm.bank_account_type}
                       onChange={(e) => set("bank_account_type")(e.target.value)}
                       disabled={!editingProfile}
-                      className={cn("w-full h-10 rounded-md border border-slate-200 px-3 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30", !editingProfile && "bg-slate-50/70")}
+                      className={cn("w-full h-10 rounded-md border border-slate-200 px-3 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30", !editingProfile && "bg-slate-50/70")}
                     >
                       <option value="corrente">Conta corrente</option>
                       <option value="poupanca">Conta poupança</option>

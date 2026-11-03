@@ -8,11 +8,13 @@ export interface ThemeColors {
   radius: string;
 }
 
+// Padrão da identidade Zenon (azul profundo, marfim e bege do manual).
+// Preferências já salvas pelo usuário continuam valendo por cima deste padrão.
 const DEFAULT_COLORS: ThemeColors = {
-  primary: '#1d4ed8',
-  sidebarBackground: '#020617',
-  sidebarForeground: '#94a3b8',
-  accent: '#f1f5f9',
+  primary: '#172D44',
+  sidebarBackground: '#172D44',
+  sidebarForeground: '#C6BEAF',
+  accent: '#EEE9DF',
   radius: '0.5rem',
 };
 

@@ -1,72 +1,88 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Instrument+Serif:ital@0;1&family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+/* Fontes da marca Zenon — arquivos locais (public/fonts). Times New Roman vem do sistema. */
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Variable.woff2') format('woff2-variations'), url('/fonts/Montserrat-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Italic-Variable.woff2') format('woff2-variations'), url('/fonts/Montserrat-Italic-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ============================================================
-   VENDX — Design System v2 (Premium SaaS)
-   Brand: Indigo/Violet — Inspired by Linear / Vercel / Stripe
+   ZENON — Arquitetura de Capital · Design System do CRM
+   Paleta oficial: #172D44 azul profundo · #586879 azul acinzentado · #EEE9DF marfim
+   #C6BEAF bege · #333330 grafite · #C79662 bronze · #6F3C2C terracota
+   Os demais tons são adaptações de interface (legibilidade e estados).
    ============================================================ */
 
 @layer base {
   :root {
-    /* Neutral surface — soft off-white, never harsh white */
-    --background: 220 20% 98%;
-    --foreground: 222 47% 8%;
+    /* Superfície: marfim claro (adaptação do marfim #EEE9DF para leitura prolongada) */
+    --background: 40 23% 96%;
+    --foreground: 211 49% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 9%;
+    --card-foreground: 211 49% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 9%;
+    --popover-foreground: 211 49% 12%;
 
-    /* Brand — Deep Corporate Indigo (Stripe / Ramp tone) */
-    --primary: 222 47% 11%;
+    /* Marca — azul profundo #172D44 */
+    --primary: 211 49% 18%;
     --primary-foreground: 0 0% 100%;
-    --primary-muted: 220 14% 96%;
-    --primary-glow: 222 47% 11%;
+    --primary-muted: 211 30% 95%;
+    --primary-glow: 211 40% 26%;
 
-    --secondary: 220 16% 95%;
-    --secondary-foreground: 222 40% 14%;
+    --secondary: 40 20% 94%;
+    --secondary-foreground: 211 49% 14%;
 
-    --muted: 220 14% 94%;
-    --muted-foreground: 220 9% 40%;
+    --muted: 40 16% 93%;
+    --muted-foreground: 211 16% 34%;
 
-    --accent: 220 16% 94%;
-    --accent-foreground: 230 60% 26%;
+    --accent: 40 25% 92%;
+    --accent-foreground: 211 49% 18%;
 
     --destructive: 358 68% 48%;
     --destructive-foreground: 0 0% 100%;
     --destructive-muted: 358 70% 96%;
 
-    --border: 220 13% 88%;
-    --input: 220 13% 86%;
-    --ring: 222 47% 11%;
+    --border: 39 17% 85%;
+    --input: 39 10% 54%; /* borda de campos: 3:1 sobre branco/marfim */
+    --ring: 211 49% 18%;
 
     --radius: 0.5rem;
 
-    /* Sidebar — Near-black corporate slate */
-    --sidebar-background: 222 38% 6%;
-    --sidebar-foreground: 220 10% 62%;
-    --sidebar-primary: 230 70% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 30% 10%;
+    /* Navegação — azul profundo com texto marfim e acento bronze */
+    --sidebar-background: 211 49% 18%;
+    --sidebar-foreground: 40 25% 88%;
+    --sidebar-primary: 31 47% 58%;
+    --sidebar-primary-foreground: 211 49% 12%;
+    --sidebar-accent: 211 40% 24%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 222 30% 11%;
-    --sidebar-ring: 230 70% 60%;
-    --sidebar-muted: 220 10% 42%;
+    --sidebar-border: 211 35% 26%;
+    --sidebar-ring: 31 47% 58%;
+    --sidebar-muted: 211 18% 70%;
 
-    /* Admin sidebar — premium light B2B rail */
-    --admin-sidebar-bg: 0 0% 100%;
-    --admin-sidebar-surface: 220 20% 98%;
-    --admin-sidebar-surface-strong: 224 38% 96%;
-    --admin-sidebar-border: 220 13% 88%;
-    --admin-sidebar-text: 222 47% 8%;
-    --admin-sidebar-muted: 222 20% 32%;
-    --admin-sidebar-heading: 222 47% 6%;
-    --admin-sidebar-active: 231 72% 46%;
-    --admin-sidebar-active-2: 217 80% 48%;
+    /* Navegação do admin */
+    --admin-sidebar-bg: 211 49% 18%;
+    --admin-sidebar-surface: 211 42% 22%;
+    --admin-sidebar-surface-strong: 211 38% 26%;
+    --admin-sidebar-border: 211 35% 26%;
+    --admin-sidebar-text: 40 25% 92%;
+    --admin-sidebar-muted: 211 18% 72%;
+    --admin-sidebar-heading: 40 25% 96%;
+    --admin-sidebar-active: 31 47% 58%;
+    --admin-sidebar-active-2: 31 47% 50%;
     --admin-sidebar-online: 154 76% 48%;
 
     /* Status palette — corporate, desaturated */
@@ -81,7 +97,7 @@
     --info-muted: 215 70% 95%;
 
     /* Chart palette — controlled corporate tones */
-    --chart-1: 230 60% 38%;
+    --chart-1: 211 49% 30%;
     --chart-2: 195 55% 38%;
     --chart-3: 32 78% 48%;
     --chart-4: 280 35% 45%;
@@ -89,62 +105,62 @@
     --chart-6: 215 65% 48%;
 
     /* Gradients — subtle, never neon */
-    --gradient-primary: linear-gradient(135deg, hsl(230 65% 20%) 0%, hsl(235 50% 28%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(211 49% 18%) 0%, hsl(211 40% 26%) 100%);
     --gradient-success: linear-gradient(135deg, hsl(158 58% 32%) 0%, hsl(170 50% 36%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 20% 98.5%) 100%);
-    --gradient-sidebar: linear-gradient(180deg, hsl(222 38% 7%) 0%, hsl(222 38% 5%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(40 23% 98.5%) 100%);
+    --gradient-sidebar: linear-gradient(180deg, hsl(211 49% 18%) 0%, hsl(211 50% 15%) 100%);
     --gradient-hero: radial-gradient(ellipse at top right, hsl(var(--primary) / 0.03), transparent 60%);
 
     /* Shadows — almost flat, just hairline depth */
-    --shadow-sm: 0 1px 0 hsl(220 20% 88% / 0.6);
-    --shadow-md: 0 1px 2px hsl(222 38% 12% / 0.04), 0 1px 0 hsl(220 20% 88% / 0.5);
-    --shadow-lg: 0 4px 16px -6px hsl(222 38% 12% / 0.06), 0 1px 0 hsl(220 20% 88% / 0.5);
-    --shadow-xl: 0 12px 32px -12px hsl(222 38% 12% / 0.08);
-    --shadow-glow: 0 0 0 1px hsl(230 60% 30% / 0.12);
+    --shadow-sm: 0 1px 0 hsl(39 17% 85% / 0.6);
+    --shadow-md: 0 1px 2px hsl(211 49% 12% / 0.04), 0 1px 0 hsl(39 17% 85% / 0.5);
+    --shadow-lg: 0 4px 16px -6px hsl(211 49% 12% / 0.07), 0 1px 0 hsl(39 17% 85% / 0.5);
+    --shadow-xl: 0 12px 32px -12px hsl(211 49% 12% / 0.09);
+    --shadow-glow: 0 0 0 1px hsl(211 49% 18% / 0.14);
   }
 
   .dark {
-    /* Navy premium — inspired by Linear / Vercel dark */
-    --background: 222 28% 10%;
-    --foreground: 220 15% 94%;
+    /* Tema escuro — azul profundo com texto marfim; bronze como acento */
+    --background: 211 45% 9%;
+    --foreground: 40 25% 93%;
 
-    --card: 222 25% 13%;
-    --card-foreground: 220 15% 95%;
+    --card: 211 40% 12%;
+    --card-foreground: 40 25% 94%;
 
-    --popover: 222 25% 14%;
-    --popover-foreground: 220 15% 95%;
+    --popover: 211 40% 13%;
+    --popover-foreground: 40 25% 94%;
 
-    --primary: 231 82% 66%;
-    --primary-foreground: 222 47% 8%;
-    --primary-muted: 231 30% 18%;
-    --primary-glow: 231 82% 70%;
+    --primary: 31 47% 62%;
+    --primary-foreground: 211 49% 10%;
+    --primary-muted: 211 30% 18%;
+    --primary-glow: 31 47% 66%;
 
-    --secondary: 222 22% 17%;
-    --secondary-foreground: 220 15% 92%;
+    --secondary: 211 30% 16%;
+    --secondary-foreground: 40 25% 92%;
 
-    --muted: 222 22% 18%;
-    --muted-foreground: 220 12% 68%;
+    --muted: 211 28% 17%;
+    --muted-foreground: 40 12% 72%;
 
-    --accent: 222 22% 20%;
-    --accent-foreground: 220 15% 95%;
+    --accent: 211 28% 20%;
+    --accent-foreground: 40 25% 94%;
 
     --destructive: 358 75% 62%;
     --destructive-foreground: 0 0% 100%;
     --destructive-muted: 358 40% 22%;
 
-    --border: 222 18% 22%;
-    --input: 222 18% 22%;
-    --ring: 231 82% 66%;
+    --border: 211 25% 22%;
+    --input: 211 18% 44%;
+    --ring: 31 47% 62%;
 
-    --sidebar-background: 222 32% 8%;
-    --sidebar-foreground: 220 14% 72%;
-    --sidebar-primary: 231 82% 66%;
-    --sidebar-primary-foreground: 222 47% 8%;
-    --sidebar-accent: 222 26% 14%;
+    --sidebar-background: 211 50% 7%;
+    --sidebar-foreground: 40 20% 82%;
+    --sidebar-primary: 31 47% 62%;
+    --sidebar-primary-foreground: 211 49% 10%;
+    --sidebar-accent: 211 40% 13%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 222 22% 16%;
-    --sidebar-ring: 231 82% 66%;
-    --sidebar-muted: 220 12% 56%;
+    --sidebar-border: 211 35% 14%;
+    --sidebar-ring: 31 47% 62%;
+    --sidebar-muted: 211 15% 62%;
 
     --success: 152 60% 52%;
     --success-foreground: 222 47% 8%;
@@ -156,21 +172,21 @@
     --info-foreground: 222 47% 8%;
     --info-muted: 210 55% 18%;
 
-    --chart-1: 231 82% 66%;
+    --chart-1: 211 45% 66%;
     --chart-2: 195 70% 60%;
     --chart-3: 35 88% 62%;
     --chart-4: 280 55% 65%;
     --chart-5: 152 55% 55%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(231 82% 60%) 0%, hsl(245 70% 62%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(222 26% 14%) 0%, hsl(222 28% 11%) 100%);
-    --gradient-hero: radial-gradient(ellipse at top right, hsl(231 82% 66% / 0.10), transparent 60%);
+    --gradient-primary: linear-gradient(135deg, hsl(31 47% 58%) 0%, hsl(31 47% 50%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(211 40% 13%) 0%, hsl(211 42% 11%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top right, hsl(31 47% 58% / 0.08), transparent 60%);
 
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.25);
     --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.35), 0 2px 4px -1px rgb(0 0 0 / 0.25);
     --shadow-lg: 0 12px 32px -8px rgb(0 0 0 / 0.45);
     --shadow-xl: 0 24px 48px -12px rgb(0 0 0 / 0.55);
-    --shadow-glow: 0 0 0 1px hsl(231 82% 66% / 0.18), 0 8px 32px -4px hsl(231 82% 66% / 0.25);
+    --shadow-glow: 0 0 0 1px hsl(31 47% 62% / 0.18), 0 8px 32px -4px hsl(31 47% 62% / 0.2);
   }
 }
 
@@ -180,29 +196,30 @@
   html.dark { color-scheme: dark; }
   body {
     @apply bg-background text-foreground antialiased selection:bg-indigo-100 selection:text-indigo-900 transition-all duration-300;
-    font-family: 'Inter', system-ui, sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01', 'ss03';
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-feature-settings: normal;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
-  h1, h2, h3, h4, h5,
+  /* Títulos operacionais e números em Montserrat (adaptação de interface).
+     Times (tipografia principal do manual) fica nos títulos de página — h1 e .font-editorial. */
+  h2, h3, h4, h5,
   .font-display {
-    font-family: 'Geist', 'Inter', sans-serif;
+    font-family: 'Montserrat', system-ui, sans-serif;
     @apply tracking-tight;
-    font-feature-settings: 'ss01', 'ss03', 'cv11';
   }
+  h1, .font-editorial, .font-serif {
+    font-family: 'Times New Roman', Times, 'Liberation Serif', serif;
+    letter-spacing: 0;
+  }
+  /* Valores e códigos: Montserrat com algarismos tabulares (alinham em colunas). */
   .font-mono, .vx-mono {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-feature-settings: 'ss01', 'ss02';
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
   }
   .tabular-nums {
     font-variant-numeric: tabular-nums;
-    font-feature-settings: 'tnum', 'ss01', 'cv11';
-  }
-  .font-editorial {
-    font-family: 'Fraunces', serif;
-    font-feature-settings: 'ss01', 'ss02';
   }
 }
 
@@ -292,10 +309,10 @@
   .btn-premium {
     background: hsl(var(--primary));
     @apply text-primary-foreground transition-colors duration-150;
-    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.08), 0 2px 4px hsl(222 38% 8% / 0.15);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.08), 0 2px 4px hsl(211 49% 10% / 0.15);
   }
   .btn-premium:hover {
-    background: hsl(230 60% 28%);
+    background: hsl(211 40% 26%);
   }
   .btn-premium:active { @apply scale-[0.99]; }
 
@@ -325,25 +342,25 @@
      ADMIN SHELL — Light corporate SaaS by default; dark overrides below
      ============================================================ */
   .admin-shell {
-    --background: 220 24% 97%;
-    --foreground: 222 47% 8%;
+    --background: 40 23% 96%;
+    --foreground: 211 49% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 9%;
+    --card-foreground: 211 49% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 9%;
-    --primary: var(--custom-primary, 231 72% 46%);
+    --popover-foreground: 211 49% 12%;
+    --primary: var(--custom-primary, 211 49% 18%);
     --primary-foreground: 0 0% 100%;
-    --primary-muted: var(--custom-primary-muted, 231 82% 96%);
-    --primary-glow: var(--custom-primary, 217 80% 48%);
-    --secondary: 220 16% 95%;
-    --secondary-foreground: 222 40% 14%;
-    --muted: 220 14% 94%;
-    --muted-foreground: 220 12% 32%;
-    --accent: var(--custom-accent, 217 80% 96%);
-    --accent-foreground: var(--custom-primary, 231 72% 34%);
-    --border: 220 13% 88%;
-    --input: 220 13% 86%;
-    --ring: var(--custom-primary, 231 72% 46%);
+    --primary-muted: var(--custom-primary-muted, 211 30% 95%);
+    --primary-glow: var(--custom-primary, 211 40% 26%);
+    --secondary: 40 20% 94%;
+    --secondary-foreground: 211 49% 14%;
+    --muted: 40 16% 93%;
+    --muted-foreground: 211 18% 27%;
+    --accent: var(--custom-accent, 40 25% 92%);
+    --accent-foreground: var(--custom-primary, 211 49% 18%);
+    --border: 39 17% 85%;
+    --input: 39 10% 54%; /* borda de campos: 3:1 sobre branco/marfim */
+    --ring: var(--custom-primary, 211 49% 18%);
     --success: 158 58% 34%;
     --success-foreground: 0 0% 100%;
     --success-muted: 158 56% 94%;
@@ -447,21 +464,21 @@
   }
   /* O Admin shell agora respeita o tema global .dark */
   .dark .admin-shell {
-    --background: 240 10% 2%;
-    --foreground: 0 0% 100%;
-    --card: 240 10% 3%;
-    --card-foreground: 0 0% 100%;
-    --popover: 240 10% 3%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 240 10% 8%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 240 10% 8%;
-    --muted-foreground: 240 5% 75%;
-    --border: 240 10% 12%;
-    --input: 240 10% 12%;
-    --ring: 0 0% 100%;
+    --background: 211 45% 7%;
+    --foreground: 40 25% 94%;
+    --card: 211 40% 10%;
+    --card-foreground: 40 25% 94%;
+    --popover: 211 40% 11%;
+    --popover-foreground: 40 25% 94%;
+    --primary: 31 47% 62%;
+    --primary-foreground: 211 49% 10%;
+    --secondary: 211 30% 15%;
+    --secondary-foreground: 40 25% 94%;
+    --muted: 211 30% 15%;
+    --muted-foreground: 40 12% 74%;
+    --border: 211 28% 18%;
+    --input: 211 18% 44%;
+    --ring: 31 47% 62%;
     color-scheme: dark;
   }
 
@@ -627,7 +644,7 @@
   .dark .aurora::before {
     background:
       radial-gradient(120% 60% at 100% 0%, hsl(var(--primary) / 0.16), transparent 55%),
-      radial-gradient(80% 50% at 0% 100%, hsl(265 80% 50% / 0.08), transparent 60%);
+      radial-gradient(80% 50% at 0% 100%, hsl(31 47% 58% / 0.06), transparent 60%);
   }
 
   /* Very subtle dot grid — no fade animation */
@@ -737,27 +754,27 @@
     @apply h-10 px-4 rounded-lg font-sans font-semibold uppercase tracking-[0.08em] text-[11.5px] transition-all flex items-center justify-center gap-2;
   }
   .admin-shell .btn-primary {
-    background: linear-gradient(180deg, hsl(231 72% 52%), hsl(231 72% 44%));
+    background: hsl(211 49% 18%);
     color: #ffffff;
-    border: 1px solid hsl(231 72% 38% / 0.45);
-    box-shadow: 0 2px 8px -2px rgba(79,70,229,0.45), inset 0 1px 0 rgba(255,255,255,0.18);
+    border: 1px solid hsl(211 49% 12%);
+    box-shadow: 0 2px 6px -2px hsl(211 49% 12% / 0.35);
     transition: all 200ms cubic-bezier(0.2,0,0,1);
   }
   .admin-shell .btn-primary:hover {
-    background: linear-gradient(180deg, hsl(231 72% 58%), hsl(231 72% 48%));
-    box-shadow: 0 4px 14px -4px rgba(79,70,229,0.55), inset 0 1px 0 rgba(255,255,255,0.2);
+    background: hsl(211 40% 26%);
+    box-shadow: 0 4px 12px -4px hsl(211 49% 12% / 0.4);
   }
   .admin-shell .btn-outline {
     background-color: #ffffff;
-    border: 1px solid hsl(214 32% 91%);
-    color: hsl(215 25% 27%);
+    border: 1px solid hsl(39 17% 85%);
+    color: hsl(211 49% 18%);
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     transition: all 180ms ease;
   }
   .admin-shell .btn-outline:hover {
-    background-color: hsl(210 40% 98%);
-    border-color: hsl(231 80% 78%);
-    color: hsl(231 70% 45%);
+    background-color: hsl(40 25% 97%);
+    border-color: hsl(211 25% 70%);
+    color: hsl(211 49% 14%);
   }
   .admin-shell .btn-success {
     background-color: hsl(152 76% 96%);
@@ -817,7 +834,7 @@
   /* Premium Stat Card */
   .vx-stat-card {
     @apply relative rounded-2xl border border-border bg-card p-5 transition-all duration-300 overflow-hidden;
-    box-shadow: 0 1px 2px hsl(224 38% 12% / 0.03);
+    box-shadow: 0 1px 2px hsl(211 49% 12% / 0.03);
   }
   .vx-stat-card::after {
     content: "";
@@ -1052,10 +1069,7 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
    ADMIN PREMIUM B2B SHELL — light, dense, legible
    ============================================================ */
 .admin-shell {
-  background:
-    radial-gradient(900px 520px at 12% -8%, hsl(231 72% 46% / 0.085), transparent 62%),
-    radial-gradient(760px 460px at 96% 8%, hsl(203 78% 42% / 0.065), transparent 58%),
-    linear-gradient(180deg, hsl(220 24% 98%) 0%, hsl(220 28% 96.5%) 48%, hsl(218 25% 95%) 100%) !important;
+  background: linear-gradient(180deg, hsl(40 25% 97%) 0%, hsl(40 22% 95%) 100%) !important;
   color: hsl(var(--foreground));
   position: relative;
   isolate: isolate;
@@ -1063,12 +1077,8 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 .admin-shell::before {
   content: "";
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background-image:
-    linear-gradient(to right, hsl(220 13% 88% / 0.46) 1px, transparent 1px),
-    linear-gradient(to bottom, hsl(220 13% 88% / 0.38) 1px, transparent 1px),
-    linear-gradient(120deg, hsl(231 72% 46% / 0.035), transparent 42%, hsl(203 78% 42% / 0.03));
-  background-size: 48px 48px, 48px 48px, 100% 100%;
-  mask-image: linear-gradient(180deg, black 0%, black 70%, transparent 100%);
+  /* Sem padrão decorativo atrás das informações operacionais (direção de arte Zenon). */
+  background-image: none;
 }
 .admin-shell > * { position: relative; z-index: 1; }
 .admin-shell .vx-card,
@@ -1085,31 +1095,36 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
   background: hsl(0 0% 100% / 0.96) !important;
   border: 1px solid hsl(var(--border) / 0.82) !important;
   border-radius: 1rem !important;
-  box-shadow: 0 1px 0 hsl(220 13% 88% / 0.75), 0 22px 56px -48px hsl(222 47% 11% / 0.52) !important;
+  box-shadow: 0 1px 0 hsl(39 17% 85% / 0.75), 0 18px 44px -40px hsl(211 49% 12% / 0.4) !important;
 }
 .admin-shell .vx-card:hover,
 .admin-shell .surface-hover:hover,
 .admin-shell .stat-card:hover {
-  border-color: hsl(220 13% 80%) !important;
-  box-shadow: 0 1px 0 hsl(220 13% 88% / 0.9), 0 30px 70px -52px hsl(222 47% 11% / 0.6) !important;
+  border-color: hsl(39 17% 76%) !important;
+  box-shadow: 0 1px 0 hsl(39 17% 85% / 0.9), 0 24px 56px -44px hsl(211 49% 12% / 0.48) !important;
 }
 .admin-shell .glass-header {
   background: hsl(0 0% 100% / 0.9) !important;
   backdrop-filter: blur(18px) saturate(150%);
   border-bottom: 1px solid hsl(var(--border) / 0.75) !important;
 }
-.admin-shell .text-white,
+/* Texto branco de componentes antigos (feitos para fundo escuro) vira escuro no admin claro.
+   Exceções — continuam brancos: elementos com fundo próprio, conteúdo de botões/links com
+   fundo e conteúdo de superfícies azul Zenon (indigo-600+ / zenon-navy).
+   bg-black / bg-zinc-900 / bg-slate-900 viram fundo claro (regra abaixo), então o texto
+   deles continua escuro. */
+.admin-shell .text-white:not(:is([class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900))):not(:is(button, a, [role="button"])[class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900) *):not(:is([class*="bg-indigo-6"], [class*="bg-indigo-7"], [class*="bg-indigo-8"], [class*="bg-indigo-9"], [class*="bg-zenon-navy"]) *),
 .admin-shell .dark\:text-white,
 .admin-shell .dark\:text-zinc-100,
 .admin-shell .dark\:text-zinc-200,
-.admin-shell .dark\:text-zinc-300 { color: hsl(222 47% 10%) !important; }
+.admin-shell .dark\:text-zinc-300 { color: hsl(211 49% 12%) !important; }
 .admin-shell .dark\:text-zinc-400,
 .admin-shell .dark\:text-zinc-500,
 .admin-shell .dark\:text-zinc-600,
-.admin-shell .text-white\/40,
-.admin-shell .text-white\/60,
-.admin-shell .text-white\/70,
-.admin-shell .text-white\/80 { color: hsl(var(--muted-foreground)) !important; }
+.admin-shell .text-white\/40:not(:is([class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900))):not(:is(button, a, [role="button"])[class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900) *):not(:is([class*="bg-indigo-6"], [class*="bg-indigo-7"], [class*="bg-indigo-8"], [class*="bg-indigo-9"], [class*="bg-zenon-navy"]) *),
+.admin-shell .text-white\/60:not(:is([class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900))):not(:is(button, a, [role="button"])[class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900) *):not(:is([class*="bg-indigo-6"], [class*="bg-indigo-7"], [class*="bg-indigo-8"], [class*="bg-indigo-9"], [class*="bg-zenon-navy"]) *),
+.admin-shell .text-white\/70:not(:is([class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900))):not(:is(button, a, [role="button"])[class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900) *):not(:is([class*="bg-indigo-6"], [class*="bg-indigo-7"], [class*="bg-indigo-8"], [class*="bg-indigo-9"], [class*="bg-zenon-navy"]) *),
+.admin-shell .text-white\/80:not(:is([class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900))):not(:is(button, a, [role="button"])[class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900) *):not(:is([class*="bg-indigo-6"], [class*="bg-indigo-7"], [class*="bg-indigo-8"], [class*="bg-indigo-9"], [class*="bg-zenon-navy"]) *) { color: hsl(var(--muted-foreground)) !important; }
 .admin-shell .bg-black,
 .admin-shell .bg-zinc-900,
 .admin-shell .bg-slate-900 { background-color: hsl(var(--card)) !important; }
@@ -1122,7 +1137,7 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 .admin-shell select,
 .admin-shell [role="combobox"] {
   background-color: hsl(0 0% 100%) !important;
-  border-color: hsl(var(--border)) !important;
+  border-color: hsl(var(--input)) !important;
   color: hsl(var(--foreground)) !important;
 }
 .admin-shell input::placeholder,
@@ -1130,17 +1145,17 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 .admin-shell table thead,
 .admin-shell .vx-table-head,
 .admin-shell .data-table thead th {
-  background: hsl(220 16% 96%) !important;
+  background: hsl(40 20% 95%) !important;
   color: hsl(var(--muted-foreground)) !important;
   border-bottom-color: hsl(var(--border)) !important;
 }
 .admin-shell .vx-table-row:hover,
 .admin-shell .data-table tbody tr:hover {
-  background-color: hsl(220 16% 96% / 0.7) !important;
+  background-color: hsl(40 20% 95% / 0.8) !important;
 }
 .admin-shell .tabular-nums { font-feature-settings: 'tnum'; }
 .admin-shell .vx-mono,
-.admin-shell .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+.admin-shell .font-mono { font-family: 'Montserrat', system-ui, sans-serif; font-variant-numeric: tabular-nums; }
 
 /* =====================================================
    MOBILE POLISH (admin shell) — keeps desktop intact
@@ -1261,9 +1276,7 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
    ============================================================ */
 .dark .admin-shell {
   background:
-    radial-gradient(1100px 600px at 8% -10%, hsl(231 72% 50% / 0.10), transparent 60%),
-    radial-gradient(900px 520px at 100% 0%, hsl(265 60% 50% / 0.08), transparent 60%),
-    linear-gradient(180deg, hsl(224 32% 5%) 0%, hsl(224 30% 7%) 100%) !important;
+    linear-gradient(180deg, hsl(211 48% 6%) 0%, hsl(211 45% 8%) 100%) !important;
   color: hsl(var(--foreground));
 }
 .dark .admin-shell::before {
@@ -1286,7 +1299,7 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
   box-shadow: 0 1px 2px hsl(0 0% 0% / 0.4), 0 12px 30px -24px hsl(0 0% 0% / 0.6) !important;
 }
 .dark .admin-shell .glass-header {
-  background: hsl(224 28% 9% / 0.85) !important;
+  background: hsl(211 45% 8% / 0.88) !important;
   border-bottom-color: hsl(var(--border)) !important;
 }
 /* Map hardcoded slate/white surfaces inside admin to dark tokens */
@@ -1307,77 +1320,75 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 }
 .dark .admin-shell .text-slate-900:not([class*="dark:text-"]) { color: hsl(var(--foreground)) !important; }
 .dark .admin-shell .text-slate-800:not([class*="dark:text-"]),
-.dark .admin-shell .text-slate-700:not([class*="dark:text-"]) { color: hsl(220 14% 90%) !important; }
+.dark .admin-shell .text-slate-700:not([class*="dark:text-"]) { color: hsl(40 15% 90%) !important; }
 .dark .admin-shell .text-slate-600:not([class*="dark:text-"]),
 .dark .admin-shell .text-slate-500:not([class*="dark:text-"]),
 .dark .admin-shell .text-slate-400:not([class*="dark:text-"]) { color: hsl(var(--muted-foreground)) !important; }
 .dark .admin-shell .bg-slate-50\/50:not([class*="dark:bg-"]),
 .dark .admin-shell .bg-slate-50\/40:not([class*="dark:bg-"]) {
-  background-color: hsl(224 24% 11% / 0.6) !important;
+  background-color: hsl(211 40% 12% / 0.6) !important;
 }
 .dark .admin-shell .bg-indigo-50:not([class*="dark:bg-"]) {
-  background-color: hsl(231 60% 22% / 0.6) !important;
+  background-color: hsl(211 40% 20% / 0.6) !important;
 }
 .dark .admin-shell .text-indigo-700:not([class*="dark:text-"]),
 .dark .admin-shell .text-indigo-600:not([class*="dark:text-"]) {
-  color: hsl(231 90% 78%) !important;
+  color: hsl(211 45% 80%) !important;
 }
 .dark .admin-shell .border-indigo-200:not([class*="dark:border-"]),
 .dark .admin-shell .border-indigo-300:not([class*="dark:border-"]) {
-  border-color: hsl(231 60% 40%) !important;
+  border-color: hsl(211 35% 36%) !important;
 }
 .dark .admin-shell input,
 .dark .admin-shell textarea,
 .dark .admin-shell select,
 .dark .admin-shell [role="combobox"] {
-  background-color: hsl(224 24% 11%) !important;
+  background-color: hsl(211 40% 12%) !important;
   border-color: hsl(var(--border)) !important;
   color: hsl(var(--foreground)) !important;
 }
 .dark .admin-shell ::-webkit-scrollbar-thumb {
-  background: hsl(224 18% 22%);
+  background: hsl(211 25% 22%);
   background-clip: content-box;
 }
 .dark .admin-shell ::-webkit-scrollbar-thumb:hover {
-  background: hsl(224 18% 30%);
+  background: hsl(211 25% 30%);
   background-clip: content-box;
 }
 .dark .admin-shell table thead,
 .dark .admin-shell .vx-table-head,
 .dark .admin-shell .data-table thead th {
-  background: hsl(224 24% 11%) !important;
+  background: hsl(211 40% 12%) !important;
   color: hsl(var(--muted-foreground)) !important;
   border-bottom-color: hsl(var(--border)) !important;
 }
 .dark .admin-shell .vx-table-row:hover,
 .dark .admin-shell .data-table tbody tr:hover {
-  background-color: hsl(224 24% 13% / 0.7) !important;
+  background-color: hsl(211 40% 14% / 0.7) !important;
 }
 
 /* ============================================================
-   CLIENT PORTAL — Navy Trust premium (Sora + Manrope)
+   CLIENT PORTAL — identidade Zenon (Montserrat; Times nos títulos de página)
    Scope: .client-portal (rota /portal-cliente)
-   Palette: #0f1b3d navy · #1e3a5f mid · #3b6fa0 steel · #e8edf3 mist
    ============================================================ */
 .client-portal {
-  font-family: 'Manrope', system-ui, sans-serif;
-  background:
-    radial-gradient(ellipse 80% 50% at 10% -10%, hsla(217, 65%, 35%, 0.08), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 100% 10%, hsla(218, 60%, 25%, 0.06), transparent 60%),
-    linear-gradient(180deg, #f6f8fc 0%, #eef2f8 100%);
-  color: #0f1b3d;
+  font-family: 'Montserrat', system-ui, sans-serif;
+  background: linear-gradient(180deg, #F8F6F1 0%, #F2EEE6 100%);
+  color: #172D44;
   letter-spacing: -0.005em;
 }
-.client-portal h1,
 .client-portal h2,
 .client-portal h3,
 .client-portal h4,
 .client-portal .font-display {
-  font-family: 'Sora', 'Manrope', system-ui, sans-serif;
+  font-family: 'Montserrat', system-ui, sans-serif;
   letter-spacing: -0.02em;
 }
+.client-portal h1 {
+  font-family: 'Times New Roman', Times, 'Liberation Serif', serif;
+}
 .client-portal .num {
-  font-family: 'Sora', 'Manrope', sans-serif;
+  font-family: 'Montserrat', system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.03em;
 }
@@ -1386,17 +1397,17 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 .client-portal,
 .dark .client-portal {
   color-scheme: light;
-  --background: 220 25% 97%;
-  --foreground: 220 65% 15%;
+  --background: 40 23% 96%;
+  --foreground: 211 49% 14%;
   --card: 0 0% 100%;
-  --card-foreground: 220 65% 15%;
+  --card-foreground: 211 49% 14%;
   --popover: 0 0% 100%;
-  --popover-foreground: 220 65% 15%;
-  --muted: 220 20% 95%;
-  --muted-foreground: 220 15% 45%;
-  --border: 220 20% 90%;
-  --input: 220 20% 90%;
+  --popover-foreground: 211 49% 14%;
+  --muted: 40 16% 93%;
+  --muted-foreground: 211 16% 36%;
+  --border: 39 17% 85%;
+  --input: 39 10% 54%;
 }
 
 /* Quando portal cliente está montado, força bg light no wrapper externo */
-html:has(.client-portal) body > #root > div.dark { background: hsl(220 25% 97%) !important; }
+html:has(.client-portal) body > #root > div.dark { background: hsl(40 23% 96%) !important; }
