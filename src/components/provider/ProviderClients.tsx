@@ -12,6 +12,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Download, Eye, FolderOpen, Search, Share2, Clock, User, Building2, Briefcase,
   FilePlus2, ArrowLeft, Users, FileText, Loader2,
@@ -90,10 +91,10 @@ function clientLabel(p?: ClientProfile | null) {
 }
 
 /**
- * Painel do prestador: clientes que ele atende, com perfil resumido,
- * documentos compartilhados/da demanda e solicitação de novos documentos.
+ * Aba "Clientes" do painel do prestador: clientes que ele atende, com perfil
+ * resumido, documentos (das demandas e compartilhados) e solicitação de novos.
  */
-export function SharedWithMeDocuments() {
+export function ProviderClients() {
   const qc = useQueryClient();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
@@ -261,7 +262,7 @@ export function SharedWithMeDocuments() {
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <Share2 className="size-4 text-teal-600" /> Compartilhados comigo
+            <Users className="size-4 text-teal-600" /> Clientes
           </h2>
           <p className="text-sm text-slate-500">Clientes que você atende e os documentos de cada um.</p>
         </div>
@@ -330,22 +331,51 @@ export function SharedWithMeDocuments() {
         )
       ) : (
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setSelectedId(null)} className="gap-1.5">
-              <ArrowLeft className="size-4" /> <Users className="size-4" /> Todos os clientes
-            </Button>
+          <Button variant="ghost" size="sm" onClick={() => setSelectedId(null)} className="gap-1.5 -ml-2">
+            <ArrowLeft className="size-4" /> Todos os clientes
+          </Button>
+
+          <div className="rounded-2xl border border-slate-200/70 bg-white shadow-sm p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="size-12 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-700 shrink-0">
+              {selected.id === NO_CLIENT ? <FileText className="size-6" /> : <Building2 className="size-6" />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Cliente</p>
+              <h3 className="text-xl font-bold text-slate-900 truncate">
+                {selected.id === NO_CLIENT ? "Documentos sem cliente" : clientLabel(selectedProfile)}
+              </h3>
+              {selectedProfile?.company && selectedProfile.full_name && (
+                <p className="text-sm text-slate-500 truncate">{selectedProfile.full_name}</p>
+              )}
+              {(selectedProfile?.demands?.length ?? 0) > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {selectedProfile!.demands!.map((d) => (
+                    <Badge key={d.id} variant="outline" className="text-[10px]">
+                      <Briefcase className="size-3 mr-1" />{d.name}{d.created_at ? ` · ${formatDate(d.created_at)}` : ""}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
             {selectedProfile && (selectedProfile.demands?.length ?? 0) > 0 && (
-              <Button size="sm" className="bg-teal-600 hover:bg-teal-700 gap-1.5" onClick={() => setRequestOpen(true)}>
+              <Button className="bg-teal-600 hover:bg-teal-700 gap-1.5 shrink-0" onClick={() => setRequestOpen(true)}>
                 <FilePlus2 className="size-4" /> Solicitar documento
               </Button>
             )}
           </div>
 
-          <h3 className="text-xl font-bold text-slate-900">
-            {selected.id === NO_CLIENT ? "Documentos sem cliente" : clientLabel(selectedProfile)}
-          </h3>
-
           {selectedProfile && <ClientProfileCards p={selectedProfile} />}
+
+          <Tabs value="documentos" className="space-y-4">
+            <TabsList className="bg-transparent border-b border-slate-200 justify-start rounded-none h-11 p-0 gap-6 w-full">
+              <TabsTrigger
+                value="documentos"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-teal-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 pb-3 pt-2 gap-2 text-sm"
+              >
+                <FileText className="size-4" /> Documentos
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="documentos" className="m-0 space-y-4">
 
           {selectedDemandDocs.length > 0 && (
             <section className="rounded-xl border border-slate-200/70 bg-white shadow-sm overflow-hidden">
@@ -430,6 +460,8 @@ export function SharedWithMeDocuments() {
               </ul>
             )}
           </section>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
 
