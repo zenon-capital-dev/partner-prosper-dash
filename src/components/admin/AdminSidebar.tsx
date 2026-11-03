@@ -1,3 +1,4 @@
+import { ZenonLogo } from "@/components/ZenonLogo";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
@@ -106,34 +107,24 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
     <aside
       className={cn(
         "h-svh sticky top-0 shrink-0 flex flex-col z-30 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-        "bg-white/96 dark:bg-background/96 backdrop-blur-xl border-r border-slate-200/75 dark:border-border/50",
+        "bg-sidebar text-sidebar-foreground border-r border-sidebar-border",
         collapsed ? "w-[76px]" : "w-[286px]",
         className
       )}
     >
       {/* BRAND */}
       <div className={cn(
-        "relative shrink-0 h-[74px] flex items-center border-b border-slate-200/75 dark:border-border/50 bg-gradient-to-b from-white dark:from-background to-slate-50/70 dark:to-muted/20",
+        "relative shrink-0 h-[74px] flex items-center border-b border-sidebar-border bg-sidebar",
         collapsed ? "px-3 justify-center" : "px-4"
       )}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
               "flex items-center gap-3 rounded-xl transition-all group",
-              collapsed ? "size-11 justify-center hover:bg-slate-100" : "w-full px-2 py-2 hover:bg-white hover:shadow-sm hover:ring-1 hover:ring-slate-200"
+              collapsed ? "size-11 justify-center hover:bg-sidebar-accent" : "w-full px-2 py-2 hover:bg-sidebar-accent hover:shadow-sm hover:ring-1 hover:ring-slate-200"
             )}>
-              <div className="size-10 rounded-xl bg-gradient-to-br from-indigo-500 via-blue-600 to-slate-900 flex items-center justify-center shadow-lg shrink-0 ring-1 ring-white/10">
-                <Box className="size-[17px] text-white" strokeWidth={2.5} />
-              </div>
-              {!collapsed && (
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="text-[15px] font-black text-slate-950 dark:text-foreground leading-tight tracking-tight truncate">VendxCRM</p>
-                  <p className="text-[9.5px] font-extrabold text-indigo-700 leading-tight mt-0.5 truncate uppercase tracking-[0.18em]">
-                    {portalLabel}
-                  </p>
-                </div>
-              )}
-              {!collapsed && <ChevronDown className="size-3.5 text-slate-500 shrink-0 group-hover:text-slate-800 transition-colors" />}
+              <ZenonLogo compact={collapsed} tone="light" className={collapsed ? "size-10" : "w-[180px] h-[52px]"} />
+              {!collapsed && <ChevronDown className="size-3.5 text-sidebar-foreground shrink-0 group-hover:text-sidebar-accent-foreground transition-colors" />}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[220px]">
@@ -157,7 +148,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
         {!collapsed && (
           <button
             onClick={onToggle}
-            className="absolute -right-[12px] top-1/2 -translate-y-1/2 size-6 rounded-full bg-white border border-slate-200 shadow-[0_8px_18px_-12px_hsl(222_47%_11%/0.5)] flex items-center justify-center text-slate-600 hover:text-indigo-800 hover:border-indigo-300 hover:scale-110 transition-all z-10"
+            className="absolute -right-[12px] top-1/2 -translate-y-1/2 size-6 rounded-full bg-sidebar border border-sidebar-border shadow-[0_8px_18px_-12px_hsl(222_47%_11%/0.5)] flex items-center justify-center text-sidebar-foreground hover:text-sidebar-accent-foreground hover:border-sidebar-ring hover:scale-110 transition-all z-10"
             title="Recolher"
           >
             <PanelLeftClose className="size-3" />
@@ -168,7 +159,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
       {collapsed && (
         <button
           onClick={onToggle}
-          className="mx-auto mt-3 size-9 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-600 hover:text-slate-950 transition-colors"
+          className="mx-auto mt-3 size-9 rounded-lg hover:bg-sidebar-accent flex items-center justify-center text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors"
           title="Expandir"
         >
           <PanelLeftOpen className="size-4" />
@@ -178,12 +169,12 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
       {!collapsed && (
         <div className="px-4 pt-4 space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-indigo-50 border border-indigo-100 px-2 py-0.5 text-[9.5px] font-extrabold uppercase tracking-[0.18em] text-indigo-700">
-              <span className="size-1.5 rounded-full bg-indigo-600" />
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-sidebar-accent border border-sidebar-border px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.18em] text-sidebar-accent-foreground">
+              <span className="size-1.5 rounded-full bg-[#c79662]" />
               {portalLabel}
             </span>
             {!isFullAdmin && (
-              <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[9.5px] font-bold uppercase tracking-wider text-sidebar-muted">
                 Acesso restrito
               </span>
             )}
@@ -191,11 +182,11 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
           <button
             type="button"
             onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }))}
-            className="group flex h-10 w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-left text-[12px] font-semibold text-slate-500 shadow-sm transition-all hover:border-indigo-200 hover:bg-white hover:text-slate-800 hover:shadow-md"
+            className="group flex h-10 w-full items-center gap-2.5 rounded-xl border border-sidebar-border bg-sidebar-accent px-3 text-left text-[12px] font-semibold text-sidebar-foreground shadow-sm transition-all hover:border-indigo-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-md"
           >
-            <Search className="size-3.5 text-slate-400 group-hover:text-indigo-700" />
+            <Search className="size-3.5 text-sidebar-muted group-hover:text-sidebar-accent-foreground" />
             <span className="flex-1 truncate">Buscar no sistema</span>
-            <span className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[9px] font-bold text-slate-500">⌘K</span>
+            <span className="rounded-md border border-sidebar-border bg-sidebar px-1.5 py-0.5 font-mono text-[9px] font-bold text-sidebar-foreground">⌘K</span>
           </button>
         </div>
       )}
@@ -206,13 +197,13 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
           <div key={section.label}>
             {!collapsed ? (
               <div className="px-3 mb-2.5 flex items-center gap-2">
-                <span className="h-px w-4 bg-slate-200" />
-                <span className="text-[9.5px] font-black uppercase tracking-[0.24em] text-slate-500">
+                <span className="h-px w-4 bg-sidebar-border" />
+                <span className="text-[9.5px] font-semibold uppercase tracking-[0.24em] text-sidebar-foreground">
                   {section.label}
                 </span>
               </div>
             ) : (
-              <div className="h-px bg-slate-200 mx-3 my-3" />
+              <div className="h-px bg-sidebar-border mx-3 my-3" />
             )}
             <div className="space-y-1">
               {section.items.map((item) => {
@@ -228,21 +219,21 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
                       "group relative flex items-center rounded-xl text-[13px] font-bold transition-all duration-150",
                       collapsed ? "justify-center mx-auto size-11" : "px-3 h-10 gap-3",
                       active
-                        ? "bg-indigo-50 dark:bg-primary/10 text-indigo-800 dark:text-primary shadow-[inset_0_0_0_1px_hsl(231_72%_46%/0.08),0_8px_18px_-18px_hsl(231_72%_46%/0.55)]"
-                        : "text-slate-600 dark:text-muted-foreground hover:text-slate-950 dark:hover:text-foreground hover:bg-slate-100/75 dark:hover:bg-muted/50"
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground ring-1 ring-sidebar-border"
+                        : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
                     )}
                   >
                     {active && !collapsed && (
-                      <span className="absolute -left-3 top-2 bottom-2 w-[3px] rounded-r-full bg-indigo-600" />
+                      <span className="absolute -left-3 top-2 bottom-2 w-[3px] rounded-r-full bg-[#c79662]" />
                     )}
                     {active && collapsed && (
-                      <span className="absolute -left-3 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full bg-indigo-600" />
+                      <span className="absolute -left-3 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full bg-[#c79662]" />
                     )}
                     <Icon
                       className={cn(
                         "shrink-0 transition-all",
                         collapsed ? "size-[18px]" : "size-[16px]",
-                        active ? "text-indigo-700" : "text-slate-500 group-hover:text-slate-800",
+                        active ? "text-sidebar-accent-foreground" : "text-sidebar-foreground group-hover:text-sidebar-accent-foreground",
                       )}
                       strokeWidth={active ? 2.4 : 2}
                     />
@@ -258,15 +249,15 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
       </nav>
 
       {/* USER */}
-      <div className="shrink-0 border-t border-slate-200/75 dark:border-border/50 p-3 bg-gradient-to-b from-slate-50/60 dark:from-muted/10 to-white dark:to-background">
+      <div className="shrink-0 border-t border-sidebar-border p-3 bg-sidebar">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
-              "w-full flex items-center gap-2.5 rounded-xl p-2 hover:bg-white hover:shadow-md transition-all group border border-transparent hover:border-slate-200",
+              "w-full flex items-center gap-2.5 rounded-xl p-2 hover:bg-sidebar-accent hover:shadow-md transition-all group border border-transparent hover:border-sidebar-border",
               collapsed && "justify-center"
             )}>
               <div className="relative shrink-0">
-                <div className="size-9 rounded-xl bg-gradient-to-br from-indigo-500 to-slate-900 flex items-center justify-center text-white text-[11px] font-black ring-1 ring-white/20 shadow-sm">
+                <div className="size-9 rounded-xl bg-gradient-to-br from-[#586879] to-[#172d44] flex items-center justify-center text-sidebar-accent-foreground text-[11px] font-semibold ring-1 ring-white/20 shadow-sm">
                   {initials(displayName)}
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-white" />
@@ -274,10 +265,10 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
               {!collapsed && (
                 <>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[12.5px] font-black text-slate-950 truncate leading-tight">{displayName}</p>
-                    <p className="text-[10.5px] font-semibold text-slate-500 truncate leading-tight mt-0.5">{displayEmail}</p>
+                    <p className="text-[12.5px] font-semibold text-sidebar-accent-foreground truncate leading-tight">{displayName}</p>
+                    <p className="text-[10.5px] font-semibold text-sidebar-foreground truncate leading-tight mt-0.5">{displayEmail}</p>
                   </div>
-                  <ChevronDown className="size-3.5 text-slate-600 shrink-0 group-hover:text-slate-600 transition-colors" />
+                  <ChevronDown className="size-3.5 text-sidebar-foreground shrink-0 group-hover:text-sidebar-foreground transition-colors" />
                 </>
               )}
             </button>

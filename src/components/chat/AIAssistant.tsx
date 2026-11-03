@@ -21,7 +21,7 @@ export function AIAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Olá! Sou o assistente de IA da Prosper. Como posso te ajudar hoje?",
+      content: "Olá! Sou o assistente de IA da Zenon. Como posso te ajudar hoje?",
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
@@ -89,7 +89,7 @@ export function AIAssistant() {
       <div className="h-14 bg-indigo-600 px-4 flex items-center justify-between text-white shrink-0">
         <div className="flex items-center gap-2">
           <Bot className="size-5" />
-          <span className="font-semibold text-sm">Prosper AI Assistant</span>
+          <span className="font-semibold text-sm">Zenon AI Assistant</span>
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -165,7 +165,7 @@ export function AIAssistant() {
               </Button>
             </div>
             <p className="text-[10px] text-center text-slate-400 mt-3">
-              Desenvolvido pela equipe de IA Prosper
+              Desenvolvido pela equipe de IA Zenon
             </p>
           </div>
         </>

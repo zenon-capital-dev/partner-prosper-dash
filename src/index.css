@@ -1,61 +1,63 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Instrument+Serif:ital@0;1&family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+@font-face { font-family: 'Montserrat'; src: url('/fonts/montserrat-variable.ttf') format('truetype'); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Zenon Times'; src: url('/fonts/times-new-roman.ttf') format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Zenon Times'; src: url('/fonts/times-new-roman-bold.ttf') format('truetype'); font-weight: 700; font-style: normal; font-display: swap; }
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ============================================================
-   VENDX — Design System v2 (Premium SaaS)
-   Brand: Indigo/Violet — Inspired by Linear / Vercel / Stripe
+   ZENON — Interface institucional
+   Brand: azul profundo, marfim e bronze; status preservados
    ============================================================ */
 
 @layer base {
   :root {
     /* Neutral surface — soft off-white, never harsh white */
-    --background: 220 20% 98%;
-    --foreground: 222 47% 8%;
+    --background: 38 31% 96%;
+    --foreground: 60 3% 19%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 9%;
+    --card-foreground: 60 3% 19%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 9%;
+    --popover-foreground: 60 3% 19%;
 
     /* Brand — Deep Corporate Indigo (Stripe / Ramp tone) */
-    --primary: 222 47% 11%;
+    --primary: 211 49% 18%;
     --primary-foreground: 0 0% 100%;
-    --primary-muted: 220 14% 96%;
-    --primary-glow: 222 47% 11%;
+    --primary-muted: 38 31% 90%;
+    --primary-glow: 211 49% 18%;
 
-    --secondary: 220 16% 95%;
-    --secondary-foreground: 222 40% 14%;
+    --secondary: 39 17% 90%;
+    --secondary-foreground: 211 49% 18%;
 
-    --muted: 220 14% 94%;
-    --muted-foreground: 220 9% 40%;
+    --muted: 38 20% 93%;
+    --muted-foreground: 209 16% 38%;
 
-    --accent: 220 16% 94%;
-    --accent-foreground: 230 60% 26%;
+    --accent: 38 31% 90%;
+    --accent-foreground: 211 49% 18%;
 
     --destructive: 358 68% 48%;
     --destructive-foreground: 0 0% 100%;
     --destructive-muted: 358 70% 96%;
 
-    --border: 220 13% 88%;
-    --input: 220 13% 86%;
-    --ring: 222 47% 11%;
+    --border: 39 17% 82%;
+    --input: 39 17% 74%;
+    --ring: 211 49% 18%;
 
     --radius: 0.5rem;
 
     /* Sidebar — Near-black corporate slate */
-    --sidebar-background: 222 38% 6%;
-    --sidebar-foreground: 220 10% 62%;
-    --sidebar-primary: 230 70% 60%;
+    --sidebar-background: 211 49% 18%;
+    --sidebar-foreground: 40 31% 90%;
+    --sidebar-primary: 31 47% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 30% 10%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 222 30% 11%;
-    --sidebar-ring: 230 70% 60%;
-    --sidebar-muted: 220 10% 42%;
+    --sidebar-accent: 211 30% 25%;
+    --sidebar-accent-foreground: 40 31% 94%;
+    --sidebar-border: 209 16% 38%;
+    --sidebar-ring: 31 47% 58%;
+    --sidebar-muted: 39 17% 73%;
 
     /* Admin sidebar — premium light B2B rail */
     --admin-sidebar-bg: 0 0% 100%;
@@ -89,10 +91,10 @@
     --chart-6: 215 65% 48%;
 
     /* Gradients — subtle, never neon */
-    --gradient-primary: linear-gradient(135deg, hsl(230 65% 20%) 0%, hsl(235 50% 28%) 100%);
+    --gradient-primary: linear-gradient(135deg, #172d44, #586879);
     --gradient-success: linear-gradient(135deg, hsl(158 58% 32%) 0%, hsl(170 50% 36%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 20% 98.5%) 100%);
-    --gradient-sidebar: linear-gradient(180deg, hsl(222 38% 7%) 0%, hsl(222 38% 5%) 100%);
+    --gradient-sidebar: linear-gradient(180deg, #172d44, #172d44);
     --gradient-hero: radial-gradient(ellipse at top right, hsl(var(--primary) / 0.03), transparent 60%);
 
     /* Shadows — almost flat, just hairline depth */
@@ -115,7 +117,7 @@
     --popover-foreground: 220 15% 95%;
 
     --primary: 231 82% 66%;
-    --primary-foreground: 222 47% 8%;
+    --primary-foreground: 0 0% 100%;
     --primary-muted: 231 30% 18%;
     --primary-glow: 231 82% 70%;
 
@@ -180,7 +182,7 @@
   html.dark { color-scheme: dark; }
   body {
     @apply bg-background text-foreground antialiased selection:bg-indigo-100 selection:text-indigo-900 transition-all duration-300;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Montserrat', system-ui, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01', 'ss03';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -188,10 +190,11 @@
   }
   h1, h2, h3, h4, h5,
   .font-display {
-    font-family: 'Geist', 'Inter', sans-serif;
+    font-family: 'Montserrat', system-ui, sans-serif;
     @apply tracking-tight;
     font-feature-settings: 'ss01', 'ss03', 'cv11';
   }
+  h1 { font-family: 'Zenon Times', 'Times New Roman', serif; }
   .font-mono, .vx-mono {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-feature-settings: 'ss01', 'ss02';
@@ -201,7 +204,7 @@
     font-feature-settings: 'tnum', 'ss01', 'cv11';
   }
   .font-editorial {
-    font-family: 'Fraunces', serif;
+    font-family: 'Zenon Times', 'Times New Roman', serif;
     font-feature-settings: 'ss01', 'ss02';
   }
 }
@@ -295,7 +298,7 @@
     box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.08), 0 2px 4px hsl(222 38% 8% / 0.15);
   }
   .btn-premium:hover {
-    background: hsl(230 60% 28%);
+    background: hsl(var(--primary) / 0.9);
   }
   .btn-premium:active { @apply scale-[0.99]; }
 
@@ -325,25 +328,25 @@
      ADMIN SHELL — Light corporate SaaS by default; dark overrides below
      ============================================================ */
   .admin-shell {
-    --background: 220 24% 97%;
-    --foreground: 222 47% 8%;
+    --background: 38 31% 96%;
+    --foreground: 60 3% 19%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 9%;
+    --card-foreground: 60 3% 19%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 9%;
-    --primary: var(--custom-primary, 231 72% 46%);
+    --popover-foreground: 60 3% 19%;
+    --primary: var(--custom-primary, 211 49% 18%);
     --primary-foreground: 0 0% 100%;
-    --primary-muted: var(--custom-primary-muted, 231 82% 96%);
-    --primary-glow: var(--custom-primary, 217 80% 48%);
-    --secondary: 220 16% 95%;
-    --secondary-foreground: 222 40% 14%;
-    --muted: 220 14% 94%;
-    --muted-foreground: 220 12% 32%;
-    --accent: var(--custom-accent, 217 80% 96%);
-    --accent-foreground: var(--custom-primary, 231 72% 34%);
-    --border: 220 13% 88%;
-    --input: 220 13% 86%;
-    --ring: var(--custom-primary, 231 72% 46%);
+    --primary-muted: var(--custom-primary-muted, 38 31% 90%);
+    --primary-glow: var(--custom-primary, 211 49% 18%);
+    --secondary: 39 17% 90%;
+    --secondary-foreground: 211 49% 18%;
+    --muted: 38 20% 93%;
+    --muted-foreground: 209 16% 38%;
+    --accent: var(--custom-accent, 38 31% 90%);
+    --accent-foreground: var(--custom-primary, 211 49% 18%);
+    --border: 39 17% 82%;
+    --input: 39 17% 74%;
+    --ring: var(--custom-primary, 211 49% 18%);
     --success: 158 58% 34%;
     --success-foreground: 0 0% 100%;
     --success-muted: 158 56% 94%;
@@ -1052,23 +1055,10 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
    ADMIN PREMIUM B2B SHELL — light, dense, legible
    ============================================================ */
 .admin-shell {
-  background:
-    radial-gradient(900px 520px at 12% -8%, hsl(231 72% 46% / 0.085), transparent 62%),
-    radial-gradient(760px 460px at 96% 8%, hsl(203 78% 42% / 0.065), transparent 58%),
-    linear-gradient(180deg, hsl(220 24% 98%) 0%, hsl(220 28% 96.5%) 48%, hsl(218 25% 95%) 100%) !important;
+  background: hsl(var(--background));
   color: hsl(var(--foreground));
   position: relative;
   isolate: isolate;
-}
-.admin-shell::before {
-  content: "";
-  position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background-image:
-    linear-gradient(to right, hsl(220 13% 88% / 0.46) 1px, transparent 1px),
-    linear-gradient(to bottom, hsl(220 13% 88% / 0.38) 1px, transparent 1px),
-    linear-gradient(120deg, hsl(231 72% 46% / 0.035), transparent 42%, hsl(203 78% 42% / 0.03));
-  background-size: 48px 48px, 48px 48px, 100% 100%;
-  mask-image: linear-gradient(180deg, black 0%, black 70%, transparent 100%);
 }
 .admin-shell > * { position: relative; z-index: 1; }
 .admin-shell .vx-card,
@@ -1260,10 +1250,7 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
    Flips hardcoded white/slate surfaces to dark surfaces
    ============================================================ */
 .dark .admin-shell {
-  background:
-    radial-gradient(1100px 600px at 8% -10%, hsl(231 72% 50% / 0.10), transparent 60%),
-    radial-gradient(900px 520px at 100% 0%, hsl(265 60% 50% / 0.08), transparent 60%),
-    linear-gradient(180deg, hsl(224 32% 5%) 0%, hsl(224 30% 7%) 100%) !important;
+  background: hsl(var(--background));
   color: hsl(var(--foreground));
 }
 .dark .admin-shell::before {
@@ -1360,11 +1347,11 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
    Palette: #0f1b3d navy · #1e3a5f mid · #3b6fa0 steel · #e8edf3 mist
    ============================================================ */
 .client-portal {
-  font-family: 'Manrope', system-ui, sans-serif;
+  font-family: 'Montserrat', system-ui, sans-serif;
   background:
     radial-gradient(ellipse 80% 50% at 10% -10%, hsla(217, 65%, 35%, 0.08), transparent 60%),
     radial-gradient(ellipse 60% 40% at 100% 10%, hsla(218, 60%, 25%, 0.06), transparent 60%),
-    linear-gradient(180deg, #f6f8fc 0%, #eef2f8 100%);
+    linear-gradient(180deg, #faf8f4 0%, #eee9df 100%);
   color: #0f1b3d;
   letter-spacing: -0.005em;
 }
@@ -1373,11 +1360,11 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 .client-portal h3,
 .client-portal h4,
 .client-portal .font-display {
-  font-family: 'Sora', 'Manrope', system-ui, sans-serif;
+  font-family: 'Sora', 'Montserrat', system-ui, sans-serif;
   letter-spacing: -0.02em;
 }
 .client-portal .num {
-  font-family: 'Sora', 'Manrope', sans-serif;
+  font-family: 'Montserrat', system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.03em;
 }

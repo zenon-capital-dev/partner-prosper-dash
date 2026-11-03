@@ -1,3 +1,4 @@
+import { ZenonLogo } from "@/components/ZenonLogo";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { initials } from "@/lib/format";
-import { ProsperLogo as AppLogo } from "@/components/VendxLogo";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -356,39 +356,24 @@ export function AppSidebar() {
     <>
       <Sidebar
         collapsible="icon"
-        className="border-r border-slate-200/70 bg-sidebar transition-[width] duration-300 shadow-[1px_0_0_rgba(15,23,42,0.02)]"
+        className="border-r border-sidebar-border bg-sidebar transition-[width] duration-300 shadow-[1px_0_0_rgba(15,23,42,0.02)]"
       >
         {/* ===== Brand ===== */}
-        <SidebarHeader className="bg-sidebar px-4 pt-6 pb-5 border-b border-slate-200/70 shrink-0">
+        <SidebarHeader className="bg-sidebar px-4 pt-6 pb-5 border-b border-sidebar-border shrink-0">
           <button
             onClick={() => navigate("/")}
             className={cn("flex items-center gap-3.5 group w-full transition-all", collapsed && "justify-center")}
           >
-            <div className="relative shrink-0 transition-transform group-hover:scale-105">
-              <div className="size-11 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg ring-1 ring-white/10">
-                <AppLogo size={24} />
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-500 ring-2 ring-white shadow-sm" />
-            </div>
-            {!collapsed && (
-              <div className="min-w-0 flex-1 text-left leading-tight">
-                <p className="font-display text-[22px] font-bold tracking-tight text-sidebar-foreground">
-                  Prosper
-                </p>
-                <p className="text-[10px] font-black tracking-[0.25em] uppercase text-indigo-600 mt-0.5">
-                  {portalLabel} Portal
-                </p>
-              </div>
-            )}
+            <ZenonLogo compact={collapsed} tone="light" className={collapsed ? "size-11" : "w-[196px] h-[60px]"} />
           </button>
 
           {!collapsed && (
             <div className="mt-3 flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-indigo-50 border border-indigo-100 px-2 py-0.5 text-[9.5px] font-extrabold uppercase tracking-[0.18em] text-indigo-700">
-                <span className="size-1.5 rounded-full bg-indigo-600" />
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-sidebar-accent border border-sidebar-border px-2 py-0.5 text-[9.5px] font-extrabold uppercase tracking-[0.18em] text-sidebar-accent-foreground">
+                <span className="size-1.5 rounded-full bg-[#c79662]" />
                 {portalLabel}
               </span>
-              <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[9.5px] font-bold uppercase tracking-wider text-sidebar-muted">
                 {showAdmin ? "Acesso total"
                   : showPartner ? "Acesso parceiro"
                   : showReferrer ? "Comissionado"
@@ -402,11 +387,11 @@ export function AppSidebar() {
           {!collapsed && (
             <button
               onClick={() => setCmdOpen(true)}
-              className="mt-3 w-full h-10 rounded-lg bg-slate-50 border border-slate-200 hover:bg-white hover:border-indigo-300 hover:shadow-[0_0_0_3px_rgba(99,102,241,0.08)] flex items-center gap-2.5 px-3 text-[12.5px] text-slate-500 transition-all group"
+              className="mt-3 w-full h-10 rounded-lg bg-slate-50 border border-slate-200 hover:bg-sidebar-accent hover:border-indigo-300 hover:shadow-[0_0_0_3px_rgba(99,102,241,0.08)] flex items-center gap-2.5 px-3 text-[12.5px] text-sidebar-foreground transition-all group"
             >
-              <Search className="size-3.5 group-hover:text-indigo-700 transition-colors" />
+              <Search className="size-3.5 group-hover:text-sidebar-accent-foreground transition-colors" />
               <span className="flex-1 text-left font-medium">Buscar...</span>
-              <kbd className="text-[10px] font-mono bg-white border border-slate-200 rounded px-1.5 py-0.5 flex items-center gap-0.5 text-slate-600 shadow-sm">
+              <kbd className="text-[10px] font-mono bg-white border border-slate-200 rounded px-1.5 py-0.5 flex items-center gap-0.5 text-sidebar-foreground shadow-sm">
                 <Command className="size-2.5" />K
               </kbd>
             </button>
@@ -419,12 +404,12 @@ export function AppSidebar() {
             <SidebarGroup key={section.label} className={cn("py-0", idx > 0 && "mt-5")}>
               {!collapsed && (
                 <div className="px-2.5 mb-2">
-                  <span className="text-[9.5px] font-extrabold uppercase tracking-[0.22em] text-sidebar-foreground/60">
+                  <span className="text-[9.5px] font-extrabold uppercase tracking-[0.22em] text-sidebar-muted">
                     {section.label}
                   </span>
                 </div>
               )}
-              {collapsed && idx > 0 && <div className="h-px bg-slate-200 mx-3 mb-2.5" />}
+              {collapsed && idx > 0 && <div className="h-px bg-sidebar-border mx-3 mb-2.5" />}
               <SidebarGroupContent>
                 <SidebarMenu className="gap-[2px]">
                   {section.items.map((item) => {
@@ -446,21 +431,21 @@ export function AppSidebar() {
                               "group relative flex items-center rounded-[7px] text-[13px] font-semibold transition-all duration-150",
                               collapsed ? "justify-center h-10 w-10 mx-auto" : "h-[34px] px-2.5 gap-2.5",
                               active
-                                ? "bg-indigo-50 text-indigo-800"
-                                : "text-slate-700 hover:text-slate-950 hover:bg-slate-100/70"
+                                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
                             )}
                           >
                             {active && !collapsed && (
-                              <span className="absolute -left-[7px] top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-indigo-600" />
+                              <span className="absolute -left-[7px] top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-[#c79662]" />
                             )}
                             {active && collapsed && (
-                              <span className="absolute -left-[7px] top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-indigo-600" />
+                              <span className="absolute -left-[7px] top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-[#c79662]" />
                             )}
                             <Icon
                               className={cn(
                                 "shrink-0 transition-all",
                                 collapsed ? "size-[18px]" : "size-[15px]",
-                                active ? "text-indigo-700" : "text-slate-500 group-hover:text-slate-800"
+                                active ? "text-sidebar-accent-foreground" : "text-sidebar-foreground group-hover:text-sidebar-accent-foreground"
                               )}
                               strokeWidth={active ? 2.4 : 2}
                             />
@@ -471,7 +456,7 @@ export function AppSidebar() {
                                   <span
                                     className={cn(
                                       "text-[10px] font-bold px-1.5 py-0.5 rounded-md",
-                                      active ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"
+                                      active ? "bg-[#c79662] text-white" : "bg-slate-100 text-sidebar-foreground"
                                     )}
                                   >
                                     {item.badge}
@@ -491,29 +476,29 @@ export function AppSidebar() {
         </SidebarContent>
 
         {/* ===== Footer ===== */}
-        <SidebarFooter className="!bg-slate-50/60 p-2 mt-auto border-t border-slate-200/70">
+        <SidebarFooter className="bg-sidebar p-2 mt-auto border-t border-sidebar-border">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "w-full flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-white hover:shadow-sm hover:border-slate-200 border border-transparent transition-all group",
+                  "w-full flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-sidebar-accent hover:shadow-sm hover:border-slate-200 border border-transparent transition-all group",
                   collapsed && "justify-center"
                 )}
               >
-                <div className="size-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-[11px] font-bold text-white shrink-0 ring-2 ring-white shadow-sm">
+                <div className="size-8 rounded-full bg-gradient-to-br from-[#586879] to-[#172d44] flex items-center justify-center text-[11px] font-bold text-white shrink-0 ring-2 ring-white shadow-sm">
                   {initials(fullName || user?.email || "U")}
                 </div>
                 {!collapsed && (
                   <>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-[12.5px] font-bold text-slate-950 truncate leading-tight">
+                      <p className="text-[12.5px] font-bold text-sidebar-accent-foreground truncate leading-tight">
                         {fullName}
                       </p>
-                      <p className="text-[10.5px] text-slate-500 truncate mt-0.5">
+                      <p className="text-[10.5px] text-sidebar-foreground truncate mt-0.5">
                         {user?.email}
                       </p>
                     </div>
-                    <ChevronDown className="size-3.5 text-slate-400 group-hover:text-slate-600 transition-colors shrink-0" />
+                    <ChevronDown className="size-3.5 text-sidebar-muted group-hover:text-sidebar-foreground transition-colors shrink-0" />
                   </>
                 )}
               </button>
