@@ -50,6 +50,7 @@ import { ymdBR } from "@/lib/datetime";
 import { fetchAllRows } from "@/lib/fetchAll";
 
 
+import { CP_FIN, mergeCpFinAll } from "@/lib/clientProductFinancials";
 const norm = (s: any) =>
   String(s ?? "")
     .toLowerCase()
@@ -2289,9 +2290,10 @@ function ByClient({ payments, canManage }: { payments: any[]; canManage: boolean
       (
         await supabase
           .from("client_products")
-          .select("id, value, status, products(name), custom_product_name")
+          .select(`id, status, products(name), custom_product_name, ${CP_FIN}`)
           .eq("client_id", clientId)
       ).data ?? [],
+    select: (rows: any[]) => mergeCpFinAll(rows),
   });
 
   const today = todayIsoStr();

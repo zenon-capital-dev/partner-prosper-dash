@@ -53,6 +53,7 @@ import { INTERACTION_KINDS, kindMeta, type InteractionKind } from "@/lib/interac
 import { PageHeader } from "@/components/PageHeader";
 import { ClientJourneyBadge } from "@/components/clients/ClientJourneyBadge";
 
+import { CP_FIN, mergeCpFinAll } from "@/lib/clientProductFinancials";
 const TABS = [
   { id: "visao-geral", label: "Visão Geral", icon: Info },
   { id: "onboarding", label: "Onboarding", icon: Sparkles },
@@ -162,12 +163,12 @@ export default function ClientDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_products")
-        .select("id, value, status, deadline, sla_due_date, end_date, client_id, product_id, products(id, name)")
+        .select(`id, status, deadline, sla_due_date, end_date, client_id, product_id, products(id, name), ${CP_FIN}`)
         .eq("client_id", id!)
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data ?? [];
+      return mergeCpFinAll(data);
     },
     enabled: !!id,
     retry: 1,

@@ -28,6 +28,7 @@ import { CredentialsManager } from "@/components/CredentialsManager";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePageSize } from "@/hooks/usePageSize";
 
+import { CP_FIN, mergeCpFinAll } from "@/lib/clientProductFinancials";
 type ViewMode = "grid" | "list";
 type SortKey = "name" | "specialty" | "active_demands" | "clients" | "revenue" | "rating" | "status";
 type SortDir = "asc" | "desc";
@@ -94,10 +95,10 @@ export default function Providers() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_products")
-        .select("service_provider_id, responsible_provider_id, client_id, status, value")
+        .select(`service_provider_id, responsible_provider_id, client_id, status, ${CP_FIN}`)
         .limit(300);
       if (error) throw error;
-      return data ?? [];
+      return mergeCpFinAll(data);
     },
     staleTime: 120_000,
   });

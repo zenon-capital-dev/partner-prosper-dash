@@ -32,6 +32,7 @@ import {
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
+import { CP_FIN, mergeCpFinAll } from "@/lib/clientProductFinancials";
 const STATUS_OPTIONS = [
   { value: "aguardando_inicio", label: "Aguardando início" },
   { value: "em_andamento", label: "Em andamento" },
@@ -99,15 +100,16 @@ export function ClientProducts({ clientId }: { clientId: string }) {
       const { data } = await supabase
         .from("client_products")
         .select(`
-          id, status, value, deadline, start_date, end_date, created_at,
+          id, status, deadline, start_date, end_date, created_at,
           product_id, service_provider_id, responsible_employee_id,
           custom_product_name, sale_id, client_id,
           products(name, description),
-          service_providers:service_provider_id(id, name, specialty)
+          service_providers:service_provider_id(id, name, specialty),
+          ${CP_FIN}
         `)
         .eq("client_id", clientId)
         .order("created_at", { ascending: false });
-      return data ?? [];
+      return mergeCpFinAll(data);
     },
     staleTime: 60_000,
   });
