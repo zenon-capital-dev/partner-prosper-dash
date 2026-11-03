@@ -57,7 +57,7 @@
     --destructive-muted: 358 70% 96%;
 
     --border: 39 17% 85%;
-    --input: 39 14% 80%;
+    --input: 39 10% 54%; /* borda de campos: 3:1 sobre branco/marfim */
     --ring: 211 49% 18%;
 
     --radius: 0.5rem;
@@ -149,7 +149,7 @@
     --destructive-muted: 358 40% 22%;
 
     --border: 211 25% 22%;
-    --input: 211 25% 22%;
+    --input: 211 18% 44%;
     --ring: 31 47% 62%;
 
     --sidebar-background: 211 50% 7%;
@@ -359,7 +359,7 @@
     --accent: var(--custom-accent, 40 25% 92%);
     --accent-foreground: var(--custom-primary, 211 49% 18%);
     --border: 39 17% 85%;
-    --input: 39 14% 80%;
+    --input: 39 10% 54%; /* borda de campos: 3:1 sobre branco/marfim */
     --ring: var(--custom-primary, 211 49% 18%);
     --success: 158 58% 34%;
     --success-foreground: 0 0% 100%;
@@ -477,7 +477,7 @@
     --muted: 211 30% 15%;
     --muted-foreground: 40 12% 74%;
     --border: 211 28% 18%;
-    --input: 211 28% 18%;
+    --input: 211 18% 44%;
     --ring: 31 47% 62%;
     color-scheme: dark;
   }
@@ -1108,7 +1108,10 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
   backdrop-filter: blur(18px) saturate(150%);
   border-bottom: 1px solid hsl(var(--border) / 0.75) !important;
 }
-.admin-shell .text-white,
+/* Texto branco de componentes antigos (feitos para fundo escuro) vira escuro no admin claro.
+   Exceção: elementos com fundo próprio e o conteúdo de botões/links com fundo
+   (ex.: botão azul Zenon com texto branco), que precisam continuar brancos. */
+.admin-shell .text-white:not([class*="bg-"]):not(:is(button, a, [role="button"])[class*="bg-"] *),
 .admin-shell .dark\:text-white,
 .admin-shell .dark\:text-zinc-100,
 .admin-shell .dark\:text-zinc-200,
@@ -1116,10 +1119,10 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 .admin-shell .dark\:text-zinc-400,
 .admin-shell .dark\:text-zinc-500,
 .admin-shell .dark\:text-zinc-600,
-.admin-shell .text-white\/40,
-.admin-shell .text-white\/60,
-.admin-shell .text-white\/70,
-.admin-shell .text-white\/80 { color: hsl(var(--muted-foreground)) !important; }
+.admin-shell .text-white\/40:not([class*="bg-"]):not(:is(button, a, [role="button"])[class*="bg-"] *),
+.admin-shell .text-white\/60:not([class*="bg-"]):not(:is(button, a, [role="button"])[class*="bg-"] *),
+.admin-shell .text-white\/70:not([class*="bg-"]):not(:is(button, a, [role="button"])[class*="bg-"] *),
+.admin-shell .text-white\/80:not([class*="bg-"]):not(:is(button, a, [role="button"])[class*="bg-"] *) { color: hsl(var(--muted-foreground)) !important; }
 .admin-shell .bg-black,
 .admin-shell .bg-zinc-900,
 .admin-shell .bg-slate-900 { background-color: hsl(var(--card)) !important; }
@@ -1132,7 +1135,7 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 .admin-shell select,
 .admin-shell [role="combobox"] {
   background-color: hsl(0 0% 100%) !important;
-  border-color: hsl(var(--border)) !important;
+  border-color: hsl(var(--input)) !important;
   color: hsl(var(--foreground)) !important;
 }
 .admin-shell input::placeholder,
@@ -1401,7 +1404,7 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
   --muted: 40 16% 93%;
   --muted-foreground: 211 16% 36%;
   --border: 39 17% 85%;
-  --input: 39 14% 80%;
+  --input: 39 10% 54%;
 }
 
 /* Quando portal cliente está montado, força bg light no wrapper externo */

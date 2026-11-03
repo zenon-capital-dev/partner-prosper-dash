@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { initials } from "@/lib/format";
-import { ProsperLogo as AppLogo } from "@/components/VendxLogo";
+import { ZenonLogo } from "@/components/ZenonLogo";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -362,20 +362,15 @@ export function AppSidebar() {
         <SidebarHeader className="bg-sidebar px-4 pt-6 pb-5 border-b border-slate-200/70 shrink-0">
           <button
             onClick={() => navigate("/")}
-            className={cn("flex items-center gap-3.5 group w-full transition-all", collapsed && "justify-center")}
+            className={cn("flex items-center gap-3.5 group w-full transition-all rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zenon-bronze", collapsed && "justify-center")}
+            aria-label={`ZENON — ${portalLabel} Portal`}
           >
-            <div className="relative shrink-0 transition-transform group-hover:scale-105">
-              <div className="size-11 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg ring-1 ring-white/10">
-                <AppLogo size={24} />
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-500 ring-2 ring-white shadow-sm" />
-            </div>
-            {!collapsed && (
+            {collapsed ? (
+              <ZenonLogo variant="selo-branco" height={40} decorative />
+            ) : (
               <div className="min-w-0 flex-1 text-left leading-tight">
-                <p className="font-display text-[22px] font-bold tracking-tight text-sidebar-foreground">
-                  Prosper
-                </p>
-                <p className="text-[10px] font-black tracking-[0.25em] uppercase text-indigo-600 mt-0.5">
+                <ZenonLogo variant="horizontal-branco" height={44} decorative />
+                <p className="text-[10px] font-semibold tracking-[0.22em] uppercase text-zenon-bronze mt-2">
                   {portalLabel} Portal
                 </p>
               </div>

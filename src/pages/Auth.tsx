@@ -10,7 +10,7 @@ import {
   ArrowRight, ShieldCheck, Lock, Mail, Eye, EyeOff, CheckCircle2, Sparkles,
 } from "lucide-react";
 import { z } from "zod";
-import { ProsperLogo } from "@/components/VendxLogo";
+import { ZenonLogo } from "@/components/ZenonLogo";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -48,55 +48,18 @@ export default function AuthPage() {
 
 
   return (
-    <div className="min-h-[100dvh] w-full relative bg-[#06070C] text-white overflow-hidden flex flex-col lg:grid lg:grid-cols-[1.1fr_1fr]">
-      {/* ═══ Global cinematic background (mobile + behind everything) ═══ */}
+    <div className="min-h-[100dvh] w-full relative bg-zenon-navy-deep text-white overflow-hidden flex flex-col lg:grid lg:grid-cols-[1.1fr_1fr]">
+      {/* Fundo: azul profundo da marca, sem efeitos decorativos */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0A0E1A] via-[#06070C] to-[#0A0E1A]" />
-        <div
-          className="absolute -top-40 -left-40 w-[640px] h-[640px] rounded-full opacity-[0.55] blur-[120px] animate-orb-1"
-          style={{ background: "radial-gradient(circle, #3B82F6 0%, transparent 70%)" }}
-        />
-        <div
-          className="absolute top-1/3 -right-40 w-[560px] h-[560px] rounded-full opacity-[0.45] blur-[120px] animate-orb-2"
-          style={{ background: "radial-gradient(circle, #8B5CF6 0%, transparent 70%)" }}
-        />
-        <div
-          className="absolute -bottom-40 left-1/4 w-[520px] h-[520px] rounded-full opacity-[0.35] blur-[120px] animate-orb-3"
-          style={{ background: "radial-gradient(circle, #06B6D4 0%, transparent 70%)" }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage:
-              "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
-            backgroundSize: "56px 56px",
-            maskImage: "radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 100%)",
-          }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.03] mix-blend-overlay"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-          }}
-        />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,#06070C_100%)]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-zenon-navy via-zenon-navy-deep to-zenon-navy-deep" />
       </div>
 
       {/* ═══ LEFT — Editorial canvas (desktop only) ═══ */}
       <div className="relative z-10 hidden lg:flex flex-col justify-between p-14 xl:p-16">
         <header className="flex items-center gap-3.5">
-          <Link to="/" className="relative transition-transform active:scale-95">
-            <ProsperLogo size={46} />
+          <Link to="/" className="relative rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zenon-bronze">
+            <ZenonLogo variant="horizontal-branco" height={60} />
           </Link>
-          <div>
-            <div className="font-display font-bold text-[14px] tracking-[0.28em] uppercase leading-none">
-              Prosper
-            </div>
-            <div className="text-[9.5px] text-white/40 tracking-[0.32em] uppercase mt-1.5 font-semibold">
-              Strategic Management
-            </div>
-          </div>
         </header>
 
         <div className="max-w-xl space-y-12">
@@ -111,14 +74,14 @@ export default function AuthPage() {
               </span>
             </div>
 
-            <h1 className="font-display text-[58px] xl:text-[64px] leading-[0.98] font-bold tracking-[-0.025em] text-white">
+            <h1 className="font-serif text-[58px] xl:text-[64px] leading-[1.02] font-bold text-zenon-ivory">
               Onde decisões<br />
-              <span className="bg-gradient-to-r from-indigo-200 via-white to-indigo-300 bg-clip-text text-transparent">
+              <span className="text-zenon-bronze">
                 viram resultado.
               </span>
             </h1>
 
-            <p className="text-[15.5px] text-white/50 leading-[1.65] max-w-[480px] font-light">
+            <p className="text-[15.5px] text-[#C6BEAF] leading-[1.65] max-w-[480px]">
               A plataforma que centraliza clientes, parceiros e indicadores num único fluxo —
               do primeiro contato ao pagamento da comissão.
             </p>
@@ -132,14 +95,14 @@ export default function AuthPage() {
             ].map((f) => (
               <div
                 key={f.n}
-                className="group flex items-start gap-5 py-4 border-t border-white/[0.06] last:border-b transition-colors hover:bg-white/[0.015]"
+                className="group flex items-start gap-5 py-4 border-t border-white/10 last:border-b"
               >
-                <span className="font-mono text-[10.5px] text-white/30 tracking-widest mt-0.5 tabular-nums">{f.n}</span>
+                <span className="font-serif text-[15px] text-zenon-bronze mt-0.5 tabular-nums">{f.n}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-semibold text-white/85 group-hover:text-white transition-colors">{f.t}</p>
-                  <p className="text-[12.5px] text-white/40 mt-0.5 font-light">{f.d}</p>
+                  <p className="text-[14px] font-semibold text-zenon-ivory">{f.t}</p>
+                  <p className="text-[12.5px] text-[#B9C4D0] mt-0.5">{f.d}</p>
                 </div>
-                <CheckCircle2 className="size-4 text-white/20 group-hover:text-emerald-400/80 transition-colors mt-1" strokeWidth={1.6} />
+                <CheckCircle2 className="size-4 text-zenon-bronze/70 mt-1" strokeWidth={1.6} />
               </div>
             ))}
           </div>
@@ -148,9 +111,9 @@ export default function AuthPage() {
         <footer className="flex items-end justify-between">
           <div>
             <p className="font-display text-[11px] font-semibold tracking-[0.28em] uppercase text-white/40">​</p>
-            <p className="text-[10.5px] text-white/25 mt-1.5 font-light tracking-wide">© Prosper · Todos os direitos reservados</p>
+            <p className="text-[10.5px] text-[#9DAFC3] mt-1.5 tracking-wide">© ZENON · Todos os direitos reservados</p>
           </div>
-          <div className="flex items-center gap-1.5 text-[10.5px] text-white/30 font-medium tracking-wider uppercase">
+          <div className="flex items-center gap-1.5 text-[10.5px] text-[#9DAFC3] font-medium tracking-wider uppercase">
             <span>​</span>
             <span className="size-1 rounded-full bg-white/30 mx-2" />
             <span>​</span>
@@ -164,12 +127,8 @@ export default function AuthPage() {
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-5 sm:px-8 py-10 sm:py-14 lg:p-12">
         {/* Mobile brand bar */}
         <div className="lg:hidden w-full max-w-[420px] flex items-center justify-between mb-8">
-          <Link to="/" className="flex items-center gap-3 active:scale-95 transition-transform">
-            <ProsperLogo size={36} />
-            <div>
-              <div className="font-display font-bold text-[12px] tracking-[0.28em] uppercase leading-none text-white">Prosper</div>
-              <div className="text-[8.5px] text-white/40 tracking-[0.32em] uppercase mt-1 font-semibold">Strategic Management</div>
-            </div>
+          <Link to="/" className="flex items-center gap-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zenon-bronze">
+            <ZenonLogo variant="horizontal-branco" height={44} />
           </Link>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-xl px-2.5 py-1">
             <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
@@ -179,25 +138,24 @@ export default function AuthPage() {
 
         {/* Glass card */}
         <div className="relative w-full max-w-[420px]">
-          <div className="absolute -inset-px rounded-[28px] bg-gradient-to-br from-white/15 via-white/5 to-transparent opacity-80 pointer-events-none" />
-          <div className="relative rounded-[28px] bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] p-6 sm:p-9 shadow-[0_24px_80px_-24px_rgba(0,0,0,0.7)]">
+          <div className="relative rounded-2xl bg-zenon-navy border border-[hsl(211_35%_28%)] p-6 sm:p-9 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.6)]">
             {/* Eyebrow */}
             <div className="flex items-center gap-3 mb-7">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-              <span className="font-mono text-[10px] tracking-[0.32em] uppercase text-white/40 font-semibold flex items-center gap-1.5">
-                <Sparkles className="size-3 text-primary" /> Acesso · 01
+              <span className="text-[10px] tracking-[0.32em] uppercase text-[#C6BEAF] font-semibold flex items-center gap-1.5">
+                <Sparkles className="size-3 text-zenon-bronze" /> Acesso · 01
               </span>
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
             </div>
 
             <div className="text-center space-y-2 mb-8">
-              <h2 className="font-display text-[32px] sm:text-[38px] font-bold tracking-[-0.03em] leading-[1.05] text-white">
+              <h2 className="font-serif text-[34px] sm:text-[40px] font-bold leading-[1.05] text-zenon-ivory">
                 Bem-vindo
-                <span className="block text-white/50 text-[22px] sm:text-[26px] font-normal italic mt-1.5 tracking-tight">
+                <span className="block text-[#C6BEAF] text-[22px] sm:text-[26px] font-normal italic mt-1.5">
                   de volta.
                 </span>
               </h2>
-              <p className="text-[13px] text-white/45 leading-relaxed max-w-[320px] mx-auto">
+              <p className="text-[13px] text-[#B9C4D0] leading-relaxed max-w-[320px] mx-auto">
                 Entre com suas credenciais para acessar o painel.
               </p>
             </div>
@@ -205,7 +163,7 @@ export default function AuthPage() {
             <form onSubmit={handleLogin} className="space-y-5">
               {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="login-email" className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-white/50">
+                <Label htmlFor="login-email" className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[#C6BEAF]">
                   E-mail
                 </Label>
                 <div className="relative group">
@@ -216,14 +174,14 @@ export default function AuthPage() {
                     type="email"
                     placeholder="seu@email.com"
                     required
-                    className="relative h-12 pl-11 bg-white/[0.04] hover:bg-white/[0.06] border-white/10 hover:border-white/20 focus:border-white/40 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-xl text-[14px] text-white placeholder:text-white/30 transition-all"
+                    className="relative h-12 pl-11 bg-white/[0.04] hover:bg-white/[0.06] border-white/10 hover:border-white/20 focus:border-zenon-bronze focus-visible:ring-0 focus-visible:ring-offset-0 rounded-xl text-[14px] text-white placeholder:text-white/45 transition-all"
                   />
                 </div>
               </div>
 
               {/* Password */}
               <div className="space-y-2">
-                <Label htmlFor="login-password" className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-white/50">
+                <Label htmlFor="login-password" className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[#C6BEAF]">
                   Senha
                 </Label>
                 <div className="relative group">
@@ -234,7 +192,7 @@ export default function AuthPage() {
                     type={showPwd ? "text" : "password"}
                     placeholder="••••••••••"
                     required
-                    className="relative h-12 pl-11 pr-12 bg-white/[0.04] hover:bg-white/[0.06] border-white/10 hover:border-white/20 focus:border-white/40 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-xl text-[14px] text-white placeholder:text-white/30 tracking-wider transition-all"
+                    className="relative h-12 pl-11 pr-12 bg-white/[0.04] hover:bg-white/[0.06] border-white/10 hover:border-white/20 focus:border-zenon-bronze focus-visible:ring-0 focus-visible:ring-offset-0 rounded-xl text-[14px] text-white placeholder:text-white/45 tracking-wider transition-all"
                   />
                   <button
                     type="button"
@@ -251,12 +209,11 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="group relative w-full h-12 mt-2 font-semibold text-[14px] rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 text-white shadow-[0_10px_28px_-10px_rgba(79,70,229,0.7)] hover:shadow-[0_14px_36px_-10px_rgba(79,70,229,0.85)] hover:from-indigo-400 hover:via-indigo-500 hover:to-indigo-600 disabled:opacity-60 disabled:cursor-not-allowed transition-all active:scale-[0.99] overflow-hidden ring-1 ring-inset ring-white/15"
+                className="group relative w-full h-12 mt-2 font-semibold text-[14px] rounded-xl bg-zenon-bronze text-zenon-navy hover:bg-[#D3A675] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zenon-ivory focus-visible:ring-offset-2 focus-visible:ring-offset-zenon-navy disabled:opacity-60 disabled:cursor-not-allowed transition-colors active:scale-[0.99] overflow-hidden"
               >
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                 {submitting ? (
                   <span className="relative flex items-center justify-center gap-2.5">
-                    <span className="size-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    <span className="size-3.5 rounded-full border-2 border-zenon-navy/30 border-t-zenon-navy animate-spin" />
                     Validando…
                   </span>
                 ) : (
@@ -269,12 +226,12 @@ export default function AuthPage() {
             </form>
 
             {/* Hint */}
-            <p className="text-center text-[12px] text-white/40 mt-6">
+            <p className="text-center text-[12px] text-[#B9C4D0] mt-6">
               Acesso restrito. <span>​</span>
             </p>
 
             {/* Trust footer */}
-            <div className="pt-5 mt-6 border-t border-white/[0.06] flex items-center justify-center gap-2 text-[11px] text-white/35">
+            <div className="pt-5 mt-6 border-t border-white/10 flex items-center justify-center gap-2 text-[11px] text-[#9DAFC3]">
               <ShieldCheck className="size-3.5 text-emerald-400/80" strokeWidth={1.8} />
               <span className="font-medium tracking-wide">Conexão criptografada · TLS 1.3</span>
             </div>
@@ -282,7 +239,7 @@ export default function AuthPage() {
         </div>
 
         {/* Mobile footer */}
-        <div className="lg:hidden mt-8 flex items-center gap-2 text-[10px] text-white/30 font-medium tracking-wider uppercase">
+        <div className="lg:hidden mt-8 flex items-center gap-2 text-[10px] text-[#9DAFC3] font-medium tracking-wider uppercase">
           <span>​</span>
           <span className="size-1 rounded-full bg-white/30 mx-1.5" />
           <span>​</span>

@@ -94,7 +94,7 @@ function AdminShell() {
         </div>
 
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left" className="w-[min(88vw,300px)] p-0 bg-white dark:bg-card text-slate-900 dark:text-foreground [&>button]:hidden border-r border-slate-200 dark:border-border">
+          <SheetContent side="left" className="w-[min(88vw,300px)] p-0 bg-zenon-navy dark:bg-[hsl(211_50%_7%)] text-zenon-ivory [&>button]:hidden border-r border-zenon-navy-deep">
             <AdminSidebar
               collapsed={false}
               onToggle={() => setMobileMenuOpen(false)}
