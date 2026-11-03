@@ -40,6 +40,7 @@ import { usePageSize } from "@/hooks/usePageSize";
 import { saleIsFinalized, paymentReceivedAmount, paymentCompetenceYm, isPaymentPaidInFuture } from "@/lib/financial";
 
 import { LegacyReviewBanner } from "@/components/sales/LegacyReviewBanner";
+import { invalidateFinancialData } from "@/lib/invalidateFinancial";
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
 type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status" | "liquido" | "recebido";
 type SortDir = "asc" | "desc";
@@ -571,6 +572,8 @@ export default function Sales() {
 
 
   const invalidateRelated = async () => {
+    // Atualiza todas as telas de dinheiro de uma vez.
+    void invalidateFinancialData(qc);
     qc.invalidateQueries({ queryKey: ["sales-rich-v2"] });
     qc.invalidateQueries({ queryKey: ["sales-commission-splits"] });
     qc.invalidateQueries({ queryKey: ["commissions"] });

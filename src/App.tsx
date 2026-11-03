@@ -110,7 +110,10 @@ const queryClient = new QueryClient({
       retry: 1,
       // Não refaz toda hora que troca de aba — evita travar o app a cada foco.
       refetchOnWindowFocus: false,
-      refetchOnMount: false,
+      // Ao abrir uma tela, recarrega SÓ se o dado estiver velho (passou do staleTime)
+      // ou tiver sido invalidado por outra tela. Com "false", uma venda salva em
+      // Vendas não aparecia no Financeiro até dar F5: o cache invalidado nunca recarregava.
+      refetchOnMount: true,
       refetchOnReconnect: false,
       // 5min frescos + 10min em cache: trocar entre páginas vira instantâneo.
       staleTime: 5 * 60_000,

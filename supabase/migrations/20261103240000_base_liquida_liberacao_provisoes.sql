@@ -138,7 +138,6 @@ $function$;
 -- ---------------------------------------------------------------------
 -- 2) Liberação proporcional
 --    liberado = comissão × recebido ÷ valor da venda
---    (recorrente: limite de comissão × meses do contrato)
 --    Quando 100% liberado, fica "pago" automaticamente, como antes.
 --    Pagamento manual feito pelo admin nunca é desfeito, exceto quando
 --    o cliente estorna/desfaz um pagamento (como já acontecia).
@@ -183,7 +182,9 @@ BEGIN
   IF NOT FOUND THEN RETURN; END IF;
 
   v_received := CASE WHEN s.status = 'concluida' AND COALESCE(s.amount, 0) > 0 THEN private.sale_received(s.id) ELSE 0 END;
-  v_months   := CASE WHEN s.revenue_type = 'recorrente' THEN GREATEST(COALESCE(s.recurrence_months, 1), 1) ELSE 1 END;
+  -- sales.amount é o valor TOTAL do contrato (inclusive recorrente: o formulário
+  -- divide o total pelos meses nas mensalidades). Comissão também é sobre o total.
+  v_months   := 1;
 
   -- Repasses (commission_splits)
   UPDATE public.commission_splits cs

@@ -45,7 +45,7 @@ export function SaleDisclosureDialog({ saleId, title, onOpenChange }: { saleId: 
         {data?.gross_amount != null && (
           <div className="flex items-center justify-between border-b pb-2 text-sm">
             <span className="text-muted-foreground">
-              Valor da venda{data.revenue_type === "recorrente" && data.recurrence_months ? ` (mensal, ${data.recurrence_months} meses)` : ""}
+              Valor da venda{data.revenue_type === "recorrente" && data.recurrence_months ? ` (contrato de ${data.recurrence_months} meses)` : ""}
             </span>
             <span className="font-mono font-semibold tabular-nums">{formatBRL(data.gross_amount)}</span>
           </div>

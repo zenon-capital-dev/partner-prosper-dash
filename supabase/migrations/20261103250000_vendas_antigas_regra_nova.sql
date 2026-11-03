@@ -229,7 +229,9 @@ BEGIN
   IF NOT FOUND THEN RETURN; END IF;
 
   v_received := CASE WHEN s.status = 'concluida' AND COALESCE(s.amount, 0) > 0 THEN private.sale_received(s.id) ELSE 0 END;
-  v_months   := CASE WHEN s.revenue_type = 'recorrente' THEN GREATEST(COALESCE(s.recurrence_months, 1), 1) ELSE 1 END;
+  -- sales.amount é o valor TOTAL do contrato (inclusive recorrente: o formulário
+  -- divide o total pelos meses nas mensalidades). Comissão também é sobre o total.
+  v_months   := 1;
 
   -- Repasses: linhas pagas ficam com liberado = valor; saldo em aberto proporcional
   UPDATE public.commission_splits cs

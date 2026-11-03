@@ -4,8 +4,15 @@ import { Link } from "react-router-dom";
 import { Target, ArrowRight } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 
+import { goalActual, MONEY_GOAL_TYPES, type GoalActuals } from "@/lib/goals";
 const GOAL_LABELS: Record<string, string> = {
   faturamento: "Faturamento",
+  revenue: "Receita recebida",
+  leads: "Leads captados",
+  proposals: "Propostas enviadas",
+  sales_count: "Qtd. de vendas",
+  stage_movements: "Movimentações na esteira",
+  clients_closed: "Clientes fechados (leads)",
   recorrencia_mensal: "Recorrência mensal",
   receita_avulsa: "Receita avulsa (na cabeça)",
   captacao_clientes_mes: "Captação clientes (mês)",
@@ -15,10 +22,21 @@ const GOAL_LABELS: Record<string, string> = {
   clientes_fechados: "Clientes fechados",
 };
 
-const isMoney = (k: string) => ["faturamento", "recorrencia_mensal", "receita_avulsa"].includes(k);
+const isMoney = (k: string) => MONEY_GOAL_TYPES.has(k) || k.startsWith("custom:money:");
 
 export function GoalsPanel() {
   const month = new Date().toISOString().slice(0, 7) + "-01";
+
+  // Realizado: mesma fórmula da tela de Metas, calculada no banco.
+  const { data: actuals } = useQuery({
+    queryKey: ["dashboard-goals-actuals", month],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("sales_goal_actuals", { p_month: month, p_stage_ids: null });
+      if (error) return null;
+      return (data ?? null) as GoalActuals | null;
+    },
+    refetchInterval: 60_000,
+  });
 
   const { data: goals = [] } = useQuery({
     queryKey: ["dashboard-goals", month],
@@ -63,9 +81,9 @@ export function GoalsPanel() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {goals.map((g: any) => {
           const target = Number(g.target_value || 0);
-          const actual = Number(g.actual_value || 0);
+          const actual = goalActual(g, actuals);
           const pct = target > 0 ? Math.min(100, (actual / target) * 100) : 0;
-          const label = GOAL_LABELS[g.goal_type] || g.goal_type;
+          const label = GOAL_LABELS[g.goal_type] || (String(g.goal_type).startsWith("custom:") ? String(g.goal_type).split(":").slice(2).join(":") : g.goal_type);
           const fmt = isMoney(g.goal_type) ? formatBRL : (n: number) => String(Math.round(n));
           return (
             <div key={g.id} className="rounded-xl border border-slate-200/70 bg-white p-3">

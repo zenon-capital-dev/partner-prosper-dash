@@ -17,6 +17,7 @@ import { saleIsFinalized } from "@/lib/financial";
 import { useJourneyStages } from "@/hooks/useSharedStageFilter";
 import { deriveClientStatusFromStageName, invalidateJourneyStageCaches } from "@/lib/journey-stage-sync";
 import { SaleDeductionsEditor } from "@/components/sales/SaleDeductionsEditor";
+import { invalidateFinancialData } from "@/lib/invalidateFinancial";
 import { SaleVisibilityOverrides, participantKey, type SaleParticipant } from "@/components/visibility/SaleVisibilityOverrides";
 import { isInheritAll, type Visibility, type VisibilityOverride } from "@/lib/visibility";
 import { deductionTotals, partnerBase, rowFromDb, rowToDb, sameRows, type DeductionModel, type DeductionRow, type DeductionType } from "@/lib/deductions";
@@ -342,45 +343,6 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
     return dt.toISOString().slice(0, 10);
   };
 
-  const buildPaymentRows = (saleRow: any, payload: any) => {
-    const isRecurring = payload.revenue_type === "recorrente";
-    const recurrenceStart = form.first_due_date || form.sale_date || ymdBR(nowBR());
-    if (isRecurring) {
-      const months = Math.max(1, payload.recurrence_months as number);
-      // form.amount = valor TOTAL do contrato recorrente; a mensalidade é total/meses.
-      const totalCents = Math.round(Number(form.amount) * 100);
-      const baseCents = Math.floor(totalCents / months);
-      const remainder = totalCents - baseCents * months;
-      return Array.from({ length: months }, (_, i) => ({
-        sale_id: saleRow.id,
-        client_id: saleRow.client_id,
-        product_id: saleRow.product_id,
-        amount: ((baseCents + (i === months - 1 ? remainder : 0)) / 100),
-        due_date: addMonths(recurrenceStart, i),
-        status: "pendente" as any,
-        installments_count: months,
-        installment_number: i + 1,
-        description: `Mensalidade ${i + 1}/${months}`,
-      }));
-    }
-
-    const n = Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1));
-    const baseDate = form.first_due_date || form.sale_date || ymdBR(nowBR());
-    const totalCents = Math.round(Number(form.amount) * 100);
-    const baseCents = Math.floor(totalCents / n);
-    const remainder = totalCents - baseCents * n;
-    return Array.from({ length: n }, (_, i) => ({
-      sale_id: saleRow.id,
-      client_id: saleRow.client_id,
-      product_id: saleRow.product_id,
-      amount: ((baseCents + (i === n - 1 ? remainder : 0)) / 100),
-      due_date: addMonths(baseDate, i),
-      status: "pendente" as any,
-      installments_count: n,
-      installment_number: i + 1,
-      description: n > 1 ? `Parcela ${i + 1}/${n}` : "Pagamento único",
-    }));
-  };
 
   const submit = async () => {
     if (!form.client_id || !form.product_id) {
@@ -460,6 +422,10 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         revenue_type: isRecurring ? "recorrente" : "avulso",
         recurrence_months: isRecurring ? Math.max(1, Math.min(120, parseInt(form.recurrence_months || 12, 10) || 12)) : null,
         recurrence_start: isRecurring ? recurrenceStart : null,
+        // Parcelamento fica gravado na venda: o banco gera as parcelas sempre
+        // com esta configuração (formulário e menu rápido dão o mesmo resultado).
+        installments_count: isRecurring ? null : Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1)),
+        first_due_date: form.first_due_date || form.sale_date || null,
         project_id: form.project_id || null,
         ...(dedReviewPending ? { deduction_model: "cascata" } : {}),
       } as any;
@@ -473,17 +439,15 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         await saveDeductions(form.id);
         await saveVisibility(form.id);
 
-        // Regenerar parcelas pendentes somente quando a venda estiver finalizada.
-        const finalizedNow = !saleIsFinalized(sale) && shouldGenerateFinancialSchedule;
-        if (shouldGenerateFinancialSchedule && (form.regenerate_payments || finalizedNow)) {
-          // Apaga apenas as parcelas ainda pendentes desta venda
-          await supabase.from("payments").delete().eq("sale_id", form.id).eq("status", "pendente");
-          const rows = buildPaymentRows({ id: form.id, client_id: form.client_id, product_id: form.product_id }, payload);
-          if (rows.length) await supabase.from("payments").insert(rows);
-          toast.success(`Venda atualizada — ${rows.length} parcela(s) regenerada(s)`);
+        // Parcelas: o banco gera ao concluir. "Regenerar" refaz só as parcelas em aberto.
+        if (shouldGenerateFinancialSchedule && form.regenerate_payments) {
+          const { data: n, error: regErr } = await (supabase as any).rpc("regenerate_sale_payments", { p_sale_id: form.id });
+          if (regErr) throw regErr;
+          toast.success(`Venda atualizada, ${n ?? 0} parcela(s) em aberto refeitas`);
+        } else if (!saleIsFinalized(sale) && shouldGenerateFinancialSchedule) {
+          toast.success("Venda finalizada, parcelas geradas");
         } else if (!shouldGenerateFinancialSchedule) {
-          await supabase.from("payments").delete().eq("sale_id", form.id).eq("status", "pendente");
-          toast.success("Venda salva como negociação — sem fluxo financeiro ativo");
+          toast.success("Venda salva como negociação, sem fluxo financeiro ativo");
         } else {
           toast.success("Venda atualizada com sucesso");
         }
@@ -497,15 +461,8 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         await saveVisibility(newSale.id);
 
         if (shouldGenerateFinancialSchedule) {
-          // Gera as parcelas (faturas) apenas quando a venda estiver finalizada.
-          const rows = buildPaymentRows(newSale, payload);
-          const { error: payErr } = await supabase.from("payments").insert(rows);
-          if (payErr) {
-            console.warn("Falha ao gerar parcelas:", payErr);
-            toast.warning("Venda criada, mas as parcelas não foram geradas: " + payErr.message);
-          } else {
-            toast.success(`Venda finalizada e ${rows.length} ${rows.length > 1 ? (isRecurring ? "mensalidades geradas" : "parcelas geradas") : "fatura gerada"}`);
-          }
+          // As parcelas são geradas pelo banco ao gravar a venda concluída.
+          toast.success(isRecurring ? "Venda finalizada, mensalidades geradas" : "Venda finalizada, parcelas geradas");
         } else {
           toast.success("Negociação registrada — finalize a venda para ativar o fluxo financeiro");
         }
@@ -534,6 +491,8 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       qc.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
       qc.invalidateQueries({ queryKey: ["sale-deductions"] });
       qc.invalidateQueries({ queryKey: ["commission-overpayments"] });
+      // Atualiza TODAS as telas de dinheiro (Financeiro, Comissões, Metas, Dashboard...).
+      void invalidateFinancialData(qc);
 
       onCreated?.();
       onOpenChange(false);
