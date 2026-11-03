@@ -11,11 +11,42 @@ export default {
       screens: { "2xl": "1400px" },
     },
     extend: {
+      // Identidade Zenon. Regra oficial do manual: Times (principal) e Montserrat (secundária).
+      // Adaptação de interface: Montserrat no trabalho operacional; Times só em títulos institucionais.
+      // Times New Roman não é empacotada (fonte Monotype): usa a instalada no sistema.
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+        sans: ['Montserrat', 'system-ui', 'sans-serif'],
+        display: ['Montserrat', 'system-ui', 'sans-serif'],
+        serif: ['"Times New Roman"', 'Times', '"Liberation Serif"', 'serif'],
+        mono: ['Montserrat', 'system-ui', 'sans-serif'],
       },
       colors: {
+        // Paleta oficial do manual de marca (cores institucionais).
+        zenon: {
+          navy: "#172D44",
+          steel: "#586879",
+          ivory: "#EEE9DF",
+          sand: "#C6BEAF",
+          graphite: "#333330",
+          bronze: "#C79662",
+          terracotta: "#6F3C2C",
+          // Adaptação de interface: tons auxiliares para legibilidade e estados.
+          "navy-deep": "#0F1F30",
+          "navy-soft": "#223B56",
+          "bronze-text": "#7A5530",
+          paper: "#F7F5F0",
+        },
+        // Adaptação de interface: as telas usam "indigo" como cor de marca e "slate" como neutro.
+        // As escalas abaixo trocam o anil pelo azul Zenon (600 = #172D44) e o cinza frio por um
+        // neutro quente com a mesma luminância do original (contraste preservado).
+        indigo: {
+          50: "#EEF2F6", 100: "#DFE6EE", 200: "#C3D0DD", 300: "#9DAFC3", 400: "#6F86A0",
+          500: "#4A6683", 600: "#172D44", 700: "#13263A", 800: "#0F1F30", 900: "#0B1826", 950: "#07111B",
+        },
+        slate: {
+          50: "#FAFAF9", 100: "#F5F4F3", 200: "#E9E7E4", 300: "#D7D4CE", 400: "#A5A19A",
+          500: "#777269", 600: "#57544D", 700: "#42403B", 800: "#2A2825", 900: "#181716", 950: "#070706",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
