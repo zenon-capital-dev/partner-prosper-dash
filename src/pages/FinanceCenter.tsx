@@ -232,18 +232,9 @@ export default function FinanceCenter() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   };
   const { matchesClientId } = useStageMatcher();
-  const [kpiRange, setKpiRange] = useState<RangeMode>(
-    (typeof window !== "undefined" && (localStorage.getItem("fin:kpiRange") as any)) || "specific"
-  );
-  const [specificMonth, setSpecificMonth] = useState<string>(
-    (typeof window !== "undefined" && localStorage.getItem("fin:specificMonth")) || nowMonthKey()
-  );
-  useEffect(() => {
-    try { localStorage.setItem("fin:kpiRange", kpiRange); } catch {}
-  }, [kpiRange]);
-  useEffect(() => {
-    try { localStorage.setItem("fin:specificMonth", specificMonth); } catch {}
-  }, [specificMonth]);
+  // Sempre abre no período geral; para ver um mês, o usuário escolhe no seletor.
+  const [kpiRange, setKpiRange] = useState<RangeMode>("all");
+  const [specificMonth, setSpecificMonth] = useState<string>(nowMonthKey());
   const { rangeStartIso, rangeEndIso } = useMemo(() => {
     const d = new Date();
     let start = "0000-01-01";
@@ -278,7 +269,7 @@ export default function FinanceCenter() {
     "3m": "últimos 3 meses",
     "6m": "últimos 6 meses",
     year: "últimos 12 meses",
-    all: "todo período",
+    all: "todos os meses",
   };
 
 
@@ -663,6 +654,7 @@ export default function FinanceCenter() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">Todos os meses</SelectItem>
                 {Array.from({ length: 12 }).map((_, i) => {
                   const d = new Date();
                   d.setDate(1);
@@ -675,7 +667,6 @@ export default function FinanceCenter() {
                     </SelectItem>
                   );
                 })}
-                <SelectItem value="all">Todo período</SelectItem>
               </SelectContent>
             </Select>
 
