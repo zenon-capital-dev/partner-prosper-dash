@@ -1,3 +1,4 @@
+import { ymdInBrazil } from "@/lib/financeEngine";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -456,7 +457,7 @@ export default function FinanceCenter() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
     const from = rangeStartIso;
     const to = rangeEndIso;
-    const paidDate = (p: any) => (p.paid_at || p.payment_date || "") as string;
+    const paidDate = (p: any) => (p.paid_at ? ymdInBrazil(p.paid_at) ?? "" : "");
     const commDate = (c: any) => (c.paid_at || c.created_at || "") as string;
     const expDate = (e: any) => (e.expense_date || e.created_at || "") as string;
     const inRange = (d: string) => !!d && d >= from && d < to;
@@ -816,7 +817,7 @@ export default function FinanceCenter() {
         <div className="grid gap-4 lg:grid-cols-2">
           <ProfitReservesPanel monthKey={kpiRange === "specific" ? specificMonth : nowMonthKey()} canManage={canManage} />
           <RevenueByStage payments={effectivePayments.filter((p: any) => {
-            const d = (p.paid_at || p.payment_date || "") as string;
+            const d = (p.paid_at ? ymdInBrazil(p.paid_at) ?? "" : "");
             return d >= rangeStartIso && d < rangeEndIso;
           })} />
         </div>
@@ -1169,7 +1170,6 @@ function PaymentsTable({
     decisions: { id: string; payNow: boolean }[]
   ) => {
     const payNowIds = decisions.filter((d) => d.payNow).map((d) => d.id);
-    const postponeIds = decisions.filter((d) => !d.payNow).map((d) => d.id);
     const nowIso = new Date().toISOString();
 
     if (payNowIds.length > 0) {
@@ -1179,17 +1179,11 @@ function PaymentsTable({
         .in("id", payNowIds);
       if (error) return toast.error(error.message);
     }
-    if (postponeIds.length > 0) {
-      const { error } = await supabase
-        .from("commission_splits")
-        .update({ status: "pendente" as any, paid_at: null })
-        .in("id", postponeIds);
-      if (error) return toast.error(error.message);
-    }
+    // Adiar não altera a liberação calculada pelo banco nem desfaz repasses.
     toast.success(
       payNowIds.length > 0
         ? `${payNowIds.length} comissão(ões) marcada(s) como paga(s)`
-        : "Comissões mantidas como pendentes"
+        : "Repasses adiados; liberação preservada"
     );
     invalidate();
     setDialog(null);
@@ -2104,7 +2098,7 @@ function CashFlow({ payments, commissions, sales }: { payments: any[]; commissio
     payments.forEach((p: any) => {
       const received = paymentReceivedAmount(p);
       if (received <= 0) return;
-      const key = bucketKey(p.paid_at || "");
+      const key = bucketKey(p.paid_at ? ymdInBrazil(p.paid_at) ?? "" : "");
       if (map[key]) map[key].entrada += received;
     });
     const salesAmountById = new Map((sales || []).map((s: any) => [s.id, Number(s.amount || 0)]));
@@ -2112,7 +2106,7 @@ function CashFlow({ payments, commissions, sales }: { payments: any[]; commissio
     payments.forEach((p: any) => {
       const received = paymentReceivedAmount(p);
       if (received <= 0 || !p.sale_id) return;
-      const key = bucketKey(p.paid_at || "");
+      const key = bucketKey(p.paid_at ? ymdInBrazil(p.paid_at) ?? "" : "");
       if (!map[key]) return;
       if (!receivedBySaleByBucket[key]) receivedBySaleByBucket[key] = new Map();
       receivedBySaleByBucket[key].set(p.sale_id, (receivedBySaleByBucket[key].get(p.sale_id) || 0) + received);
@@ -2184,7 +2178,7 @@ function Reports({ payments, commissions, sales }: { payments: any[]; commission
       .forEach((p: any) => {
         const received = paymentReceivedAmount(p);
         if (received <= 0) return;
-        const key = (p.paid_at || "").slice(0, 7);
+        const key = p.paid_at ? ymdInBrazil(p.paid_at)?.slice(0, 7) ?? "" : "";
         if (map[key]) map[key].receita += received;
       });
     const salesAmountById = new Map((sales || []).map((s: any) => [s.id, Number(s.amount || 0)]));
@@ -2192,7 +2186,7 @@ function Reports({ payments, commissions, sales }: { payments: any[]; commission
     payments.forEach((p: any) => {
       const received = paymentReceivedAmount(p);
       if (received <= 0 || !p.sale_id) return;
-      const key = (p.paid_at || "").slice(0, 7);
+      const key = p.paid_at ? ymdInBrazil(p.paid_at)?.slice(0, 7) ?? "" : "";
       if (!map[key]) return;
       if (!receivedBySaleByMonth[key]) receivedBySaleByMonth[key] = new Map();
       receivedBySaleByMonth[key].set(p.sale_id, (receivedBySaleByMonth[key].get(p.sale_id) || 0) + received);

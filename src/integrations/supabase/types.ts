@@ -4708,6 +4708,7 @@ export type Database = {
           installments_count: number | null
           is_recurring: boolean | null
           notes: string | null
+          scheduled_amount_before_advance: number | null
           paid_at: string | null
           partner_id: string | null
           payment_method: string | null
@@ -4737,6 +4738,7 @@ export type Database = {
           installments_count?: number | null
           is_recurring?: boolean | null
           notes?: string | null
+          scheduled_amount_before_advance?: number | null
           paid_at?: string | null
           partner_id?: string | null
           payment_method?: string | null
@@ -4766,6 +4768,7 @@ export type Database = {
           installments_count?: number | null
           is_recurring?: boolean | null
           notes?: string | null
+          scheduled_amount_before_advance?: number | null
           paid_at?: string | null
           partner_id?: string | null
           payment_method?: string | null
@@ -7047,7 +7050,7 @@ export type Database = {
         | "concluido"
         | "cancelado"
       sale_status: "pendente" | "em_andamento" | "concluida" | "cancelada"
-      split_status: "pendente" | "pago" | "cancelado"
+      split_status: "pendente" | "pago" | "cancelado" | "liberada"
       step_status:
         | "pendente"
         | "em_andamento"
@@ -7308,7 +7311,7 @@ export const Constants = {
         "cancelado",
       ],
       sale_status: ["pendente", "em_andamento", "concluida", "cancelada"],
-      split_status: ["pendente", "pago", "cancelado"],
+      split_status: ["pendente", "pago", "cancelado", "liberada"],
       step_status: [
         "pendente",
         "em_andamento",

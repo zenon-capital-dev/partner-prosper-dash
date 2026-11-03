@@ -53,7 +53,7 @@ export function useDashboardStats() {
       const sales = salesData?.data || [];
 
       // Receita só é considerada quando a venda é FINALIZADA (status=concluida).
-      // A data que importa é closed_at (data da finalização), nunca sale_date.
+      // Competência comercial: data da venda, não a data da conclusão.
       const salesFinalized = sales.filter((s: any) => s.status === "concluida" || s.status === "paga");
       // sales.amount já é o valor TOTAL do contrato (recorrente inclusive: o formulário
       // divide o total pelos meses nas mensalidades). Multiplicar pelos meses inflava o número.
@@ -66,7 +66,7 @@ export function useDashboardStats() {
       const mrrActive = salesFinalized
         .filter((s: any) => s.revenue_type === "recorrente")
         .filter((s: any) => {
-          const start = s.closed_at ? new Date(s.closed_at) : null;
+          const start = s.sale_date ? new Date(`${s.sale_date}T12:00:00-03:00`) : null;
           if (!start) return false;
           const months = Number(s.recurrence_months || 1);
           const end = new Date(start);
@@ -80,7 +80,7 @@ export function useDashboardStats() {
       const monthRevenueOneOff = salesFinalized
         .filter((s: any) => s.revenue_type !== "recorrente")
         .filter((s: any) => {
-          const d = s.closed_at ? new Date(s.closed_at) : null;
+          const d = s.sale_date ? new Date(`${s.sale_date}T12:00:00-03:00`) : null;
           return d && d >= startOfMonth(ymNow);
         })
         .reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);

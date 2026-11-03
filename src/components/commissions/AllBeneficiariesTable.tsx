@@ -25,6 +25,7 @@ const TYPE_LABEL: Record<string, { label: string; cls: string }> = {
 
 const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   pendente: { label: "Pendente", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  liberada: { label: "Liberada", cls: "bg-blue-50 text-blue-700 border-blue-200" },
   pago: { label: "Pago", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   cancelado: { label: "Cancelado", cls: "bg-slate-100 text-slate-600 border-slate-200" },
 };

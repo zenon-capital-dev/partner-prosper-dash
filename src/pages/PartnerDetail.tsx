@@ -89,7 +89,7 @@ export default function PartnerDetail() {
   if (!partner) return <div className="p-12 text-center text-destructive">Parceiro não encontrado.</div>;
 
   const paid = commissions.filter((c) => c.status === "pago");
-  const pending = commissions.filter((c) => c.status === "pendente");
+  const pending = commissions.filter((c) => ["pendente", "liberada"].includes(c.status));
   const totalPaid = paid.reduce((s, c) => s + Number(c.amount || 0), 0);
   const totalPending = pending.reduce((s, c) => s + Number(c.amount || 0), 0);
 

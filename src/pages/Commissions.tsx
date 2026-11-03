@@ -184,7 +184,7 @@ export default function Commissions() {
         const profile = s.beneficiary_type === "collaborator" ? profilesMap.get(s.beneficiary_id) : null;
         const referrer = s.beneficiary_type === "referrer" ? referrersMap.get(s.beneficiary_id) : null;
         const provider = s.beneficiary_type === "service_provider" ? providersMap.get(s.beneficiary_id) : null;
-        const wsMap: Record<string, string> = { pendente: "aguardando_confirmacao", pago: "paga", cancelado: "cancelada" };
+        const wsMap: Record<string, string> = { pendente: "aguardando_confirmacao", liberada: "liberada", pago: "paga", cancelado: "cancelada" };
         return {
           id: s.id,
           _source: "split",
@@ -353,10 +353,10 @@ export default function Commissions() {
     qc.invalidateQueries({ queryKey: ["commission-splits-unified"] });
   };
 
-  // Split rows in commission_splits use a simpler enum (pendente/pago/cancelado).
+  // Split rows in commission_splits use a enum (pendente/liberada/pago/cancelado).
   // Map workflow_status → split_status and route the update to the correct table.
   const splitStatusFor = (ws: string) =>
-    PAID_STATUSES.includes(ws) ? "pago" : (["cancelada", "estornada"].includes(ws) ? "cancelado" : "pendente");
+    PAID_STATUSES.includes(ws) ? "pago" : (["cancelada", "estornada"].includes(ws) ? "cancelado" : (ws === "liberada" ? "liberada" : "pendente"));
 
   const updateSplit = async (ids: string[], patch: { status?: string; paid_at?: string | null; payment_method?: string | null; notes?: string | null }) => {
     const upd: any = {};

@@ -35,6 +35,7 @@ export interface FSale {
   sale_date: string | null;
   zenon_cost?: number | null;
   provider_cost?: number | null;
+  deduction_model?: "cascata" | "legado" | null;
   revenue_type?: string | null;       // "avulso" | "recorrente"
   recurrence_months?: number | null;
   recurrence_start?: string | null;
@@ -149,11 +150,16 @@ export function saleAmountInPeriod(s: FSale, period: Period): number {
 
 /** Comissão prevista de uma venda (percentuais só valem com beneficiário definido). */
 export function expectedCommission(s: FSale): number {
-  const amount = num(s.amount);
-  const pct = (s.partner_id ? num(s.commission_percent) : 0)
-    + (s.referrer_id ? num(s.referrer_percent) : 0)
-    + (s.collaborator_id ? num(s.collaborator_percent) : 0);
-  return round2(amount * pct / 100);
+  const gross = num(s.amount);
+  // Custos já consolidados pelo banco a partir de sale_deductions.
+  // Legado explícito mantém a regra dos contratos ainda não convertidos.
+  const legacy = s.deduction_model === "legado";
+  const base = Math.max(0, gross - num(s.zenon_cost) - (legacy ? 0 : num(s.provider_cost)));
+  const partner = s.partner_id ? round2(base * num(s.commission_percent) / 100) : 0;
+  const otherBase = legacy ? gross : base;
+  const referrer = s.referrer_id ? round2(otherBase * num(s.referrer_percent) / 100) : 0;
+  const collaborator = s.collaborator_id ? round2(otherBase * num(s.collaborator_percent) / 100) : 0;
+  return round2(partner + referrer + collaborator);
 }
 
 export const saleCosts = (s: FSale) => num(s.zenon_cost) + num(s.provider_cost);
@@ -336,8 +342,8 @@ export function monthResult(data: FinanceData, period: Period, today: string, sa
 // ───────────────────────── Validações de gravação ─────────────────────────
 
 /** Voltar de Concluída para projetada só sem valor pago. */
-export function canRevertToProjected(saleId: string, payments: FPayment[], today: string): boolean {
-  return !payments.some((p) => p.sale_id === saleId && paymentReceived(p, today) > 0);
+export function canRevertToProjected(saleId: string, payments: FPayment[], _today: string): boolean {
+  return !payments.some((p) => p.sale_id === saleId && (num(p.amount_paid) > 0 || (["pago", "paga"].includes(String(p.status)) && num(p.amount) > 0)));
 }
 
 /**
@@ -346,8 +352,10 @@ export function canRevertToProjected(saleId: string, payments: FPayment[], today
  */
 export function allocatePayment(target: FPayment, value: number, salePayments: FPayment[]): { id: string; add: number }[] {
   const queue = [target, ...salePayments
-    .filter((p) => p.id !== target.id && paymentOutstanding(p) > 0)
-    .sort((a, b) => String(a.due_date).localeCompare(String(b.due_date)))];
+    .filter((p) => target.sale_id != null && p.sale_id === target.sale_id && p.id !== target.id && paymentOutstanding(p) > 0
+      && (String(p.due_date ?? "") > String(target.due_date ?? "")
+        || (p.due_date === target.due_date && p.id > target.id)))
+    .sort((a, b) => String(a.due_date).localeCompare(String(b.due_date)) || a.id.localeCompare(b.id))];
   let left = round2(value);
   const out: { id: string; add: number }[] = [];
   for (const p of queue) {

@@ -89,7 +89,7 @@ describe("Realizadas · por mês (Q3 venda pela data; Q4 recebido pelo caixa)", 
 
 describe("Projetadas (sem fluxo de pagamento)", () => {
   it("todos os meses: B + R", () => {
-    expect(projectedKpis(data, ALL)).toEqual({ value: 132000, count: 2, expectedCommission: 12000, expectedCosts: 36000, expectedNet: 84000 });
+    expect(projectedKpis(data, ALL)).toEqual({ value: 132000, count: 2, expectedCommission: 8400, expectedCosts: 36000, expectedNet: 87600 });
   });
   it("dezembro: só B", () => expect(projectedKpis(data, M("2026-12")).value).toBe(120000));
   it("recorrente projetada distribuída nos meses do contrato (Q7)", () => {

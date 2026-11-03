@@ -37,7 +37,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { usePageSize } from "@/hooks/usePageSize";
-import { saleIsFinalized, paymentReceivedAmount, paymentCompetenceYm, isPaymentPaidInFuture } from "@/lib/financial";
+import { saleIsFinalized, paymentReceivedAmount, paymentReceivedYm, isPaymentPaidInFuture } from "@/lib/financial";
 
 import { LegacyReviewBanner } from "@/components/sales/LegacyReviewBanner";
 import { invalidateFinancialData } from "@/lib/invalidateFinancial";
@@ -254,7 +254,7 @@ export default function Sales() {
       if (val <= 0) return;
       const cur = m.get(r.sale_id) ?? { received: 0, receivedThisMonth: 0, lastPaidAt: null, count: 0 };
       cur.received += val;
-      if (paymentCompetenceYm(r) === ym) cur.receivedThisMonth += val;
+      if (paymentReceivedYm(r) === ym) cur.receivedThisMonth += val;
       cur.count += 1;
       if (r.paid_at && (!cur.lastPaidAt || r.paid_at > cur.lastPaidAt)) cur.lastPaidAt = r.paid_at;
       m.set(r.sale_id, cur);
@@ -423,8 +423,8 @@ export default function Sales() {
       if (!r.sale_id || !finalizedSaleIds.has(r.sale_id)) return sum;
       const val = receivedPaymentAmount(r);
       if (val <= 0) return sum;
-      // Usa competência (competence_month || due_date) para posicionar no mês certo
-      const ymRaw = paymentCompetenceYm(r);
+      // Caixa: mês da entrada efetiva (paid_at), no fuso de Brasília.
+      const ymRaw = paymentReceivedYm(r);
       if (!ymRaw) return sum;
       const d = new Date(`${ymRaw}-15T12:00:00`);
       if (d < range.start || d > range.end) return sum;
@@ -1587,7 +1587,7 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
 
         const bySale = new Map<string, number>();
         allReceipts.forEach((r: any) => {
-          if (ym !== "TUDO" && paymentCompetenceYm(r) !== ym) return;
+          if (ym !== "TUDO" && paymentReceivedYm(r) !== ym) return;
           const val = receivedPaymentAmount(r);
           if (val <= 0 || !r.sale_id) return;
           bySale.set(r.sale_id, (bySale.get(r.sale_id) || 0) + val);

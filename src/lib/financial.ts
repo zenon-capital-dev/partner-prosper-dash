@@ -1,3 +1,5 @@
+import { ymdInBrazil } from "./financeEngine";
+
 export const FINALIZED_SALE_STATUS = "concluida";
 export const ACTIVE_PAYMENT_STATUSES = ["pendente", "em_aberto", "parcial", "parcialmente_pago", "atrasado", "vencido", "pago", "paga"];
 export const OPEN_PAYMENT_STATUSES = ["em_aberto", "pendente", "parcial", "parcialmente_pago", "atrasado", "vencido"];
@@ -32,7 +34,7 @@ export function isPaymentPaidInFuture(payment: any) {
   const raw = payment?.paid_at;
   if (!raw) return false;
   const s = String(raw);
-  const ymd = /^(\d{4}-\d{2}-\d{2})/.exec(s)?.[1];
+  const ymd = ymdInBrazil(s);
   if (!ymd) return false;
   try {
     const todayYmd = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
@@ -51,21 +53,13 @@ export function paymentReceivedAmount(payment: any) {
   return isPaidPaymentStatus(payment?.status) ? Number(payment?.amount || 0) : 0;
 }
 
-/**
- * Retorna o mês de competência (YYYY-MM) do pagamento.
- * Prioridade: competence_month manual > due_date > paid_at.
- * Assim, um recebimento pago em julho referente a junho aparece no fluxo de junho.
- */
-export function paymentCompetenceYm(payment: any): string | null {
-  const raw = payment?.competence_month || payment?.due_date || payment?.paid_at;
-  if (!raw) return null;
-  const s = String(raw);
-  // ISO date/datetime — pega YYYY-MM
-  if (/^\d{4}-\d{2}/.test(s)) return s.slice(0, 7);
-  const d = new Date(s);
-  if (Number.isNaN(d.getTime())) return null;
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+/** Mês do caixa: somente a data efetiva da entrada, em Brasília. */
+export function paymentReceivedYm(payment: { paid_at?: string | null }): string | null {
+  return payment.paid_at ? ymdInBrazil(payment.paid_at)?.slice(0, 7) ?? null : null;
 }
+
+/** @deprecated Use paymentReceivedYm; competência não define recebido. */
+export const paymentCompetenceYm = paymentReceivedYm;
 
 
 export function clampRatio(value: number) {
