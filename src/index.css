@@ -355,7 +355,7 @@
     --secondary: 40 20% 94%;
     --secondary-foreground: 211 49% 14%;
     --muted: 40 16% 93%;
-    --muted-foreground: 211 16% 32%;
+    --muted-foreground: 211 18% 27%;
     --accent: var(--custom-accent, 40 25% 92%);
     --accent-foreground: var(--custom-primary, 211 49% 18%);
     --border: 39 17% 85%;
@@ -1109,9 +1109,11 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
   border-bottom: 1px solid hsl(var(--border) / 0.75) !important;
 }
 /* Texto branco de componentes antigos (feitos para fundo escuro) vira escuro no admin claro.
-   Exceção: elementos com fundo próprio e o conteúdo de botões/links com fundo
-   (ex.: botão azul Zenon com texto branco), que precisam continuar brancos. */
-.admin-shell .text-white:not([class*="bg-"]):not(:is(button, a, [role="button"])[class*="bg-"] *),
+   Exceções — continuam brancos: elementos com fundo próprio, conteúdo de botões/links com
+   fundo e conteúdo de superfícies azul Zenon (indigo-600+ / zenon-navy).
+   bg-black / bg-zinc-900 / bg-slate-900 viram fundo claro (regra abaixo), então o texto
+   deles continua escuro. */
+.admin-shell .text-white:not(:is([class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900))):not(:is(button, a, [role="button"])[class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900) *):not(:is([class*="bg-indigo-6"], [class*="bg-indigo-7"], [class*="bg-indigo-8"], [class*="bg-indigo-9"], [class*="bg-zenon-navy"]) *),
 .admin-shell .dark\:text-white,
 .admin-shell .dark\:text-zinc-100,
 .admin-shell .dark\:text-zinc-200,
@@ -1119,10 +1121,10 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 .admin-shell .dark\:text-zinc-400,
 .admin-shell .dark\:text-zinc-500,
 .admin-shell .dark\:text-zinc-600,
-.admin-shell .text-white\/40:not([class*="bg-"]):not(:is(button, a, [role="button"])[class*="bg-"] *),
-.admin-shell .text-white\/60:not([class*="bg-"]):not(:is(button, a, [role="button"])[class*="bg-"] *),
-.admin-shell .text-white\/70:not([class*="bg-"]):not(:is(button, a, [role="button"])[class*="bg-"] *),
-.admin-shell .text-white\/80:not([class*="bg-"]):not(:is(button, a, [role="button"])[class*="bg-"] *) { color: hsl(var(--muted-foreground)) !important; }
+.admin-shell .text-white\/40:not(:is([class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900))):not(:is(button, a, [role="button"])[class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900) *):not(:is([class*="bg-indigo-6"], [class*="bg-indigo-7"], [class*="bg-indigo-8"], [class*="bg-indigo-9"], [class*="bg-zenon-navy"]) *),
+.admin-shell .text-white\/60:not(:is([class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900))):not(:is(button, a, [role="button"])[class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900) *):not(:is([class*="bg-indigo-6"], [class*="bg-indigo-7"], [class*="bg-indigo-8"], [class*="bg-indigo-9"], [class*="bg-zenon-navy"]) *),
+.admin-shell .text-white\/70:not(:is([class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900))):not(:is(button, a, [role="button"])[class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900) *):not(:is([class*="bg-indigo-6"], [class*="bg-indigo-7"], [class*="bg-indigo-8"], [class*="bg-indigo-9"], [class*="bg-zenon-navy"]) *),
+.admin-shell .text-white\/80:not(:is([class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900))):not(:is(button, a, [role="button"])[class*="bg-"]:not(.bg-black, .bg-zinc-900, .bg-slate-900) *):not(:is([class*="bg-indigo-6"], [class*="bg-indigo-7"], [class*="bg-indigo-8"], [class*="bg-indigo-9"], [class*="bg-zenon-navy"]) *) { color: hsl(var(--muted-foreground)) !important; }
 .admin-shell .bg-black,
 .admin-shell .bg-zinc-900,
 .admin-shell .bg-slate-900 { background-color: hsl(var(--card)) !important; }
