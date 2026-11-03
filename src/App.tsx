@@ -14,6 +14,7 @@ import { Navigate } from "react-router-dom";
 import { ConfirmRoot } from "@/lib/confirm";
 import { useBodyScrollCleanup } from "@/hooks/use-body-scroll-cleanup";
 import { RouteGuard } from "@/components/RouteGuard";
+import { LegacyClientRedirect } from "@/components/LegacyClientRedirect";
 
 const Auth = lazy(() => import("./pages/Auth"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -210,9 +211,8 @@ const App = () => (
               <Route path="/parceiro/:tab" element={<PartnerPanel />} />
               <Route path="/portal-cliente" element={<ClientPanel />} />
               <Route path="/portal-cliente/:tab" element={<ClientPanel />} />
-              <Route path="/cliente" element={<Navigate to="/portal-cliente" replace />} />
-              <Route path="/cliente/suporte" element={<Navigate to="/portal-cliente/suporte" replace />} />
-              <Route path="/cliente/:tab" element={<Navigate to="/portal-cliente" replace />} />
+              <Route path="/cliente" element={<LegacyClientRedirect />} />
+              <Route path="/cliente/:tab" element={<LegacyClientRedirect />} />
               <Route path="/colaborador" element={<CollaboratorPanel />} />
               <Route path="/colaborador/:tab" element={<CollaboratorPanel />} />
               <Route path="/indicador" element={<ReferrerPanel />} />
