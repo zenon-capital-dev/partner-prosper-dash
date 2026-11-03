@@ -143,6 +143,9 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   const [dedLoaded, setDedLoaded] = useState<DeductionRow[] | null>(null);
   const [dedLoadedProvider, setDedLoadedProvider] = useState<string | null>(null);
   const [dedModel, setDedModel] = useState<DeductionModel>("cascata");
+  // Venda antiga não quitada: ao salvar a revisão, passa para a regra nova.
+  const [dedReviewPending, setDedReviewPending] = useState(false);
+  const effectiveModel: DeductionModel = dedReviewPending ? "cascata" : dedModel;
 
   const { data: deductionTypes = [] } = useQuery({
     queryKey: ["deduction-types"],
@@ -163,7 +166,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       (async () => {
         const [{ data: rows }, { data: saleRow }] = await Promise.all([
           (supabase as any).from("sale_deductions").select("deduction_type_id, percent, fixed_amount").eq("sale_id", sale.id),
-          (supabase as any).from("sales").select("deduction_model").eq("id", sale.id).maybeSingle(),
+          (supabase as any).from("sales").select("deduction_model, deduction_review_pending").eq("id", sale.id).maybeSingle(),
         ]);
         if (cancelled) return;
         const loaded = ((rows ?? []) as any[]).map(rowFromDb);
@@ -171,12 +174,14 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         setDedLoaded(loaded);
         setDedLoadedProvider(sale.service_provider_id ?? null);
         setDedModel((saleRow?.deduction_model as DeductionModel) || "legado");
+        setDedReviewPending(!!saleRow?.deduction_review_pending && saleRow?.deduction_model === "legado");
       })();
     } else {
       setDedRows([]);
       setDedLoaded([]);
       setDedLoadedProvider(null);
       setDedModel("cascata");
+      setDedReviewPending(false);
     }
     return () => { cancelled = true; };
   }, [open, sale?.id]);
@@ -456,6 +461,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         recurrence_months: isRecurring ? Math.max(1, Math.min(120, parseInt(form.recurrence_months || 12, 10) || 12)) : null,
         recurrence_start: isRecurring ? recurrenceStart : null,
         project_id: form.project_id || null,
+        ...(dedReviewPending ? { deduction_model: "cascata" } : {}),
       } as any;
 
       const shouldGenerateFinancialSchedule = saleIsFinalized(payload);
@@ -527,6 +533,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       qc.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
       qc.invalidateQueries({ queryKey: ["sale-deductions"] });
+      qc.invalidateQueries({ queryKey: ["commission-overpayments"] });
 
       onCreated?.();
       onOpenChange(false);
@@ -544,9 +551,9 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   // Mesma regra que o banco grava (handle_sale_splits):
   //   cascata: parceiro, indicador e colaborador = base de cálculo (bruto − deduções) × %
   //   legado : parceiro sobre a base; indicador e colaborador sobre o bruto (como foram fechadas)
-  const partnerBaseValue = partnerBase(amount, zenonCost, providerCost, dedModel);
-  const othersBase = dedModel === "cascata" ? partnerBaseValue : amount;
-  const othersBaseLabel = dedModel === "cascata" ? "base de cálculo" : "bruto";
+  const partnerBaseValue = partnerBase(amount, zenonCost, providerCost, effectiveModel);
+  const othersBase = effectiveModel === "cascata" ? partnerBaseValue : amount;
+  const othersBaseLabel = effectiveModel === "cascata" ? "base de cálculo" : "bruto";
   const referrerCalc = form.referrer_id ? (othersBase * Number(form.referrer_percent || 0)) / 100 : 0;
   const partnerCalc = form.partner_id ? (partnerBaseValue * Number(form.commission_percent || 0)) / 100 : 0;
   const collaboratorCalc = form.collaborator_id ? (othersBase * Number(form.collaborator_percent || 0)) / 100 : 0;
@@ -756,12 +763,18 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                         </SelectContent>
                       </Select>
                     </Field>
+                    {dedReviewPending && (
+                      <div className="rounded-lg border border-amber-300 bg-white px-3 py-2 text-[11.5px] text-amber-900 leading-snug">
+                        <strong>Venda antiga em revisão.</strong> Preencha as deduções e salve: ela passa para a regra nova.
+                        O que já foi pago a cada um fica pago; a regra nova vale só para o que falta. Contas a pagar só das parcelas em aberto.
+                      </div>
+                    )}
                     <Field label="Deduções da operação (sobre o bruto)">
                       <SaleDeductionsEditor
                         gross={Number(form.amount) || 0}
                         rows={dedRows}
                         types={deductionTypes}
-                        model={dedModel}
+                        model={effectiveModel}
                         onChange={setDedRows}
                       />
                     </Field>
