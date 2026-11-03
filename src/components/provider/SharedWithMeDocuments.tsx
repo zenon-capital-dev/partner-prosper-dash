@@ -14,11 +14,12 @@ import {
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import {
   Download, Eye, FolderOpen, Search, Share2, Clock, User, Building2, Briefcase,
-  FilePlus2, ArrowLeft, Users, FileText,
+  FilePlus2, ArrowLeft, Users, FileText, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDate, formatBRL, formatPhone } from "@/lib/format";
+import { buildZip, saveBytes, uniqueZipNames } from "@/lib/zip";
 
 interface SharedDoc {
   id: string;
@@ -98,6 +99,7 @@ export function SharedWithMeDocuments() {
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [requestOpen, setRequestOpen] = useState(false);
+  const [zipping, setZipping] = useState<{ section: string; done: number; total: number } | null>(null);
 
   // Perfis dos clientes atendidos (função do banco provider_client_profiles)
   const { data: profiles = [], isLoading: loadingProfiles, error: profilesError } = useQuery({
@@ -211,6 +213,47 @@ export function SharedWithMeDocuments() {
     window.open(signed.signedUrl, "_blank", "noopener");
   }
 
+  // Baixa vários arquivos e entrega um único .zip
+  async function downloadAll(section: string, items: { name: string; path: string }[], onDone?: () => Promise<void>) {
+    if (!items.length || zipping) return;
+    setZipping({ section, done: 0, total: items.length });
+    const names = uniqueZipNames(items.map((i) => i.name));
+    const entries: { name: string; data: Uint8Array }[] = [];
+    let failed = 0;
+    for (const [i, item] of items.entries()) {
+      const { data, error } = await supabase.storage.from("documents").download(item.path);
+      if (error || !data) failed += 1;
+      else entries.push({ name: names[i], data: new Uint8Array(await data.arrayBuffer()) });
+      setZipping({ section, done: i + 1, total: items.length });
+    }
+    setZipping(null);
+    if (!entries.length) { toast.error("Não foi possível baixar os arquivos"); return; }
+    const base = selected?.id === NO_CLIENT ? "Documentos" : clientLabel(selectedProfile);
+    saveBytes(buildZip(entries), `${base} - ${section}.zip`.replace(/[\\/:*?"<>|]+/g, "_"));
+    if (failed) toast.warning(`${failed} arquivo(s) não puderam ser baixados`);
+    else toast.success(`${entries.length} arquivo(s) baixado(s)`);
+    if (onDone) await onDone();
+  }
+
+  async function downloadAllShared() {
+    const list = selectedShares.filter((d) => d.can_download && d.documents?.file_path);
+    await downloadAll(
+      "compartilhados",
+      list.map((d) => ({ name: fileNameFor(d.documents!), path: d.documents!.file_path! })),
+      async () => {
+        const unseen = list.filter((d) => !d.viewed_at).map((d) => d.id);
+        if (!unseen.length) return;
+        await (supabase as any).from("document_shares").update({ viewed_at: new Date().toISOString() }).in("id", unseen);
+        qc.invalidateQueries({ queryKey: ["shared-with-me"] });
+      },
+    );
+  }
+
+  async function downloadAllDemandDocs() {
+    const list = selectedDemandDocs.filter((d) => d.file_path);
+    await downloadAll("demandas", list.map((d) => ({ name: fileNameFor(d), path: d.file_path! })));
+  }
+
   const isLoading = loadingProfiles || loadingShares;
 
   return (
@@ -310,7 +353,15 @@ export function SharedWithMeDocuments() {
                 <span className="text-sm font-semibold text-slate-800 flex items-center gap-2">
                   <Briefcase className="size-4 text-teal-600" /> Documentos das demandas
                 </span>
-                <Badge variant="outline" className="text-[10px]">{selectedDemandDocs.length}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px]">{selectedDemandDocs.length}</Badge>
+                  <DownloadAllButton
+                    count={selectedDemandDocs.filter((d) => d.file_path).length}
+                    progress={zipping?.section === "demandas" ? zipping : null}
+                    disabled={!!zipping}
+                    onClick={downloadAllDemandDocs}
+                  />
+                </div>
               </header>
               <ul className="divide-y divide-slate-100">
                 {selectedDemandDocs.map((d) => {
@@ -345,7 +396,15 @@ export function SharedWithMeDocuments() {
               <span className="text-sm font-semibold text-slate-800 flex items-center gap-2">
                 <Share2 className="size-4 text-teal-600" /> Compartilhados com você
               </span>
-              <Badge variant="outline" className="text-[10px]">{selectedShares.length} arquivo(s)</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-[10px]">{selectedShares.length} arquivo(s)</Badge>
+                <DownloadAllButton
+                  count={selectedShares.filter((d) => d.can_download && d.documents?.file_path).length}
+                  progress={zipping?.section === "compartilhados" ? zipping : null}
+                  disabled={!!zipping}
+                  onClick={downloadAllShared}
+                />
+              </div>
             </header>
             {selectedShares.length === 0 ? (
               <p className="px-4 py-6 text-center text-sm text-slate-500">Nenhum arquivo compartilhado deste cliente.</p>
@@ -384,6 +443,32 @@ export function SharedWithMeDocuments() {
         />
       )}
     </div>
+  );
+}
+
+// Nome do arquivo no zip: nome do documento + extensão do arquivo salvo
+function fileNameFor(d: { name: string; file_path: string | null }) {
+  const ext = d.file_path?.match(/\.[a-z0-9]{1,6}$/i)?.[0] ?? "";
+  return ext && !d.name.toLowerCase().endsWith(ext.toLowerCase()) ? `${d.name}${ext}` : d.name;
+}
+
+function DownloadAllButton({
+  count, progress, disabled, onClick,
+}: {
+  count: number;
+  progress: { done: number; total: number } | null;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  if (count < 1) return null;
+  return (
+    <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs" disabled={disabled} onClick={onClick}>
+      {progress ? (
+        <><Loader2 className="size-3.5 animate-spin" /> Baixando {progress.done}/{progress.total}</>
+      ) : (
+        <><Download className="size-3.5" /> Baixar todos ({count})</>
+      )}
+    </Button>
   );
 }
 
