@@ -30,6 +30,7 @@ import {
   DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { fetchAllRows } from "@/lib/fetchAll";
 import { ComposedChart, Area, Bar, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
@@ -185,17 +186,21 @@ export default function Sales() {
   const { data: sales = [], isLoading } = useQuery({
     queryKey: ["sales-rich-v2"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sales")
-        .select("id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, resource_pool_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, revenue_type, recurrence_months, closed_at, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
-        .order("sale_date", { ascending: false })
-        .limit(250);
-      if (error) {
+      // Busca todas as vendas (antes só as 250 mais recentes: projeções futuras escondiam o resto).
+      try {
+        return await fetchAllRows((from, to) =>
+          supabase
+            .from("sales")
+            .select("id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, resource_pool_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, revenue_type, recurrence_months, closed_at, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
+            .order("sale_date", { ascending: false })
+            .order("id")
+            .range(from, to)
+        );
+      } catch (error: any) {
         console.error("[Sales] query error:", error);
         toast.error("Erro ao carregar vendas: " + error.message);
         return [];
       }
-      return data ?? [];
     },
     staleTime: 90_000,
   });
@@ -207,23 +212,29 @@ export default function Sales() {
   const { data: allSplits = [] } = useQuery({
     queryKey: ["sales-commission-splits"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("commission_splits")
-        .select("sale_id, amount, percent, beneficiary_type, status")
-        .limit(600);
-      return (data as any[]) ?? [];
+      // Todas as comissões (antes 600 sem ordem: comissões de algumas vendas sumiam).
+      return fetchAllRows<any>((from, to) =>
+        supabase
+          .from("commission_splits")
+          .select("sale_id, amount, percent, beneficiary_type, status")
+          .order("id")
+          .range(from, to)
+      );
     },
   });
 
   const { data: allReceipts = [] } = useQuery({
     queryKey: ["sales-receipts-by-sale"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("payments")
-        .select("sale_id, amount, amount_paid, paid_at, due_date, competence_month, status")
-        .not("sale_id", "is", null)
-        .limit(600);
-      return (data as any[]) ?? [];
+      // Todos os recebimentos ligados a vendas (antes 600 sem ordem).
+      return fetchAllRows<any>((from, to) =>
+        supabase
+          .from("payments")
+          .select("sale_id, amount, amount_paid, paid_at, due_date, competence_month, status")
+          .not("sale_id", "is", null)
+          .order("id")
+          .range(from, to)
+      );
     },
   });
 
