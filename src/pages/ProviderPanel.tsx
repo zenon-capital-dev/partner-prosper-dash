@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Briefcase, ClipboardCheck, FileText, UserCog, Inbox, Clock, Wallet, MessageSquare,
   TrendingUp, AlertTriangle, CheckCircle2, CalendarClock, Sparkles, ArrowUpRight, Activity, Bell,
-  Package, Zap, Target, LifeBuoy, Share2,
+  Package, Zap, Target, LifeBuoy, Users,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -24,7 +24,7 @@ import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
 import { DemandRequestsPanel } from "@/components/demands/DemandRequestsPanel";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { ClientDocumentFolders } from "@/components/documents/ClientDocumentFolders";
-import { SharedWithMeDocuments } from "@/components/provider/SharedWithMeDocuments";
+import { ProviderClients } from "@/components/provider/ProviderClients";
 import { UserSupportCenter } from "@/components/support/UserSupportCenter";
 
 const NAV = [
@@ -32,7 +32,7 @@ const NAV = [
   { key: "demandas",   label: "Demandas",   icon: Briefcase },
   { key: "reportes",   label: "Reportes",   icon: ClipboardCheck, shortLabel: "Reportes" },
   { key: "documentos", label: "Documentos", icon: FileText, shortLabel: "Docs" },
-  { key: "compartilhados", label: "Compartilhados comigo", icon: Share2, shortLabel: "Recebidos" },
+  { key: "clientes",   label: "Clientes",   icon: Users, shortLabel: "Clientes" },
   { key: "comissoes",  label: "Comissões",  icon: Wallet, shortLabel: "Comissões" },
   { key: "perfil",     label: "Perfil",     icon: UserCog },
   { key: "suporte",    label: "Suporte",    icon: LifeBuoy },
@@ -91,7 +91,9 @@ export default function ProviderPanel() {
   const { user, signOut } = useAuth() as any;
   const navigate = useNavigate();
   const { tab } = useParams<{ tab?: string }>();
-  const activeKey = NAV.find((n) => n.key === tab)?.key ?? "dashboard";
+  // "compartilhados" virou "clientes": links antigos continuam funcionando
+  const tabKey = tab === "compartilhados" ? "clientes" : tab;
+  const activeKey = NAV.find((n) => n.key === tabKey)?.key ?? "dashboard";
   const onNavigate = (k: string) => navigate(k === "dashboard" ? "/prestador" : `/prestador/${k}`);
   const qc = useQueryClient();
   const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
@@ -1027,7 +1029,7 @@ export default function ProviderPanel() {
         )}
 
 
-        {activeKey === "compartilhados" && <SharedWithMeDocuments />}
+        {activeKey === "clientes" && <ProviderClients />}
         {activeKey === "suporte" && <UserSupportCenter role="prestador" />}
 
         {activeKey === "comissoes" && (() => {
