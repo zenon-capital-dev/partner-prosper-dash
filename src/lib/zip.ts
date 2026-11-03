@@ -115,7 +115,7 @@ export function buildZip(entries: ZipEntry[]): Uint8Array {
 
 /** Abre o download de um arquivo gerado no navegador. */
 export function saveBytes(bytes: Uint8Array, fileName: string, mime = "application/zip") {
-  const url = URL.createObjectURL(new Blob([bytes], { type: mime }));
+  const url = URL.createObjectURL(new Blob([bytes as Uint8Array<ArrayBuffer>], { type: mime }));
   const a = document.createElement("a");
   a.href = url;
   a.download = fileName;
