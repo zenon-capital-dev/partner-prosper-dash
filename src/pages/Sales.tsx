@@ -97,7 +97,7 @@ export default function Sales() {
   const [editingSale, setEditingSale] = useState<any>(null);
   const [receivingSale, setReceivingSale] = useState<any>(null);
   const [search, setSearch] = useState("");
-  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("MÊS");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("TUDO"); // abre com todos os meses
   const [selectedMonth, setSelectedMonth] = useState(currentMonthKey());
   const [status, setStatus] = useState<StatusKey>("todos");
   // Realizadas = concluídas (têm fluxo de pagamento). Projetadas = pendentes/em andamento (só expectativa).
@@ -411,7 +411,9 @@ export default function Sales() {
     const today = nowBR();
     const range = !usingManualRange && rangeKey === "MÊS"
       ? monthRange(selectedMonth)
-      : { start: startOfMonth(today), end: endOfDay(today) };
+      : !usingManualRange && rangeKey === "TUDO"
+        ? { start: new Date(0), end: new Date(8640000000000000) }
+        : { start: startOfMonth(today), end: endOfDay(today) };
     return allReceipts.reduce((sum: number, r: any) => {
       if (!r.sale_id || !finalizedSaleIds.has(r.sale_id)) return sum;
       const val = receivedPaymentAmount(r);
@@ -449,6 +451,13 @@ export default function Sales() {
         return !acc || d < acc ? d : acc;
       }, null as Date | null);
       start = earliest ?? subDays(today, 89);
+      // inclui vendas com data futura (projeções)
+      const latest = filtered.reduce((acc: Date | null, s: any) => {
+        const d = s.sale_date ? parseISO(s.sale_date) : null;
+        if (!d) return acc;
+        return !acc || d > acc ? d : acc;
+      }, null as Date | null);
+      if (latest && latest > end) end = endOfDay(latest);
     } else {
       start = subDays(today, 29);
     }
@@ -696,7 +705,7 @@ export default function Sales() {
     const c: any = clientsList.find((c: any) => c.id === clientFilter);
     activeChips.push({ label: `Cliente: ${c?.full_name ?? "Cliente"}`, clear: () => setClientFilter("todos") });
   }
-  if (!usingManualRange && rangeKey === "MÊS") activeChips.push({ label: `Mês: ${monthLabel(selectedMonth)}`, clear: () => setRangeKey("30 DIAS") });
+  if (!usingManualRange && rangeKey === "MÊS") activeChips.push({ label: `Mês: ${monthLabel(selectedMonth)}`, clear: () => setRangeKey("TUDO") });
   if (dateFrom) activeChips.push({ label: `De: ${dateFrom}`, clear: () => setDateFrom("") });
   if (dateTo) activeChips.push({ label: `Até: ${dateTo}`, clear: () => setDateTo("") });
   const hasActiveFilters = activeChips.length > 0;
@@ -742,6 +751,7 @@ export default function Sales() {
               }}
               className="h-10 bg-white border border-slate-200/70 rounded-lg px-3 text-xs font-bold text-slate-700 shadow-sm capitalize outline-none focus:ring-2 focus:ring-indigo-200 min-w-[190px]"
             >
+              <option value="TUDO">Todos os meses</option>
               {/* Projetadas também mostram os próximos 12 meses */}
               {Array.from({ length: saleKind === "realizadas" ? 12 : 24 }).map((_, idx) => {
                 const i = saleKind === "realizadas" ? idx : idx - 12;
@@ -752,7 +762,6 @@ export default function Sales() {
                 const label = d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
                 return <option key={key} value={key}>{i === 0 ? `${label} (atual)` : label}</option>;
               })}
-              <option value="TUDO">Todo período</option>
             </select>
 
             <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 px-4 gap-2 border-slate-200/70 bg-white hover:bg-slate-50">
@@ -773,7 +782,12 @@ export default function Sales() {
           { label: "Vendas projetadas", value: String(kpis.count), tone: "primary", icon: <TrendingUp className="size-4" />, onClick: () => setKpiDetail("count") },
         ] : [
           { label: "Volume Bruto", value: formatBRL(kpis.total), tone: "primary", icon: <CircleDollarSign className="size-4" />, onClick: () => setKpiDetail("bruto") },
-          { label: !usingManualRange && rangeKey === "MÊS" ? `Recebido (${monthLabel(selectedMonth)})` : "Recebido (mês atual)", value: formatBRL(recebidoNoMes), tone: "success", icon: <HandCoins className="size-4" />, hint: !usingManualRange && rangeKey === "MÊS" ? "Entradas confirmadas no mês selecionado" : "Entradas confirmadas no mês atual", onClick: () => setKpiDetail("recebido_mes") },
+          {
+            label: !usingManualRange && rangeKey === "MÊS" ? `Recebido (${monthLabel(selectedMonth)})` : !usingManualRange && rangeKey === "TUDO" ? "Recebido (todos os meses)" : "Recebido (mês atual)",
+            value: formatBRL(recebidoNoMes), tone: "success", icon: <HandCoins className="size-4" />,
+            hint: !usingManualRange && rangeKey === "MÊS" ? "Entradas confirmadas no mês selecionado" : !usingManualRange && rangeKey === "TUDO" ? "Todas as entradas confirmadas" : "Entradas confirmadas no mês atual",
+            onClick: () => setKpiDetail("recebido_mes"),
+          },
           { label: "A Receber (saldo)", value: formatBRL(kpis.aReceber), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.recebido > 0 ? `Já recebido ${formatBRL(kpis.recebido)}` : undefined, onClick: () => setKpiDetail("a_receber") },
           { label: "Líquido", value: formatBRL(kpis.liquido), tone: "success", icon: <Sparkles className="size-4" />, hint: kpis.total > 0 ? `${((kpis.liquido / kpis.total) * 100).toFixed(1)}% margem` : undefined, onClick: () => setKpiDetail("liquido") },
           { label: "Custos (Zenon + Prestador)", value: formatBRL(kpis.custos), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.provider > 0 ? `Prestador ${formatBRL(kpis.provider)}` : undefined, onClick: () => setKpiDetail("custos") },
@@ -1531,7 +1545,7 @@ export default function Sales() {
         allReceipts={allReceipts}
         splitsBySale={splitsBySale}
         receiptsBySale={receiptsBySale}
-        monthYm={!usingManualRange && rangeKey === "MÊS" ? selectedMonth : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`}
+        monthYm={!usingManualRange && rangeKey === "MÊS" ? selectedMonth : !usingManualRange && rangeKey === "TUDO" ? "TUDO" : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`}
       />
 
     </div>
@@ -1558,7 +1572,7 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
 
         const bySale = new Map<string, number>();
         allReceipts.forEach((r: any) => {
-          if (paymentCompetenceYm(r) !== ym) return;
+          if (ym !== "TUDO" && paymentCompetenceYm(r) !== ym) return;
           const val = receivedPaymentAmount(r);
           if (val <= 0 || !r.sale_id) return;
           bySale.set(r.sale_id, (bySale.get(r.sale_id) || 0) + val);
@@ -1567,7 +1581,9 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
           const s = filtered.find((x) => x.id === id) || { id, clients: null, products: null, partners: null, amount: 0, sale_date: null };
           return rowFor(s, v);
         });
-        return { title: `Recebido em ${ym} — detalhamento`, subtitle: "Pagamentos confirmados dentro do mês selecionado, por venda.", rows, isMoney: true };
+        return ym === "TUDO"
+          ? { title: "Recebido — todos os meses", subtitle: "Todos os pagamentos confirmados, por venda.", rows, isMoney: true }
+          : { title: `Recebido em ${ym} — detalhamento`, subtitle: "Pagamentos confirmados dentro do mês selecionado, por venda.", rows, isMoney: true };
       }
       case "a_receber": {
         const rows = filtered.filter(s => s.status !== "cancelada").map(s => {
