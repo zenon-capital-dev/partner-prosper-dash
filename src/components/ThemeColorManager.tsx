@@ -9,10 +9,10 @@ export interface ThemeColors {
 }
 
 const DEFAULT_COLORS: ThemeColors = {
-  primary: '#1d4ed8',
-  sidebarBackground: '#020617',
-  sidebarForeground: '#94a3b8',
-  accent: '#f1f5f9',
+  primary: '#172d44',
+  sidebarBackground: '#172d44',
+  sidebarForeground: '#eee9df',
+  accent: '#eee9df',
   radius: '0.5rem',
 };
 
