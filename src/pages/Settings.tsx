@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { ThemeCustomizer } from "@/components/ThemeCustomizer";
 import { exportFullBackup } from "@/lib/full-backup";
+import { DeductionsSettings } from "@/components/settings/DeductionsSettings";
 
 
 type ListItem = { id: string; label: string };
@@ -223,6 +224,9 @@ export default function Settings() {
               <TabsTrigger value="commissions" className="rounded-lg h-9 gap-2">
                 <Wallet className="size-4" /> Comissões
               </TabsTrigger>
+              <TabsTrigger value="deductions" className="rounded-lg h-9 gap-2">
+                <Wallet className="size-4" /> Deduções
+              </TabsTrigger>
               <TabsTrigger value="notifications" className="rounded-lg h-9 gap-2">
                 <Bell className="size-4" /> Notificações
               </TabsTrigger>
@@ -420,6 +424,10 @@ export default function Settings() {
                   />
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="deductions" className="space-y-4">
+              <DeductionsSettings />
             </TabsContent>
 
             <TabsContent value="commissions" className="space-y-4">
