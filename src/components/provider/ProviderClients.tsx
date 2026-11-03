@@ -262,7 +262,7 @@ export function ProviderClients() {
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <Users className="size-4 text-teal-600" /> Clientes
+            <Users className="size-4 text-indigo-600" /> Clientes
           </h2>
           <p className="text-sm text-slate-500">Clientes que você atende e os documentos de cada um.</p>
         </div>
@@ -300,10 +300,10 @@ export function ProviderClients() {
               <button
                 key={c.id}
                 onClick={() => setSelectedId(c.id)}
-                className="text-left rounded-xl border border-slate-200/70 bg-white shadow-sm p-4 hover:border-teal-300 hover:shadow transition"
+                className="text-left rounded-xl border border-slate-200/70 bg-white shadow-sm p-4 hover:border-indigo-300 hover:shadow transition"
               >
                 <div className="flex items-start gap-3">
-                  <div className="size-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-700 shrink-0">
+                  <div className="size-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 shrink-0">
                     {c.id === NO_CLIENT ? <FileText className="size-5" /> : <Building2 className="size-5" />}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -318,7 +318,7 @@ export function ProviderClients() {
                         <Badge variant="outline" className="text-[10px]">{c.profile!.demands!.length} demanda(s)</Badge>
                       )}
                       <Badge variant="outline" className="text-[10px]">{c.shared} compartilhado(s)</Badge>
-                      {c.newCount > 0 && <Badge className="bg-teal-600 text-[10px]">{c.newCount} novo(s)</Badge>}
+                      {c.newCount > 0 && <Badge className="bg-indigo-600 text-[10px]">{c.newCount} novo(s)</Badge>}
                       {c.pending > 0 && (
                         <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">{c.pending} pendente(s)</Badge>
                       )}
@@ -344,7 +344,7 @@ export function ProviderClients() {
             <section className="rounded-xl border border-slate-200/70 bg-white shadow-sm overflow-hidden">
               <header className="px-4 py-2.5 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
                 <span className="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                  <Briefcase className="size-4 text-teal-600" /> Documentos das demandas
+                  <Briefcase className="size-4 text-indigo-600" /> Documentos das demandas
                 </span>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-[10px]">{selectedDemandDocs.length}</Badge>
@@ -387,7 +387,7 @@ export function ProviderClients() {
           <section className="rounded-xl border border-slate-200/70 bg-white shadow-sm overflow-hidden">
             <header className="px-4 py-2.5 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
               <span className="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                <Share2 className="size-4 text-teal-600" /> Compartilhados com você
+                <Share2 className="size-4 text-indigo-600" /> Compartilhados com você
               </span>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-[10px]">{selectedShares.length} arquivo(s)</Badge>
@@ -408,7 +408,7 @@ export function ProviderClients() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-slate-900 truncate">{d.documents!.name}</span>
-                        {!d.viewed_at && <Badge className="bg-teal-600 text-[9px] h-4 px-1.5">Novo</Badge>}
+                        {!d.viewed_at && <Badge className="bg-indigo-600 text-[9px] h-4 px-1.5">Novo</Badge>}
                       </div>
                       <div className="text-xs text-slate-500 flex flex-wrap gap-x-3">
                         <span>Recebido {formatDate(d.created_at)}</span>
@@ -593,7 +593,7 @@ function RequestDocumentDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={submit} disabled={saving} className="bg-teal-600 hover:bg-teal-700">
+          <Button onClick={submit} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700">
             {saving ? "Enviando..." : "Enviar solicitação"}
           </Button>
         </DialogFooter>

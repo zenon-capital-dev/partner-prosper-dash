@@ -163,7 +163,7 @@ export function ProviderClientDossier({
           </div>
         </div>
         {onRequest && (
-          <Button className="bg-teal-600 hover:bg-teal-700 gap-1.5 shrink-0" onClick={onRequest}>
+          <Button className="bg-indigo-600 hover:bg-indigo-700 gap-1.5 shrink-0" onClick={onRequest}>
             <FilePlus2 className="size-4" /> Solicitar documento
           </Button>
         )}
