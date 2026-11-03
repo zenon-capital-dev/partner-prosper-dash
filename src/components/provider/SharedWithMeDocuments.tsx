@@ -78,6 +78,12 @@ const DOC_STATUS: Record<string, { label: string; tone: string }> = {
 
 const NO_CLIENT = "__sem_cliente__";
 
+// Datas sem hora (prazo, nascimento) não podem passar por fuso: "2026-11-10" vira 10/11/2026.
+function formatDay(value: string | null | undefined) {
+  const m = value?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : value ? formatDate(value) : null;
+}
+
 function clientLabel(p?: ClientProfile | null) {
   return p?.company || p?.full_name || "Cliente";
 }
@@ -320,7 +326,7 @@ export function SharedWithMeDocuments() {
                         <div className="text-xs text-slate-500 flex flex-wrap gap-x-3">
                           {demand && <span>{demand.name}</span>}
                           <span>Criado {formatDate(d.created_at)}</span>
-                          {d.due_date && <span className="text-amber-600 flex items-center gap-1"><Clock className="size-3" />prazo {formatDate(d.due_date)}</span>}
+                          {d.due_date && <span className="text-amber-600 flex items-center gap-1"><Clock className="size-3" />prazo {formatDay(d.due_date)}</span>}
                         </div>
                         {d.description && <p className="text-xs text-slate-600 mt-1">{d.description}</p>}
                       </div>
@@ -397,7 +403,7 @@ function ClientProfileCards({ p }: { p: ClientProfile }) {
         <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2"><User className="size-4 text-indigo-600" /> Dados Pessoais</h4>
         <Field label="Nome completo" value={p.full_name} />
         <Field label="CPF/CNPJ" value={p.document} />
-        <Field label="Data de nascimento" value={p.birth_date ? formatDate(p.birth_date) : null} />
+        <Field label="Data de nascimento" value={formatDay(p.birth_date)} />
         <Field label="Email" value={p.email} />
         <Field label="Telefone" value={p.phone ? formatPhone(p.phone) : null} />
         <Field label="WhatsApp" value={p.whatsapp || p.phone ? formatPhone(p.whatsapp || p.phone) : null} />
