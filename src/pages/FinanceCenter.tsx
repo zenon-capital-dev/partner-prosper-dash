@@ -42,7 +42,12 @@ import {
   BarChart, Bar, Legend,
 } from "recharts";
 import { usePageSize } from "@/hooks/usePageSize";
-import { paymentSaleIsFinalized, saleIsFinalized } from "@/lib/financial";
+import {
+  paymentSaleIsFinalized, saleIsFinalized, OPEN_PAYMENT_STATUSES,
+  paymentReceivedAmount as libPaymentReceivedAmount,
+} from "@/lib/financial";
+import { ymdBR } from "@/lib/datetime";
+import { fetchAllRows } from "@/lib/fetchAll";
 
 
 const norm = (s: any) =>
@@ -64,18 +69,15 @@ const PAY_STATUS: Record<string, { label: string; cls: string }> = {
   reembolsado: { label: "Reembolsado", cls: "bg-violet-50 text-violet-700 border-violet-200" },
 };
 
-const OPEN_STATUSES = ["em_aberto", "pendente", "parcial", "parcialmente_pago"];
+// Inclui "atrasado" e "vencido": continuam sendo valores a receber.
+const OPEN_STATUSES = OPEN_PAYMENT_STATUSES;
 const PAID_STATUSES = ["pago", "paga"];
 const isOpen = (s: string) => OPEN_STATUSES.includes(s);
 const isPaid = (s: string) => PAID_STATUSES.includes(s);
 const isVoidedPayment = (s: string) => ["cancelado", "cancelada", "reembolsado", "estornado"].includes(s);
 const clampRatio = (value: number) => Math.max(0, Math.min(1, value));
-const paymentReceivedAmount = (p: any) => {
-  if (isVoidedPayment(String(p.status || ""))) return 0;
-  const paidAmount = Number(p.amount_paid || 0);
-  if (paidAmount > 0) return paidAmount;
-  return isPaid(p.status) ? Number(p.amount || 0) : 0;
-};
+// Mesma regra de src/lib/financial: pagamento com data futura ainda não entrou no caixa.
+const paymentReceivedAmount = (p: any) => libPaymentReceivedAmount(p);
 const commissionSaleValue = (c: any, salesAmountById?: Map<string, number>) =>
   Number(c.sale_value || c.sale?.amount || (c.sale_id ? salesAmountById?.get(c.sale_id) : 0) || 0);
 const accruedCommissionAmount = (c: any, receivedBySale: Map<string, number>, salesAmountById?: Map<string, number>) => {
@@ -86,7 +88,10 @@ const accruedCommissionAmount = (c: any, receivedBySale: Map<string, number>, sa
   return full * clampRatio((receivedBySale.get(sid) || 0) / saleVal);
 };
 
-const todayIsoStr = () => new Date().toISOString().slice(0, 10);
+// "Hoje" no fuso de Brasília (antes usava UTC: depois das 21h já era "amanhã").
+const todayIsoStr = () => ymdBR();
+// Data escolhida no calendário (yyyy-MM-dd) gravada ao meio-dia de Brasília, para não virar o dia anterior.
+const brDateToIso = (ymd: string) => new Date(`${ymd}T12:00:00-03:00`).toISOString();
 const monthBounds = (monthKey: string) => {
   const [year, month] = monthKey.split("-").map(Number);
   const safeYear = Number.isFinite(year) ? year : new Date().getFullYear();
@@ -259,7 +264,7 @@ export default function FinanceCenter() {
       else if (kpiRange === "3m") d.setMonth(d.getMonth() - 3);
       else if (kpiRange === "6m") d.setMonth(d.getMonth() - 6);
       else if (kpiRange === "year") d.setMonth(d.getMonth() - 12);
-      start = d.toISOString().slice(0, 10);
+      start = ymdBR(d);
     }
     return { rangeStartIso: start, rangeEndIso: end };
   }, [kpiRange, specificMonth]);
@@ -279,26 +284,28 @@ export default function FinanceCenter() {
 
   const { data: payments = [], isLoading: loadingPay } = useQuery({
     queryKey: ["fin-payments"],
-    queryFn: async () =>
-      (
-        await supabase
+    queryFn: () =>
+      fetchAllRows((from, to) =>
+        supabase
           .from("payments")
           .select("*, clients(id, full_name, company), products(name), client_products(custom_product_name), sales(id, status)")
           .order("due_date", { ascending: false })
-          .limit(300)
-      ).data ?? [],
+          .order("id")
+          .range(from, to)
+      ),
     staleTime: 60_000,
   });
 
   const { data: salesCosts = [] } = useQuery({
     queryKey: ["fin-sales-costs"],
-    queryFn: async () =>
-      (
-        await supabase
+    queryFn: () =>
+      fetchAllRows((from, to) =>
+        supabase
           .from("sales")
           .select("id, amount, zenon_cost, provider_cost, sale_date, status")
-          .limit(500)
-      ).data ?? [],
+          .order("id")
+          .range(from, to)
+      ),
     staleTime: 60_000,
   });
 
@@ -318,14 +325,15 @@ export default function FinanceCenter() {
 
   const { data: commissionSummary = [] } = useQuery({
     queryKey: ["fin-commission-summary"],
-    queryFn: async () =>
-      (
-        await supabase
+    queryFn: () =>
+      fetchAllRows((from, to) =>
+        supabase
           .from("commission_splits")
           .select("id, sale_id, amount, status, beneficiary_type, paid_at, created_at, sale:sales(id, status, amount)")
           .order("created_at", { ascending: false })
-          .limit(300)
-      ).data ?? [],
+          .order("id")
+          .range(from, to)
+      ),
     staleTime: 60_000,
   });
 
@@ -333,19 +341,25 @@ export default function FinanceCenter() {
     queryKey: ["fin-commissions"],
     enabled: loadCommissionDetails,
     queryFn: async () => {
+      const all = (table: string, cols: string, orderCol = "id") =>
+        fetchAllRows((from, to) => (supabase as any).from(table).select(cols).order(orderCol).range(from, to))
+          .then((data) => ({ data }));
       const [splitsRes, salesRes, partnersRes, profilesRes, referrersRes, providersRes, clientsRes, productsRes] = await Promise.all([
-        supabase
-          .from("commission_splits")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(300),
-        supabase.from("sales").select("id, client_id, product_id, amount, sale_date, status").limit(300),
-        supabase.from("partners").select("id, full_name").limit(500),
-        supabase.from("profiles").select("id, full_name").limit(500),
-        supabase.from("referrers").select("id, full_name").limit(500),
-        supabase.from("service_providers").select("id, name").limit(500),
-        supabase.from("clients").select("id, full_name, company").limit(300),
-        supabase.from("products").select("id, name").limit(500),
+        fetchAllRows((from, to) =>
+          supabase
+            .from("commission_splits")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .order("id")
+            .range(from, to)
+        ).then((data) => ({ data })),
+        all("sales", "id, client_id, product_id, amount, sale_date, status"),
+        all("partners", "id, full_name"),
+        all("profiles", "id, full_name"),
+        all("referrers", "id, full_name"),
+        all("service_providers", "id, name"),
+        all("clients", "id, full_name, company"),
+        all("products", "id, name"),
       ]);
       const salesMap = new Map((salesRes.data ?? []).map((s: any) => [s.id, s]));
       const partnersMap = new Map((partnersRes.data ?? []).map((p: any) => [p.id, p]));
@@ -405,8 +419,10 @@ export default function FinanceCenter() {
 
   const { data: expenses = [] } = useQuery({
     queryKey: ["fin-expenses"],
-    queryFn: async () =>
-      (await supabase.from("expenses").select("*").order("expense_date", { ascending: false }).limit(300)).data ?? [],
+    queryFn: () =>
+      fetchAllRows((from, to) =>
+        supabase.from("expenses").select("*").order("expense_date", { ascending: false }).order("id").range(from, to)
+      ),
     staleTime: 60_000,
   });
 
@@ -1092,8 +1108,9 @@ function PaymentsTable({
     const { error } = await supabase
       .from("payments")
       .update({
-        status: "pago",
-        paid_at: new Date(paidAt).toISOString(),
+        // Valor menor que o total fica como parcial: o restante continua em "A receber".
+        status: payment && amountPaid + 0.005 < Number(payment.amount || 0) ? "parcialmente_pago" : "pago",
+        paid_at: brDateToIso(paidAt),
         amount_paid: amountPaid,
       })
       .eq("id", paymentId);

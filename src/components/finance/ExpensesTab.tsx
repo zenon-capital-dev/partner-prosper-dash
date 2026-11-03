@@ -1,3 +1,4 @@
+import { ymdBR } from "@/lib/datetime";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,8 +39,9 @@ type Expense = {
   receipt_url: string | null;
 };
 
-const ymNow = () => new Date().toISOString().slice(0, 7);
-const ymdNow = () => new Date().toISOString().slice(0, 10);
+// Fuso de Brasília (antes UTC: depois das 21h já contava como o dia/mês seguinte).
+const ymNow = () => ymdBR().slice(0, 7);
+const ymdNow = () => ymdBR();
 const emptyForm = () => ({
   description: "",
   category: "operacional",
