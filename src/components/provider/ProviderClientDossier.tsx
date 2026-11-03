@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { formatBRL, formatDate, formatDoc, formatPhone } from "@/lib/format";
+import { formatDate, formatDoc, formatPhone } from "@/lib/format";
 
 interface DossierClient {
   id: string; full_name: string | null; company: string | null; document: string | null;
@@ -24,7 +24,7 @@ interface DossierCompany {
   address_city: string | null; address_state: string | null; address_zip_code: string | null;
 }
 interface DossierDemand {
-  id: string; name: string; status: string | null; priority: string | null; value: number | null;
+  id: string; name: string; status: string | null; priority: string | null;
   deadline: string | null; sla_due_date: string | null; end_date: string | null; created_at: string | null;
 }
 interface DeliveryFile { path: string; name?: string; size?: number }
@@ -34,7 +34,7 @@ interface DossierDelivery {
 }
 interface DossierContract {
   id: string; client_product_id: string | null; name: string; contract_type: string | null; status: string | null;
-  amount: number | null; sent_at: string | null; signed_at: string | null; expires_at: string | null;
+  sent_at: string | null; signed_at: string | null; expires_at: string | null;
   file_path: string | null; signed_file_path: string | null; created_at: string | null;
 }
 export interface Dossier {
@@ -250,7 +250,6 @@ export function ProviderClientDossier({
                       {d.end_date && <span>Concluída em {formatDay(d.end_date)}</span>}
                     </p>
                   </div>
-                  {d.value != null && <p className="text-sm font-bold text-slate-900">{formatBRL(Number(d.value))}</p>}
                 </div>
               ))}
             </div>
@@ -322,7 +321,6 @@ export function ProviderClientDossier({
                       {ct.expires_at && <span>Vence em {formatDay(ct.expires_at)}</span>}
                     </p>
                   </div>
-                  {ct.amount != null && <p className="text-sm font-bold text-slate-900">{formatBRL(Number(ct.amount))}</p>}
                   {(ct.signed_file_path || ct.file_path) && (
                     <Button size="sm" variant="ghost" onClick={() => openFile("contracts", (ct.signed_file_path || ct.file_path)!)}>
                       <Eye className="size-3.5 mr-1" /> Ver

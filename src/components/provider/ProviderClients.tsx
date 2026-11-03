@@ -501,7 +501,7 @@ function ClientProfileCards({ p }: { p: ClientProfile }) {
         <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2"><Briefcase className="size-4 text-indigo-600" /> Comercial</h4>
         <Field label="Origem" value={p.source || "Direto"} />
         <Field label="Status atual" value={p.status?.replace(/_/g, " ").toUpperCase()} />
-        <Field label="Valor total LTV" value={formatBRL(Number(p.ltv || 0))} />
+        <Field label="Seus ganhos com este cliente" value={formatBRL(Number(p.ltv || 0))} />
         <Field label="Data de entrada" value={p.created_at ? formatDate(p.created_at) : null} />
       </div>
     </div>

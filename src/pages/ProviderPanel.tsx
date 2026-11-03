@@ -183,11 +183,12 @@ export default function ProviderPanel() {
       ];
       if (secCpIds.length > 0) orParts.push(`id.in.(${secCpIds.join(",")})`);
 
+      // Sem "value" e sem "sales": o prestador não pode ver o valor do contrato do cliente.
+      const CP_COLS = `id, status, deadline, created_at, notes, priority, sla_due_date, client_id, service_provider_id, sale_id,
+                 clients(id, full_name, email, phone), products(name, description)`;
       const { data: explicit } = await supabase
         .from("client_products")
-        .select(`id, status, value, deadline, created_at, notes, priority, sla_due_date, client_id, service_provider_id, sale_id,
-                 clients(id, full_name, email, phone), products(name, description),
-                 sales(id, amount, revenue_type, recurrence_months, recurrence_start, paid_at, status)`)
+        .select(CP_COLS)
         .or(orParts.join(","))
         .order("created_at", { ascending: false });
 
@@ -195,18 +196,44 @@ export default function ProviderPanel() {
       if (linkedClientIds.length > 0) {
         const { data } = await supabase
           .from("client_products")
-          .select(`id, status, value, deadline, created_at, notes, priority, sla_due_date, client_id, service_provider_id, sale_id,
-                   clients(id, full_name, email, phone), products(name, description),
-                   sales(id, amount, revenue_type, recurrence_months, recurrence_start, paid_at, status)`)
+          .select(CP_COLS)
           .in("client_id", linkedClientIds)
           .is("service_provider_id", null)
           .order("created_at", { ascending: false });
         fallback = data ?? [];
       }
 
+      // O valor de cada demanda passa a ser o que ESTE prestador tem a receber,
+      // vindo do extrato seguro do banco (my_commission_statement).
+      const { data: statement } = await (supabase as any).rpc("my_commission_statement");
+      const mine = ((statement ?? []) as any[]).filter((s) => s.beneficiary_type === "service_provider" && s.status !== "cancelado");
+      const byCp = new Map<string, any[]>();
+      const bySale = new Map<string, any[]>();
+      mine.forEach((s) => {
+        if (s.client_product_id) byCp.set(s.client_product_id, [...(byCp.get(s.client_product_id) ?? []), s]);
+        else if (s.sale_id) bySale.set(s.sale_id, [...(bySale.get(s.sale_id) ?? []), s]);
+      });
+      const usedSales = new Set<string>();
+
       const map = new Map<string, any>();
       [...(explicit ?? []), ...fallback].forEach((r: any) => map.set(r.id, r));
-      return Array.from(map.values());
+      return Array.from(map.values()).map((r: any) => {
+        let rows = byCp.get(r.id) ?? [];
+        if (rows.length === 0 && r.sale_id && !usedSales.has(r.sale_id)) {
+          rows = bySale.get(r.sale_id) ?? [];
+          if (rows.length) usedSales.add(r.sale_id);
+        }
+        const value = rows.reduce((sum, s) => sum + Number(s.amount || 0), 0);
+        const allPaid = rows.length > 0 && rows.every((s) => s.status === "pago");
+        const lastPaid = rows.map((s) => s.paid_at).filter(Boolean).sort().pop() ?? null;
+        return {
+          ...r,
+          value,
+          sales: rows.length
+            ? { revenue_type: rows[0].revenue_type, recurrence_months: rows[0].recurrence_months, paid_at: allPaid ? lastPaid : null }
+            : null,
+        };
+      });
     },
     staleTime: 2 * 60_000,
   });
@@ -340,17 +367,22 @@ export default function ProviderPanel() {
     queryKey: ["provider-commissions", providerId],
     enabled: !!providerId,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("commission_splits")
-        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(clients(full_name), products(name))")
-        .eq("beneficiary_type", "service_provider")
-        .eq("beneficiary_id", providerId!)
-        .order("created_at", { ascending: false });
-      return (data ?? []).map((c: any) => ({
-        ...c,
-        client_name: c.sales?.clients?.full_name,
-        product_name: c.sales?.products?.name,
-      }));
+      // Extrato seguro: só o que o prestador logado tem a receber.
+      const { data, error } = await (supabase as any).rpc("my_commission_statement");
+      if (error) console.error("provider-commissions error", error);
+      return ((data ?? []) as any[])
+        .filter((c) => c.beneficiary_type === "service_provider")
+        .map((c) => ({
+          id: c.split_id,
+          amount: c.amount,
+          percent: c.percent,
+          status: c.status,
+          paid_at: c.paid_at,
+          created_at: c.created_at,
+          sale_id: c.sale_id,
+          client_name: c.client_name,
+          product_name: c.product_name,
+        }));
     },
   });
   const commKpis = useMemo(() => {
@@ -922,7 +954,9 @@ export default function ProviderPanel() {
                           <p className="text-[14.5px] font-semibold text-slate-900 leading-tight truncate">{cp.clients?.full_name || "—"}</p>
                           <p className="text-[12px] text-slate-500 mt-0.5 truncate">{cp.products?.name || "—"}</p>
                         </div>
-                        <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums shrink-0">{formatBRL(cp.value)}</p>
+                        {Number(cp.value) > 0 && (
+                          <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums shrink-0" title="Seu valor a receber nesta demanda">{formatBRL(cp.value)}</p>
+                        )}
                       </div>
 
                       {(cp.deadline || cp.sla_due_date) && (

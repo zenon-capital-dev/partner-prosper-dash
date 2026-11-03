@@ -67,18 +67,22 @@ export default function ReferrerPanel() {
     queryKey: ["referrer-commissions", referrer?.id, user?.id],
     enabled: !!(referrer?.id || user?.id),
     queryFn: async () => {
-      const ids = [referrer?.id, user?.id].filter(Boolean) as string[];
-      const { data } = await supabase
-        .from("commission_splits")
-        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(clients(full_name), products(name))")
-        .eq("beneficiary_type", "referrer")
-        .in("beneficiary_id", ids)
-        .order("created_at", { ascending: false });
-      return (data ?? []).map((c: any) => ({
-        ...c,
-        client_name: c.sales?.clients?.full_name,
-        product_name: c.sales?.products?.name,
-      }));
+      // Extrato seguro: só os ganhos do indicador logado, sem valor da venda.
+      const { data, error } = await (supabase as any).rpc("my_commission_statement");
+      if (error) console.error("referrer-commissions error", error);
+      return ((data ?? []) as any[])
+        .filter((c) => c.beneficiary_type === "referrer")
+        .map((c) => ({
+          id: c.split_id,
+          amount: c.amount,
+          percent: c.percent,
+          status: c.status,
+          paid_at: c.paid_at,
+          created_at: c.created_at,
+          sale_id: c.sale_id,
+          client_name: c.client_name,
+          product_name: c.product_name,
+        }));
     },
   });
 
