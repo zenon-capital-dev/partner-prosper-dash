@@ -122,7 +122,7 @@ export default function DashboardAdmin() {
     staleTime: STALE,
     enabled: stageActive,
     queryFn: async () => {
-      let query = supabase.from("sales").select("id, sale_date, amount, client_id, status, zenon_cost, provider_cost").eq("status", "concluida").order("sale_date", { ascending: false }).limit(300);
+      let query = supabase.from("sales").select("id, sale_date, amount, client_id, status, zenon_cost, provider_cost, deduction_model").eq("status", "concluida").order("sale_date", { ascending: false }).limit(300);
 
       let rangeStart = new Date(brasiliaToday);
       const rangeEnd = new Date(brasiliaToday);
@@ -355,7 +355,12 @@ export default function DashboardAdmin() {
       .filter((c: any) => ["pago", "paga"].includes(c.status) || ["pago", "paga"].includes(c.workflow_status))
       .reduce((a, c: any) => a + commissionReleased(c), 0);
     // Impostos incidem sobre o que efetivamente entrou em caixa
-    const periodTaxes = periodReceived * (Number(taxRate) || 0) / 100;
+    // Vendas na cascata já provisionam o imposto como dedução (dentro dos custos).
+    const cascataIds = new Set(filteredSales.filter((s: any) => s.deduction_model === "cascata").map((s: any) => s.id));
+    const taxableReceived = payments
+      .filter((p: any) => p.sale_id && periodSaleIds.has(p.sale_id) && !cascataIds.has(p.sale_id))
+      .reduce((a: number, p: any) => a + paymentReceived(p), 0);
+    const periodTaxes = taxableReceived * (Number(taxRate) || 0) / 100;
     // Receita Líquida (caixa) = Recebido no período − custos proporcionais − comissões proporcionais − impostos sobre recebido
     const netRevenue = periodReceived - periodSalesCosts - periodCommissions - periodTaxes;
     // Estimativa de receita = total a receber (todos os pagamentos em aberto, não apenas 7d)

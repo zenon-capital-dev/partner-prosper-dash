@@ -404,6 +404,7 @@ export default function PartnerPanel() {
         .map((c) => ({
           id: c.split_id,
           amount: c.amount,
+          released_amount: Number(c.released_amount || 0),
           percent: c.percent,
           base_calculo: c.base_calculo,
           gross_amount: c.gross_amount ?? null,
@@ -951,6 +952,7 @@ export default function PartnerPanel() {
                         <th className="px-3 py-2.5 text-right">Base de cálculo</th>
                         <th className="px-3 py-2.5 text-right">%</th>
                         <th className="px-3 py-2.5 text-right">Valor</th>
+                        <th className="px-3 py-2.5 text-right">Liberado</th>
                         <th className="px-3 py-2.5">Status</th>
                         <th className="px-3 py-2.5">Data</th>
                         <th className="px-3 py-2.5"><span className="sr-only">Detalhes</span></th>
@@ -965,6 +967,7 @@ export default function PartnerPanel() {
                           <td className="px-3 py-2.5 text-right font-mono tabular-nums text-slate-600">{c.base_calculo != null ? formatBRL(c.base_calculo) : "—"}</td>
                           <td className="px-3 py-2.5 text-right font-mono tabular-nums text-slate-600">{c.percent != null ? `${Number(c.percent).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%` : "—"}</td>
                           <td className="px-3 py-2.5 text-right font-mono tabular-nums font-semibold">{formatBRL(c.amount)}</td>
+                          <td className="px-3 py-2.5 text-right font-mono tabular-nums text-emerald-700">{formatBRL(c.released_amount)}</td>
                           <td className="px-3 py-2.5"><Badge variant="outline" className={cn("text-[10px] border capitalize", (c.status === "pago" || c.status === "paga") ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{c.status}</Badge></td>
                           <td className="px-3 py-2.5 text-slate-500">{formatDate(c.paid_at || c.created_at)}</td>
                           <td className="px-3 py-2.5 text-right">{c.can_see_details && c.sale_id && <button type="button" className="text-[12px] font-semibold text-indigo-600 hover:underline" onClick={() => setDisclosureSale(c.sale_id)}>Detalhes</button>}</td>

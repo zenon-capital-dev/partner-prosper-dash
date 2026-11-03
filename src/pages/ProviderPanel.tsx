@@ -376,6 +376,7 @@ export default function ProviderPanel() {
         .map((c) => ({
           id: c.split_id,
           amount: c.amount,
+          released_amount: Number(c.released_amount || 0),
           percent: c.percent,
           status: c.status,
           paid_at: c.paid_at,
@@ -1227,7 +1228,8 @@ export default function ProviderPanel() {
                             <div className="min-w-0 flex-1">
                               <p className="text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(c.amount)} <span className="text-[11px] text-slate-400 font-normal">· {Number(c.percent || 0)}%</span></p>
                               <p className="text-[11.5px] text-slate-500 truncate mt-0.5">{c.client_name || "—"}{c.product_name ? ` · ${c.product_name}` : ""}</p>
-                              {c.gross_amount != null && <p className="text-[11.5px] text-slate-500">Valor da venda: {formatBRL(c.gross_amount)}</p>}
+                              {c.status !== "pago" && Number(c.released_amount) > 0 && <p className="text-[11.5px] text-emerald-700">Liberado: {formatBRL(c.released_amount)}</p>}
+                        {c.gross_amount != null && <p className="text-[11.5px] text-slate-500">Valor da venda: {formatBRL(c.gross_amount)}</p>}
                               {c.can_see_details && c.sale_id && <button type="button" className="text-[11.5px] font-semibold text-indigo-600 hover:underline" onClick={() => setDisclosureSale(c.sale_id)}>Detalhes</button>}
                             </div>
                             <div className="text-right shrink-0">

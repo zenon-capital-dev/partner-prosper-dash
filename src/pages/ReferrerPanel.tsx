@@ -76,6 +76,7 @@ export default function ReferrerPanel() {
         .map((c) => ({
           id: c.split_id,
           amount: c.amount,
+          released_amount: Number(c.released_amount || 0),
           percent: c.percent,
           status: c.status,
           paid_at: c.paid_at,
@@ -190,6 +191,7 @@ export default function ReferrerPanel() {
                       <div className="min-w-0 flex-1">
                         <p className="text-[13px] font-medium text-slate-900">{formatBRL(p.amount)}</p>
                         <p className="text-[11.5px] text-slate-500">{p.paid_at ? `pago em ${formatDate(p.paid_at)}` : `criado em ${formatDate(p.created_at)}`}{p.client_name ? ` · ${p.client_name}` : ""}</p>
+                        {p.status !== "pago" && Number(p.released_amount) > 0 && <p className="text-[11.5px] text-emerald-700">Liberado: {formatBRL(p.released_amount)}</p>}
                         {p.gross_amount != null && <p className="text-[11.5px] text-slate-500">Valor da venda: {formatBRL(p.gross_amount)}</p>}
                         {p.can_see_details && p.sale_id && <button type="button" className="text-[11.5px] font-semibold text-indigo-600 hover:underline" onClick={() => setDisclosureSale(p.sale_id)}>Detalhes</button>}
                       </div>

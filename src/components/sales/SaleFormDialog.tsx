@@ -542,13 +542,14 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   const providerCost = Number(form.provider_cost || 0);
   const totalCosts = zenonCost + providerCost;
   // Mesma regra que o banco grava (handle_sale_splits):
-  //   parceiro     = base de cálculo (bruto − deduções) × %
-  //   indicador    = bruto × %
-  //   colaborador  = bruto × %
+  //   cascata: parceiro, indicador e colaborador = base de cálculo (bruto − deduções) × %
+  //   legado : parceiro sobre a base; indicador e colaborador sobre o bruto (como foram fechadas)
   const partnerBaseValue = partnerBase(amount, zenonCost, providerCost, dedModel);
-  const referrerCalc = form.referrer_id ? (amount * Number(form.referrer_percent || 0)) / 100 : 0;
+  const othersBase = dedModel === "cascata" ? partnerBaseValue : amount;
+  const othersBaseLabel = dedModel === "cascata" ? "base de cálculo" : "bruto";
+  const referrerCalc = form.referrer_id ? (othersBase * Number(form.referrer_percent || 0)) / 100 : 0;
   const partnerCalc = form.partner_id ? (partnerBaseValue * Number(form.commission_percent || 0)) / 100 : 0;
-  const collaboratorCalc = form.collaborator_id ? (amount * Number(form.collaborator_percent || 0)) / 100 : 0;
+  const collaboratorCalc = form.collaborator_id ? (othersBase * Number(form.collaborator_percent || 0)) / 100 : 0;
   const totalCommissions = partnerCalc + referrerCalc + collaboratorCalc;
   const liquido = amount - totalCosts - totalCommissions;
   const marginPct = amount > 0 ? (liquido / amount) * 100 : 0;
@@ -986,7 +987,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                     <span className="text-[12px] font-bold tabular-nums font-mono text-slate-700">{fmt(partnerBaseValue)}</span>
                   </div>
 
-                  {/* 4. Comissões: parceiro sobre a base; indicador e colaborador sobre o bruto (regra do banco) */}
+                  {/* 4. Comissões: mesma regra do banco (cascata: todos sobre a base de cálculo) */}
                   {(partnerCalc > 0 || referrerCalc > 0 || collaboratorCalc > 0) && (
                     <div className="rounded-lg bg-rose-50/40 border border-rose-100 px-3 py-2.5 space-y-2">
                       <p className="text-[9.5px] font-bold uppercase tracking-wider text-rose-700">Comissões</p>
@@ -996,7 +997,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                             <span className="text-rose-700 font-semibold">Indicador</span>
                             <span className="font-mono font-bold text-rose-700 tabular-nums">−{fmt(referrerCalc)}</span>
                           </div>
-                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.referrer_percent}% × {fmt(amount)} <span className="opacity-60">(bruto)</span></span>
+                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.referrer_percent}% × {fmt(othersBase)} <span className="opacity-60">({othersBaseLabel})</span></span>
                         </div>
                       )}
                       {partnerCalc > 0 && (
@@ -1014,7 +1015,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                             <span className="text-rose-700 font-semibold">Colaborador</span>
                             <span className="font-mono font-bold text-rose-700 tabular-nums">−{fmt(collaboratorCalc)}</span>
                           </div>
-                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.collaborator_percent}% × {fmt(amount)} <span className="opacity-60">(bruto)</span></span>
+                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.collaborator_percent}% × {fmt(othersBase)} <span className="opacity-60">({othersBaseLabel})</span></span>
                         </div>
                       )}
                       <div className="flex items-center justify-between gap-2 pt-1.5 mt-1 border-t border-rose-100 text-[10.5px]">
