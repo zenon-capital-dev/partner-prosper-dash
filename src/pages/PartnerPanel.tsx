@@ -34,6 +34,7 @@ import { downloadStorageFile, openDownloadUrl } from "@/lib/download";
 import { sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
 import { SupportThread } from "@/components/partner-support/SupportThread";
 
+import { SaleDisclosureDialog } from "@/components/visibility/SaleDisclosureDialog";
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
   { key: "clientes",   label: "Clientes",   icon: Users },
@@ -405,6 +406,8 @@ export default function PartnerPanel() {
           amount: c.amount,
           percent: c.percent,
           base_calculo: c.base_calculo,
+          gross_amount: c.gross_amount ?? null,
+          can_see_details: c.gross_amount != null || !!c.can_see_payments || !!c.can_see_deductions,
           status: c.status,
           paid_at: c.paid_at,
           created_at: c.created_at,
@@ -417,6 +420,9 @@ export default function PartnerPanel() {
     },
     staleTime: 2 * 60_000,
   });
+
+  const [disclosureSale, setDisclosureSale] = useState<string | null>(null);
+  const showGross = useMemo(() => (commissions as any[]).some((c) => c.gross_amount != null), [commissions]);
 
   const commissionByService = useMemo(() => {
     const map = new Map<string, number>();
@@ -941,11 +947,13 @@ export default function PartnerPanel() {
                       <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500 font-semibold border-b border-slate-100">
                         <th className="px-3 py-2.5">Cliente</th>
                         {showProductName && <th className="px-3 py-2.5">Produto</th>}
+                        {showGross && <th className="px-3 py-2.5 text-right">Valor da venda</th>}
                         <th className="px-3 py-2.5 text-right">Base de cálculo</th>
                         <th className="px-3 py-2.5 text-right">%</th>
                         <th className="px-3 py-2.5 text-right">Valor</th>
                         <th className="px-3 py-2.5">Status</th>
                         <th className="px-3 py-2.5">Data</th>
+                        <th className="px-3 py-2.5"><span className="sr-only">Detalhes</span></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -953,11 +961,13 @@ export default function PartnerPanel() {
                         <tr key={c.id} className="border-b border-slate-50 hover:bg-slate-50/60">
                           <td className="px-3 py-2.5 text-slate-900 font-medium">{c.clients?.full_name || "—"}</td>
                           {showProductName && <td className="px-3 py-2.5 text-slate-600">{c.products?.name || "—"}</td>}
+                          {showGross && <td className="px-3 py-2.5 text-right font-mono tabular-nums text-slate-600">{c.gross_amount != null ? formatBRL(c.gross_amount) : "—"}</td>}
                           <td className="px-3 py-2.5 text-right font-mono tabular-nums text-slate-600">{c.base_calculo != null ? formatBRL(c.base_calculo) : "—"}</td>
                           <td className="px-3 py-2.5 text-right font-mono tabular-nums text-slate-600">{c.percent != null ? `${Number(c.percent).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%` : "—"}</td>
                           <td className="px-3 py-2.5 text-right font-mono tabular-nums font-semibold">{formatBRL(c.amount)}</td>
                           <td className="px-3 py-2.5"><Badge variant="outline" className={cn("text-[10px] border capitalize", (c.status === "pago" || c.status === "paga") ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{c.status}</Badge></td>
                           <td className="px-3 py-2.5 text-slate-500">{formatDate(c.paid_at || c.created_at)}</td>
+                          <td className="px-3 py-2.5 text-right">{c.can_see_details && c.sale_id && <button type="button" className="text-[12px] font-semibold text-indigo-600 hover:underline" onClick={() => setDisclosureSale(c.sale_id)}>Detalhes</button>}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1420,6 +1430,7 @@ export default function PartnerPanel() {
           {requestsTarget && <DemandRequestsPanel clientProductId={requestsTarget.id} currentRole="parceiro" />}
         </DialogContent>
       </Dialog>
+    <SaleDisclosureDialog saleId={disclosureSale} onOpenChange={(o) => { if (!o) setDisclosureSale(null); }} />
     </PanelShell>
   );
 }

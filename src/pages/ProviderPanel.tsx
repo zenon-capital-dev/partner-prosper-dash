@@ -27,6 +27,7 @@ import { ClientDocumentFolders } from "@/components/documents/ClientDocumentFold
 import { ProviderClients } from "@/components/provider/ProviderClients";
 import { UserSupportCenter } from "@/components/support/UserSupportCenter";
 
+import { SaleDisclosureDialog } from "@/components/visibility/SaleDisclosureDialog";
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
   { key: "demandas",   label: "Demandas",   icon: Briefcase },
@@ -382,9 +383,12 @@ export default function ProviderPanel() {
           sale_id: c.sale_id,
           client_name: c.client_name,
           product_name: c.product_name,
+          gross_amount: c.gross_amount ?? null,
+          can_see_details: c.gross_amount != null || !!c.can_see_payments || !!c.can_see_deductions,
         }));
     },
   });
+  const [disclosureSale, setDisclosureSale] = useState<string | null>(null);
   const commKpis = useMemo(() => {
     const all = commissions as any[];
     const pago = all.filter((c) => c.status === "pago").reduce((a, c) => a + Number(c.amount || 0), 0);
@@ -1223,6 +1227,8 @@ export default function ProviderPanel() {
                             <div className="min-w-0 flex-1">
                               <p className="text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(c.amount)} <span className="text-[11px] text-slate-400 font-normal">· {Number(c.percent || 0)}%</span></p>
                               <p className="text-[11.5px] text-slate-500 truncate mt-0.5">{c.client_name || "—"}{c.product_name ? ` · ${c.product_name}` : ""}</p>
+                              {c.gross_amount != null && <p className="text-[11.5px] text-slate-500">Valor da venda: {formatBRL(c.gross_amount)}</p>}
+                              {c.can_see_details && c.sale_id && <button type="button" className="text-[11.5px] font-semibold text-indigo-600 hover:underline" onClick={() => setDisclosureSale(c.sale_id)}>Detalhes</button>}
                             </div>
                             <div className="text-right shrink-0">
                               <Badge variant="outline" className={cn("text-[10px] border capitalize", c.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{c.status}</Badge>
@@ -1407,6 +1413,7 @@ export default function ProviderPanel() {
         </DialogContent>
       </Dialog>
 
+    <SaleDisclosureDialog saleId={disclosureSale} onOpenChange={(o) => { if (!o) setDisclosureSale(null); }} />
     </PanelShell>
   );
 }

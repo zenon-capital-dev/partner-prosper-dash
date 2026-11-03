@@ -10,13 +10,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircleDollarSign, Users, Package, Handshake, Sparkles, UserCircle, Calendar, FileText, Wallet, Pencil } from "lucide-react";
+import { CircleDollarSign, Users, Package, Handshake, Sparkles, UserCircle, Calendar, FileText, Wallet, Pencil, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatBR, nowBR, ymdBR } from "@/lib/datetime";
 import { saleIsFinalized } from "@/lib/financial";
 import { useJourneyStages } from "@/hooks/useSharedStageFilter";
 import { deriveClientStatusFromStageName, invalidateJourneyStageCaches } from "@/lib/journey-stage-sync";
 import { SaleDeductionsEditor } from "@/components/sales/SaleDeductionsEditor";
+import { SaleVisibilityOverrides, participantKey, type SaleParticipant } from "@/components/visibility/SaleVisibilityOverrides";
+import { isInheritAll, type Visibility, type VisibilityOverride } from "@/lib/visibility";
 import { deductionTotals, partnerBase, rowFromDb, rowToDb, sameRows, type DeductionModel, type DeductionRow, type DeductionType } from "@/lib/deductions";
 
 interface Props {
@@ -251,6 +253,73 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
     },
   });
 
+  // ===== Visibilidade desta venda (ajuste sobre o cadastro de cada pessoa) =====
+  const participants: SaleParticipant[] = useMemo(() => {
+    const out: SaleParticipant[] = [];
+    if (form.partner_id) out.push({ type: "partner", id: form.partner_id, name: partnersAll?.find((x: any) => x.id === form.partner_id)?.full_name ?? "Parceiro" });
+    if (form.referrer_id) out.push({ type: "referrer", id: form.referrer_id, name: referrersAll?.find((x: any) => x.id === form.referrer_id)?.full_name ?? "Indicador" });
+    if (form.service_provider_id) out.push({ type: "service_provider", id: form.service_provider_id, name: providers?.find((x: any) => x.id === form.service_provider_id)?.name ?? "Prestador" });
+    return out;
+  }, [form.partner_id, form.referrer_id, form.service_provider_id, partnersAll, referrersAll, providers]);
+
+  const { data: visDefaults = {} } = useQuery({
+    queryKey: ["financial-visibility-defaults", participants.map(participantKey).join(",")],
+    enabled: open && participants.length > 0,
+    queryFn: async () => {
+      const ids = participants.map((p) => p.id);
+      const { data, error } = await (supabase as any)
+        .from("financial_visibility")
+        .select("beneficiary_type, beneficiary_id, see_gross, see_payments, see_deductions")
+        .in("beneficiary_id", ids);
+      if (error) throw error;
+      const m: Record<string, Visibility> = {};
+      for (const r of (data ?? []) as any[]) m[`${r.beneficiary_type}:${r.beneficiary_id}`] = r;
+      return m;
+    },
+  });
+
+  const [visOverrides, setVisOverrides] = useState<Record<string, VisibilityOverride>>({});
+  useEffect(() => {
+    if (!open) return;
+    if (!sale?.id) { setVisOverrides({}); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("sale_visibility_overrides")
+        .select("beneficiary_type, beneficiary_id, see_gross, see_payments, see_deductions")
+        .eq("sale_id", sale.id);
+      if (cancelled) return;
+      const m: Record<string, VisibilityOverride> = {};
+      for (const r of (data ?? []) as any[]) m[`${r.beneficiary_type}:${r.beneficiary_id}`] = { see_gross: r.see_gross, see_payments: r.see_payments, see_deductions: r.see_deductions };
+      setVisOverrides(m);
+    })();
+    return () => { cancelled = true; };
+  }, [open, sale?.id]);
+
+  const saveVisibility = async (saleId: string) => {
+    const current = new Set(participants.map(participantKey));
+    const upserts = participants
+      .map((p) => ({ p, o: visOverrides[participantKey(p)] }))
+      .filter(({ o }) => o && !isInheritAll(o))
+      .map(({ p, o }) => ({ sale_id: saleId, beneficiary_type: p.type, beneficiary_id: p.id, ...o, updated_at: new Date().toISOString() }));
+    // Remove ajustes de quem saiu da venda ou voltou ao padrão
+    const { data: existing } = await (supabase as any)
+      .from("sale_visibility_overrides").select("beneficiary_type, beneficiary_id").eq("sale_id", saleId);
+    const keepKeys = new Set(upserts.map((u) => `${u.beneficiary_type}:${u.beneficiary_id}`));
+    for (const r of (existing ?? []) as any[]) {
+      const k = `${r.beneficiary_type}:${r.beneficiary_id}`;
+      if (!keepKeys.has(k) || !current.has(k)) {
+        await (supabase as any).from("sale_visibility_overrides").delete()
+          .eq("sale_id", saleId).eq("beneficiary_type", r.beneficiary_type).eq("beneficiary_id", r.beneficiary_id);
+      }
+    }
+    if (upserts.length) {
+      const { error } = await (supabase as any).from("sale_visibility_overrides")
+        .upsert(upserts, { onConflict: "sale_id,beneficiary_type,beneficiary_id" });
+      if (error) throw error;
+    }
+  };
+
   const handleProductChange = (productId: string) => {
     const p = products?.find((x: any) => x.id === productId);
     setForm({ ...form, product_id: productId, amount: p?.base_price ?? form.amount, commission_percent: p?.default_commission_percent ?? form.commission_percent });
@@ -396,6 +465,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         const { error } = await supabase.from("sales").update(payload).eq("id", form.id);
         if (error) throw error;
         await saveDeductions(form.id);
+        await saveVisibility(form.id);
 
         // Regenerar parcelas pendentes somente quando a venda estiver finalizada.
         const finalizedNow = !saleIsFinalized(sale) && shouldGenerateFinancialSchedule;
@@ -418,6 +488,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         }).select().single();
         if (error) throw error;
         await saveDeductions(newSale.id);
+        await saveVisibility(newSale.id);
 
         if (shouldGenerateFinancialSchedule) {
           // Gera as parcelas (faturas) apenas quando a venda estiver finalizada.
@@ -814,6 +885,15 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                   </div>
 
                 </div>
+              </Section>
+
+              <Section icon={Eye} title="Quem vê o quê nesta venda" hint="Padrão vem do cadastro de cada pessoa. Ajuste só para este negócio.">
+                <SaleVisibilityOverrides
+                  participants={participants}
+                  defaults={visDefaults}
+                  value={visOverrides}
+                  onChange={setVisOverrides}
+                />
               </Section>
             </div>
 

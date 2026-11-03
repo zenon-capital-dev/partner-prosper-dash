@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, User, Briefcase, ClipboardList, FileText, FileSignature, TrendingUp, CreditCard, MessageSquare, Star, KeyRound } from "lucide-react";
+import { ArrowLeft, User, Briefcase, ClipboardList, FileText, FileSignature, TrendingUp, CreditCard, MessageSquare, Star, KeyRound, Eye } from "lucide-react";
 import { CredentialsManager } from "@/components/CredentialsManager";
 ;
 import { ptBR } from "date-fns/locale";
 import { formatBRL } from "@/lib/format";
 
+import { FinancialVisibilityControl } from "@/components/visibility/FinancialVisibilityControl";
 export default function ProviderDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -124,6 +125,7 @@ export default function ProviderDetail() {
           <TabsTrigger value="contrato"><FileSignature className="h-3 w-3 mr-1" />Contrato</TabsTrigger>
           <TabsTrigger value="pagamento"><CreditCard className="h-3 w-3 mr-1" />Pagamento</TabsTrigger>
           <TabsTrigger value="acesso"><KeyRound className="h-3 w-3 mr-1" />Acesso</TabsTrigger>
+          <TabsTrigger value="visibilidade"><Eye className="h-3 w-3 mr-1" />Visibilidade</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados" className="mt-4">
@@ -239,6 +241,10 @@ export default function ProviderDetail() {
             ))}
             {commissions.length === 0 && <p className="text-muted-foreground text-sm text-center">Sem pagamentos registrados</p>}
           </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="visibilidade" className="mt-4">
+          {id && <FinancialVisibilityControl beneficiaryType="service_provider" beneficiaryId={id} />}
         </TabsContent>
 
         <TabsContent value="acesso" className="mt-4">
