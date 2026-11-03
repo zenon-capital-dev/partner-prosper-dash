@@ -30,6 +30,7 @@ import {
   DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { fetchAllRows } from "@/lib/fetchAll";
 import { ComposedChart, Area, Bar, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
@@ -58,6 +59,11 @@ const monthLabel = (monthKey: string) => {
   const { start } = monthRange(monthKey);
   return start.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 };
+
+type SaleKind = "realizadas" | "projetadas" | "todas";
+const PROJECTED_STATUSES = ["pendente", "em_andamento"];
+const matchesSaleKind = (s: any, kind: SaleKind) =>
+  kind === "todas" ? true : kind === "realizadas" ? saleIsFinalized(s) : PROJECTED_STATUSES.includes(s.status);
 
 const norm = (s: any) =>
   String(s ?? "")
@@ -94,6 +100,18 @@ export default function Sales() {
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("MÊS");
   const [selectedMonth, setSelectedMonth] = useState(currentMonthKey());
   const [status, setStatus] = useState<StatusKey>("todos");
+  // Realizadas = concluídas (têm fluxo de pagamento). Projetadas = pendentes/em andamento (só expectativa).
+  const [saleKind, setSaleKindState] = useState<SaleKind>(() => {
+    try {
+      const v = localStorage.getItem("sales:kind");
+      return v === "projetadas" || v === "todas" ? v : "realizadas";
+    } catch { return "realizadas"; }
+  });
+  const setSaleKind = (v: SaleKind) => {
+    setSaleKindState(v);
+    try { localStorage.setItem("sales:kind", v); } catch { /* sem storage */ }
+  };
+  const isProjected = saleKind === "projetadas";
   const [revenueFilter, setRevenueFilter] = useState<"todos" | "avulso" | "recorrente">("todos");
   const [partnerFilter, setPartnerFilter] = useState("todos");
   const [productFilter, setProductFilter] = useState("todos");
@@ -168,17 +186,21 @@ export default function Sales() {
   const { data: sales = [], isLoading } = useQuery({
     queryKey: ["sales-rich-v2"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sales")
-        .select("id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, resource_pool_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, revenue_type, recurrence_months, closed_at, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
-        .order("sale_date", { ascending: false })
-        .limit(250);
-      if (error) {
+      // Busca todas as vendas (antes só as 250 mais recentes: projeções futuras escondiam o resto).
+      try {
+        return await fetchAllRows((from, to) =>
+          supabase
+            .from("sales")
+            .select("id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, resource_pool_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, revenue_type, recurrence_months, closed_at, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
+            .order("sale_date", { ascending: false })
+            .order("id")
+            .range(from, to)
+        );
+      } catch (error: any) {
         console.error("[Sales] query error:", error);
         toast.error("Erro ao carregar vendas: " + error.message);
         return [];
       }
-      return data ?? [];
     },
     staleTime: 90_000,
   });
@@ -190,23 +212,29 @@ export default function Sales() {
   const { data: allSplits = [] } = useQuery({
     queryKey: ["sales-commission-splits"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("commission_splits")
-        .select("sale_id, amount, percent, beneficiary_type, status")
-        .limit(600);
-      return (data as any[]) ?? [];
+      // Todas as comissões (antes 600 sem ordem: comissões de algumas vendas sumiam).
+      return fetchAllRows<any>((from, to) =>
+        supabase
+          .from("commission_splits")
+          .select("sale_id, amount, percent, beneficiary_type, status")
+          .order("id")
+          .range(from, to)
+      );
     },
   });
 
   const { data: allReceipts = [] } = useQuery({
     queryKey: ["sales-receipts-by-sale"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("payments")
-        .select("sale_id, amount, amount_paid, paid_at, due_date, competence_month, status")
-        .not("sale_id", "is", null)
-        .limit(600);
-      return (data as any[]) ?? [];
+      // Todos os recebimentos ligados a vendas (antes 600 sem ordem).
+      return fetchAllRows<any>((from, to) =>
+        supabase
+          .from("payments")
+          .select("sale_id, amount, amount_paid, paid_at, due_date, competence_month, status")
+          .not("sale_id", "is", null)
+          .order("id")
+          .range(from, to)
+      );
     },
   });
 
@@ -275,6 +303,7 @@ export default function Sales() {
       const saleDate = s.sale_date ? parseISO(s.sale_date) : null;
       if (!saleDate) return false;
       if (saleDate < start || saleDate > end) return false;
+      if (!matchesSaleKind(s, saleKind)) return false;
       if (status !== "todos" && s.status !== status) return false;
       if (revenueFilter !== "todos" && (s.revenue_type || "avulso") !== revenueFilter) return false;
       if (partnerFilter === "sem" && s.partner_id) return false;
@@ -292,7 +321,7 @@ export default function Sales() {
       }
       return true;
     });
-  }, [sales, status, revenueFilter, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, selectedMonth, usingManualRange, matchesClientId, sharedStageIds]);
+  }, [sales, saleKind, status, revenueFilter, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, selectedMonth, usingManualRange, matchesClientId, sharedStageIds]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -337,7 +366,11 @@ export default function Sales() {
   );
 
   const kpis = useMemo(() => {
-    const acc = { total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length, comissao: 0, zenon: 0, provider: 0, custos: 0, liquido: 0, recebido: 0, aReceber: 0 };
+    const acc = {
+      total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length, comissao: 0, zenon: 0, provider: 0, custos: 0, liquido: 0, recebido: 0, aReceber: 0,
+      // Projeção: valores cheios previstos (sem fluxo de pagamento)
+      projComissao: 0, projCustos: 0, projLiquido: 0,
+    };
     filtered.forEach((s: any) => {
       const v = Number(s.amount || 0);
       const rec = receiptsBySale.get(s.id)?.received ?? 0;
@@ -345,7 +378,15 @@ export default function Sales() {
       const z = Number(s.zenon_cost || 0) * ratio;
       const pc = Number(s.provider_cost || 0) * ratio;
       const comm = saleReleasedCommission(s, splitsBySale, receiptsBySale);
-      acc.total += v;
+      // Venda cancelada não entra no volume.
+      if (s.status !== "cancelada") {
+        acc.total += v;
+        const fullCosts = Number(s.zenon_cost || 0) + Number(s.provider_cost || 0);
+        const fullComm = saleFullCommission(s, splitsBySale);
+        acc.projCustos += fullCosts;
+        acc.projComissao += fullComm;
+        acc.projLiquido += v - fullCosts - fullComm;
+      }
       acc.zenon += z;
       acc.provider += pc;
       acc.custos += z + pc;
@@ -670,6 +711,26 @@ export default function Sales() {
         icon={<ShoppingBag className="size-6" />}
         actions={
           <div className="flex items-center gap-3 flex-wrap">
+            <div className="inline-flex h-10 rounded-lg border border-slate-200/70 bg-white p-1 shadow-sm" role="tablist" aria-label="Tipo de venda">
+              {([
+                ["realizadas", "Realizadas"],
+                ["projetadas", "Projetadas"],
+                ["todas", "Todas"],
+              ] as [SaleKind, string][]).map(([k, label]) => (
+                <button
+                  key={k}
+                  role="tab"
+                  aria-selected={saleKind === k}
+                  onClick={() => { setSaleKind(k); setPage(1); }}
+                  className={cn(
+                    "px-3 text-xs font-bold rounded-md transition-colors",
+                    saleKind === k ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-50",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
             <select
               value={rangeKey === "TUDO" ? "TUDO" : (rangeKey === "MÊS" && !usingManualRange ? selectedMonth : "TUDO")}
               onChange={(e) => {
@@ -681,7 +742,9 @@ export default function Sales() {
               }}
               className="h-10 bg-white border border-slate-200/70 rounded-lg px-3 text-xs font-bold text-slate-700 shadow-sm capitalize outline-none focus:ring-2 focus:ring-indigo-200 min-w-[190px]"
             >
-              {Array.from({ length: 12 }).map((_, i) => {
+              {/* Projetadas também mostram os próximos 12 meses */}
+              {Array.from({ length: saleKind === "realizadas" ? 12 : 24 }).map((_, idx) => {
+                const i = saleKind === "realizadas" ? idx : idx - 12;
                 const d = new Date();
                 d.setDate(1);
                 d.setMonth(d.getMonth() - i);
@@ -702,7 +765,13 @@ export default function Sales() {
             )}
           </div>
         }
-        kpis={[
+        kpis={isProjected ? [
+          { label: "Volume projetado", value: formatBRL(kpis.total), tone: "primary", icon: <CircleDollarSign className="size-4" />, hint: "Expectativa: vendas pendentes e em andamento", onClick: () => setKpiDetail("bruto") },
+          { label: "Custos previstos", value: formatBRL(kpis.projCustos), tone: "warning", icon: <Wallet className="size-4" />, hint: "Zenon + prestador, valor cheio" },
+          { label: "Comissões previstas", value: formatBRL(kpis.projComissao), tone: "info", icon: <Handshake className="size-4" />, hint: "Valor cheio das comissões" },
+          { label: "Líquido previsto", value: formatBRL(kpis.projLiquido), tone: "success", icon: <Sparkles className="size-4" />, hint: kpis.total > 0 ? `${((kpis.projLiquido / kpis.total) * 100).toFixed(1)}% margem prevista` : undefined },
+          { label: "Vendas projetadas", value: String(kpis.count), tone: "primary", icon: <TrendingUp className="size-4" />, onClick: () => setKpiDetail("count") },
+        ] : [
           { label: "Volume Bruto", value: formatBRL(kpis.total), tone: "primary", icon: <CircleDollarSign className="size-4" />, onClick: () => setKpiDetail("bruto") },
           { label: !usingManualRange && rangeKey === "MÊS" ? `Recebido (${monthLabel(selectedMonth)})` : "Recebido (mês atual)", value: formatBRL(recebidoNoMes), tone: "success", icon: <HandCoins className="size-4" />, hint: !usingManualRange && rangeKey === "MÊS" ? "Entradas confirmadas no mês selecionado" : "Entradas confirmadas no mês atual", onClick: () => setKpiDetail("recebido_mes") },
           { label: "A Receber (saldo)", value: formatBRL(kpis.aReceber), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.recebido > 0 ? `Já recebido ${formatBRL(kpis.recebido)}` : undefined, onClick: () => setKpiDetail("a_receber") },
