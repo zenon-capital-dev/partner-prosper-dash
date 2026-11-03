@@ -105,8 +105,8 @@ export async function exportFullBackup(): Promise<void> {
     // 1) Fetch em paralelo dos núcleos
     const [
       clients, employees, profiles, partners, providers, referrers,
-      products, clientProducts, sales, payments, commissions, splits,
-      expenses, leads, tasks, subscriptions, journeyStages,
+      products, clientProductsRaw, sales, payments, commissions, splits,
+      expenses, leads, tasks, subscriptions, journeyStages, clientProductFinancials,
     ] = await Promise.all([
       safeAll("clients"),
       safeAll("employees"),
@@ -125,7 +125,17 @@ export async function exportFullBackup(): Promise<void> {
       safeAll("tasks"),
       safeAll("client_subscriptions"),
       safeAll("client_journey_stages"),
+      safeAll("client_product_financials"),
     ]);
+
+    // Valores das demandas ficam no cofre client_product_financials.
+    const finByCp = new Map(clientProductFinancials.map((f: any) => [f.client_product_id, f]));
+    const clientProducts = clientProductsRaw.map((cp: any) => {
+      const f: any = finByCp.get(cp.id);
+      return f
+        ? { ...cp, value: f.value, custom_value: f.custom_value, discount: f.discount, partner_commission: f.partner_commission, employee_commission: f.employee_commission }
+        : cp;
+    });
 
     // 2) Lookup maps
     const clientById = mapBy(clients);

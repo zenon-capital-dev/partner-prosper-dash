@@ -6,6 +6,7 @@ import { RouteGuard } from "@/components/RouteGuard";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { FinancialRealtimeSync } from "@/components/admin/FinancialRealtimeSync";
 
 
 // Rotas em que colaborador pode entrar (somente leitura via UI + RLS).
@@ -89,6 +90,7 @@ function AdminShell() {
 
   return (
     <div className="admin-shell min-h-dvh flex w-full text-foreground">
+        <FinancialRealtimeSync />
         <div className="hidden md:block shrink-0 relative z-30">
           <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
         </div>

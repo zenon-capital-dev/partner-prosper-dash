@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, User, Users, Wallet, FileSignature, Building2, History, KeyRound, LifeBuoy, Upload, Download, FileCheck2, Send, Check } from "lucide-react";
+import { ArrowLeft, User, Users, Wallet, FileSignature, Building2, History, KeyRound, LifeBuoy, Upload, Download, FileCheck2, Send, Check, Eye } from "lucide-react";
 import { CredentialsManager } from "@/components/CredentialsManager";
 import { toast } from "sonner";
 import { openDownloadUrl, downloadStorageFile } from "@/lib/download";
@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PartnerDocumentsSection } from "@/components/partner/PartnerDocumentsSection";
 
 
+import { FinancialVisibilityControl } from "@/components/visibility/FinancialVisibilityControl";
 export default function PartnerDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -224,6 +225,7 @@ export default function PartnerDetail() {
           <TabsTrigger value="bancarios"><Building2 className="h-3 w-3 mr-1" />Bancários</TabsTrigger>
           <TabsTrigger value="historico"><History className="h-3 w-3 mr-1" />Histórico</TabsTrigger>
           <TabsTrigger value="acesso"><KeyRound className="h-3 w-3 mr-1" />Acesso</TabsTrigger>
+          <TabsTrigger value="visibilidade"><Eye className="h-3 w-3 mr-1" />Visibilidade</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados" className="mt-4">
@@ -402,6 +404,10 @@ export default function PartnerDetail() {
               </div>
             ))}
           </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="visibilidade" className="mt-4">
+          {id && <FinancialVisibilityControl beneficiaryType="partner" beneficiaryId={id} />}
         </TabsContent>
 
         <TabsContent value="acesso" className="mt-4">

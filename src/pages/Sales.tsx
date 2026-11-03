@@ -39,6 +39,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { usePageSize } from "@/hooks/usePageSize";
 import { saleIsFinalized, paymentReceivedAmount, paymentCompetenceYm, isPaymentPaidInFuture } from "@/lib/financial";
 
+import { LegacyReviewBanner } from "@/components/sales/LegacyReviewBanner";
+import { invalidateFinancialData } from "@/lib/invalidateFinancial";
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
 type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status" | "liquido" | "recebido";
 type SortDir = "asc" | "desc";
@@ -112,6 +114,7 @@ export default function Sales() {
     try { localStorage.setItem("sales:kind", v); } catch { /* sem storage */ }
   };
   const isProjected = saleKind === "projetadas";
+  const [reviewOnly, setReviewOnly] = useState(false);
   const [revenueFilter, setRevenueFilter] = useState<"todos" | "avulso" | "recorrente">("todos");
   const [partnerFilter, setPartnerFilter] = useState("todos");
   const [productFilter, setProductFilter] = useState("todos");
@@ -191,7 +194,7 @@ export default function Sales() {
         return await fetchAllRows((from, to) =>
           supabase
             .from("sales")
-            .select("id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, resource_pool_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, revenue_type, recurrence_months, closed_at, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
+            .select("id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, resource_pool_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, revenue_type, recurrence_months, closed_at, deduction_model, deduction_review_pending, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
             .order("sale_date", { ascending: false })
             .order("id")
             .range(from, to)
@@ -303,7 +306,8 @@ export default function Sales() {
       const saleDate = s.sale_date ? parseISO(s.sale_date) : null;
       if (!saleDate) return false;
       if (saleDate < start || saleDate > end) return false;
-      if (!matchesSaleKind(s, saleKind)) return false;
+      if (reviewOnly) { if (!s.deduction_review_pending) return false; }
+      else if (!matchesSaleKind(s, saleKind)) return false;
       if (status !== "todos" && s.status !== status) return false;
       if (revenueFilter !== "todos" && (s.revenue_type || "avulso") !== revenueFilter) return false;
       if (partnerFilter === "sem" && s.partner_id) return false;
@@ -321,7 +325,8 @@ export default function Sales() {
       }
       return true;
     });
-  }, [sales, saleKind, status, revenueFilter, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, selectedMonth, usingManualRange, matchesClientId, sharedStageIds]);
+  }, [sales, saleKind, reviewOnly, status, revenueFilter, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, selectedMonth, usingManualRange, matchesClientId, sharedStageIds]);
+  const legacyPendingCount = useMemo(() => (sales as any[]).filter((s: any) => s.deduction_review_pending).length, [sales]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -567,6 +572,8 @@ export default function Sales() {
 
 
   const invalidateRelated = async () => {
+    // Atualiza todas as telas de dinheiro de uma vez.
+    void invalidateFinancialData(qc);
     qc.invalidateQueries({ queryKey: ["sales-rich-v2"] });
     qc.invalidateQueries({ queryKey: ["sales-commission-splits"] });
     qc.invalidateQueries({ queryKey: ["commissions"] });
@@ -795,6 +802,14 @@ export default function Sales() {
           { label: "Total Registros", value: String(kpis.count), tone: "primary", icon: <TrendingUp className="size-4" />, onClick: () => setKpiDetail("count") },
         ]}
       />
+
+      {canManage && (
+        <LegacyReviewBanner
+          pendingCount={legacyPendingCount}
+          reviewOnly={reviewOnly}
+          onToggle={() => { setReviewOnly((v) => !v); if (!reviewOnly) setRangeKey("TUDO"); setPage(1); }}
+        />
+      )}
 
 
       {/* INSIGHTS */}

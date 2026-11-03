@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
+import { SaleDisclosureDialog } from "@/components/visibility/SaleDisclosureDialog";
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
   { key: "indicacoes", label: "Indicações", icon: Users,           shortLabel: "Indicações" },
@@ -67,22 +68,30 @@ export default function ReferrerPanel() {
     queryKey: ["referrer-commissions", referrer?.id, user?.id],
     enabled: !!(referrer?.id || user?.id),
     queryFn: async () => {
-      const ids = [referrer?.id, user?.id].filter(Boolean) as string[];
-      const { data } = await supabase
-        .from("commission_splits")
-        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(clients(full_name), products(name))")
-        .eq("beneficiary_type", "referrer")
-        .in("beneficiary_id", ids)
-        .order("created_at", { ascending: false });
-      return (data ?? []).map((c: any) => ({
-        ...c,
-        client_name: c.sales?.clients?.full_name,
-        product_name: c.sales?.products?.name,
-      }));
+      // Extrato seguro: só os ganhos do indicador logado, sem valor da venda.
+      const { data, error } = await (supabase as any).rpc("my_commission_statement");
+      if (error) console.error("referrer-commissions error", error);
+      return ((data ?? []) as any[])
+        .filter((c) => c.beneficiary_type === "referrer")
+        .map((c) => ({
+          id: c.split_id,
+          amount: c.amount,
+          released_amount: Number(c.released_amount || 0),
+          percent: c.percent,
+          status: c.status,
+          paid_at: c.paid_at,
+          created_at: c.created_at,
+          sale_id: c.sale_id,
+          client_name: c.client_name,
+          product_name: c.product_name,
+          gross_amount: c.gross_amount ?? null,
+          can_see_details: c.gross_amount != null || !!c.can_see_payments || !!c.can_see_deductions,
+        }));
     },
   });
 
   const payments = commissions;
+  const [disclosureSale, setDisclosureSale] = useState<string | null>(null);
 
   const kpis = useMemo(() => {
     const total = (clients as any[]).length;
@@ -182,6 +191,9 @@ export default function ReferrerPanel() {
                       <div className="min-w-0 flex-1">
                         <p className="text-[13px] font-medium text-slate-900">{formatBRL(p.amount)}</p>
                         <p className="text-[11.5px] text-slate-500">{p.paid_at ? `pago em ${formatDate(p.paid_at)}` : `criado em ${formatDate(p.created_at)}`}{p.client_name ? ` · ${p.client_name}` : ""}</p>
+                        {p.status !== "pago" && Number(p.released_amount) > 0 && <p className="text-[11.5px] text-emerald-700">Liberado: {formatBRL(p.released_amount)}</p>}
+                        {p.gross_amount != null && <p className="text-[11.5px] text-slate-500">Valor da venda: {formatBRL(p.gross_amount)}</p>}
+                        {p.can_see_details && p.sale_id && <button type="button" className="text-[11.5px] font-semibold text-indigo-600 hover:underline" onClick={() => setDisclosureSale(p.sale_id)}>Detalhes</button>}
                       </div>
                       <Badge variant="outline" className={cn("text-[10px] border capitalize", p.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{p.status}</Badge>
                     </li>
@@ -223,6 +235,7 @@ export default function ReferrerPanel() {
           </>
         )}
       </PanelContainer>
+    <SaleDisclosureDialog saleId={disclosureSale} onOpenChange={(o) => { if (!o) setDisclosureSale(null); }} />
     </PanelShell>
   );
 }

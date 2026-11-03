@@ -50,6 +50,7 @@ import { ymdBR } from "@/lib/datetime";
 import { fetchAllRows } from "@/lib/fetchAll";
 
 
+import { CP_FIN, mergeCpFinAll } from "@/lib/clientProductFinancials";
 const norm = (s: any) =>
   String(s ?? "")
     .toLowerCase()
@@ -293,7 +294,7 @@ export default function FinanceCenter() {
       fetchAllRows((from, to) =>
         supabase
           .from("sales")
-          .select("id, amount, zenon_cost, provider_cost, sale_date, status")
+          .select("id, amount, zenon_cost, provider_cost, sale_date, status, deduction_model")
           .order("id")
           .range(from, to)
       ),
@@ -500,8 +501,10 @@ export default function FinanceCenter() {
     const commissionsOthersPaid = commissionRows
       .filter((c: any) => c.beneficiary_type !== "referrer")
       .reduce((a: number, c: any) => a + accruedCommission(c), 0);
+    // Provisões automáticas das vendas (imposto, jurídico, sistema, PJ...) já estão
+    // dentro de "Custos" (sales.zenon_cost). Somar de novo aqui contaria duas vezes.
     const variableExpenses = (expenses as any[])
-      .filter((e) => inRange(expDate(e)))
+      .filter((e) => !e.auto_provision && inRange(expDate(e)))
       .reduce((a, e) => a + Number(e.amount || 0), 0);
     // Custos de venda (Zenon + prestador) prorrateados pelo % efetivamente recebido do cliente.
     // Regra: só reconhecemos custo proporcional ao que já entrou em caixa.
@@ -518,7 +521,13 @@ export default function FinanceCenter() {
     const providerCostTotal = effectiveSalesCosts
       .reduce((a, s) => a + Number(s.provider_cost || 0) * salesCostRatio(s), 0);
     // Imposto incide APENAS sobre o que efetivamente entrou em caixa no período.
-    const taxesTotal = totalReceived * (Number(taxRate) || 0) / 100;
+    // Vendas na cascata já provisionam o imposto como dedução (dentro de Custos),
+    // então a alíquota global só vale para o resto do recebido.
+    const cascataSaleIds = new Set((effectiveSalesCosts as any[]).filter((s: any) => s.deduction_model === "cascata").map((s: any) => s.id));
+    const taxableReceived = effectivePayments
+      .filter((p: any) => paymentReceivedAmount(p) > 0 && inRange(paidDate(p)) && !(p.sale_id && cascataSaleIds.has(p.sale_id)))
+      .reduce((a: number, p: any) => a + paymentReceivedAmount(p), 0);
+    const taxesTotal = taxableReceived * (Number(taxRate) || 0) / 100;
     const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal - taxesTotal - reservesInRange;
 
     return {
@@ -2289,9 +2298,10 @@ function ByClient({ payments, canManage }: { payments: any[]; canManage: boolean
       (
         await supabase
           .from("client_products")
-          .select("id, value, status, products(name), custom_product_name")
+          .select(`id, status, products(name), custom_product_name, ${CP_FIN}`)
           .eq("client_id", clientId)
       ).data ?? [],
+    select: (rows: any[]) => mergeCpFinAll(rows),
   });
 
   const today = todayIsoStr();

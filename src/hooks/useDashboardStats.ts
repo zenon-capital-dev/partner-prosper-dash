@@ -55,7 +55,9 @@ export function useDashboardStats() {
       // Receita só é considerada quando a venda é FINALIZADA (status=concluida).
       // A data que importa é closed_at (data da finalização), nunca sale_date.
       const salesFinalized = sales.filter((s: any) => s.status === "concluida" || s.status === "paga");
-      const valueOf = (s: any) => Number(s.amount || 0) * (s.revenue_type === "recorrente" ? Number(s.recurrence_months || 1) : 1);
+      // sales.amount já é o valor TOTAL do contrato (recorrente inclusive: o formulário
+      // divide o total pelos meses nas mensalidades). Multiplicar pelos meses inflava o número.
+      const valueOf = (s: any) => Number(s.amount || 0);
       const salesGross = salesFinalized.reduce((sum: number, s: any) => sum + valueOf(s), 0);
       const salesReceived = salesGross;
 
@@ -71,7 +73,8 @@ export function useDashboardStats() {
           end.setMonth(end.getMonth() + months);
           return start <= ymNow && ymNow <= end;
         })
-        .reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
+        // MRR = mensalidade = total do contrato ÷ meses
+        .reduce((sum: number, s: any) => sum + Number(s.amount || 0) / Math.max(1, Number(s.recurrence_months || 1)), 0);
 
       // Receita na cabeça (avulso) no mês corrente
       const monthRevenueOneOff = salesFinalized

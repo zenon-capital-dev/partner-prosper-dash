@@ -47,6 +47,7 @@ import {
 import { calculateSLA } from "@/lib/sla";
 import { AutoStatusBadge } from "@/components/StatusBadge";
 
+import { CP_FIN, mergeCpFin } from "@/lib/clientProductFinancials";
 export default function DemandDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -198,12 +199,14 @@ export default function DemandDetail() {
           service_providers:service_provider_id(id, name, specialty),
           documents(*),
           steps:client_product_steps(*),
-          deliveries:demand_deliveries(*)
+          deliveries:demand_deliveries(*),
+          ${CP_FIN}
         `)
         .eq("id", id!)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      // Valor vem do cofre (só admin); para outros papéis fica nulo.
+      return mergeCpFin(data);
     },
     enabled: !!id,
   });

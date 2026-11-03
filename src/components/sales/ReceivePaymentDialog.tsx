@@ -14,6 +14,7 @@ import { Wallet, TrendingUp, Receipt, CheckCircle2, HandCoins, Undo2 } from "luc
 import { cn } from "@/lib/utils";
 import { saleIsFinalized, paymentReceivedAmount, isPaymentPaidInFuture } from "@/lib/financial";
 
+import { invalidateFinancialData } from "@/lib/invalidateFinancial";
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -159,6 +160,7 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
       qc.invalidateQueries({ queryKey: ["payments"] });
       qc.invalidateQueries({ queryKey: ["client-payments"] });
       qc.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
+    void invalidateFinancialData(qc);
       onSaved?.();
       setAmount("");
       setNotes("");

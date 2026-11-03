@@ -23,6 +23,7 @@ import { paymentSaleIsFinalized } from "@/lib/financial";
 import { StageFilterBar } from "@/components/filters/StageFilterBar";
 import { useStageMatcher, useJourneyStages } from "@/hooks/useSharedStageFilter";
 
+import { goalActual, type GoalActuals } from "@/lib/goals";
 type GoalType = "leads" | "proposals" | "sales_count" | "revenue" | "stage_movements" | "clients_closed";
 const TYPES: { value: GoalType; label: string; isCurrency: boolean }[] = [
   { value: "leads", label: "Leads captados", isCurrency: false },
@@ -67,49 +68,17 @@ export default function SalesGoals() {
   const stageKey = stageIds.slice().sort().join(",");
   const stageFilterActive = stageIds.length > 0;
 
+  // Realizado: mesma fórmula do Dashboard, calculada no banco.
+  // Com filtro de estágio, vendas e receita usam o estágio no momento da venda.
   const { data: actual } = useQuery({
     queryKey: ["sales_goals_actual", month, stageKey],
     queryFn: async () => {
-      const start = month;
-      const next = new Date(month + "T12:00:00");
-      next.setMonth(next.getMonth() + 1);
-      const end = next.toISOString().slice(0, 10);
-
-      const [leadsR, propR, salesR, paymentsR, stageR, closedR] = await Promise.all([
-        (supabase as any).from("leads").select("id", { count: "exact", head: true })
-          .gte("created_at", start).lt("created_at", end),
-        (supabase as any).from("proposals").select("id", { count: "exact", head: true })
-          .gte("created_at", start).lt("created_at", end),
-        (supabase as any).from("sales").select("id, client_id, stage_id_at_sale")
-          .eq("status", "concluida").gte("created_at", start).lt("created_at", end).limit(2000),
-        (supabase as any).from("payments").select("amount, sale_id, sales(id, status, client_id, stage_id_at_sale)")
-          .eq("status", "pago").gte("paid_at", start).lt("paid_at", end).limit(1000),
-        (supabase as any).from("client_timeline").select("id", { count: "exact", head: true })
-          .eq("event_type", "journey_stage_change").gte("created_at", start).lt("created_at", end),
-        (supabase as any).from("leads").select("id", { count: "exact", head: true })
-          .eq("status", "won").gte("updated_at", start).lt("updated_at", end),
-      ]);
-
-      // Filtro histórico: usa o snapshot do estágio no momento da venda
-      // (stage_id_at_sale) para não distorcer números quando o cliente muda
-      // de estágio depois. Vendas sem snapshot ficam de fora quando o filtro
-      // de estágio está ativo.
-      const stageSet = new Set(stageIds);
-      const saleMatches = (row: any) =>
-        !stageFilterActive || (row?.stage_id_at_sale && stageSet.has(row.stage_id_at_sale));
-
-      const saleRows = ((salesR.data ?? []) as any[]).filter(saleMatches);
-      const payRows = ((paymentsR.data ?? []) as any[])
-        .filter(paymentSaleIsFinalized)
-        .filter((p) => saleMatches(p.sales));
-      return {
-        leads: leadsR.count ?? 0,
-        proposals: propR.count ?? 0,
-        sales_count: saleRows.length,
-        revenue: payRows.reduce((s, r) => s + Number(r.amount || 0), 0),
-        stage_movements: stageR.count ?? 0,
-        clients_closed: closedR.count ?? 0,
-      };
+      const { data, error } = await (supabase as any).rpc("sales_goal_actuals", {
+        p_month: month,
+        p_stage_ids: stageFilterActive ? stageIds : null,
+      });
+      if (error) throw error;
+      return (data ?? null) as GoalActuals | null;
     },
     enabled: isAdmin,
     refetchOnWindowFocus: true,
@@ -324,11 +293,7 @@ export default function SalesGoals() {
                 : isStage
                 ? { label: `Clientes em ${stageMeta?.name ?? "estágio"}`, isCurrency: false }
                 : TYPES.find((x) => x.value === g.goal_type) ?? { label: g.goal_type, isCurrency: false };
-              const realized = isCustom
-                ? Number(g.actual_value ?? 0)
-                : isStage
-                ? (stageId ? (stageCounts?.[stageId] ?? 0) : 0)
-                : ((actual as any)?.[g.goal_type] ?? 0);
+              const realized = goalActual(g, actual);
               const pct = g.target_value > 0 ? Math.min(100, (realized / g.target_value) * 100) : 0;
               return (
                 <Card key={g.id} className="p-4 bg-white border-slate-200/70">

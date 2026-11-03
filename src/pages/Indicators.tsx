@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   UserCheck, Plus, Search, MoreHorizontal, Pencil, Trash2, Award, Wallet, Users2, TrendingUp,
-  Power, Download, X, LayoutGrid, List, ArrowUp, ArrowDown, ArrowUpDown, KeyRound, Mail, Phone,
+  Power, Download, X, LayoutGrid, List, ArrowUp, ArrowDown, ArrowUpDown, KeyRound, Mail, Phone, Eye,
 } from "lucide-react";
 import { formatBRL, formatPercent, initials, formatPhone } from "@/lib/format";
 import { toast } from "sonner";
@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { CredentialsManager } from "@/components/CredentialsManager";
 import { usePageSize } from "@/hooks/usePageSize";
 
+import { FinancialVisibilityControl } from "@/components/visibility/FinancialVisibilityControl";
 type SortKey = "name" | "clients" | "total" | "pending" | "percent" | "status" | "recent";
 type SortDir = "asc" | "desc";
 type ViewMode = "list" | "grid";
@@ -49,6 +50,7 @@ export default function Indicators() {
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<any>(emptyForm);
   const [credRow, setCredRow] = useState<any>(null);
+  const [visRow, setVisRow] = useState<any>(null);
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 350);
@@ -494,6 +496,7 @@ export default function Indicators() {
                               <DropdownMenuItem onClick={() => setCredRow(r)} disabled={!r.user_id}>
                                 <KeyRound className="size-4 mr-2" /> Alterar e-mail/senha
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setVisRow(r)}><Eye className="size-4 mr-2" /> Visibilidade financeira</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => toggleActive(r)}><Power className="size-4 mr-2" /> {r.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => remove(r)} className="text-destructive focus:text-destructive">
@@ -517,6 +520,15 @@ export default function Indicators() {
           </div>
         )}
       </div>
+
+      <Dialog open={!!visRow} onOpenChange={(o) => { if (!o) setVisRow(null); }}>
+        <DialogContent className="max-w-lg bg-white">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-slate-900">Visibilidade financeira · {visRow?.full_name}</DialogTitle>
+          </DialogHeader>
+          {visRow && <FinancialVisibilityControl beneficiaryType="referrer" beneficiaryId={visRow.id} compact />}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditing(null); setForm(emptyForm); } }}>
         <DialogContent className="max-w-xl bg-white">

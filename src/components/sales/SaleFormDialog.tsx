@@ -10,12 +10,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircleDollarSign, Users, Package, Handshake, Sparkles, UserCircle, Calendar, FileText, Wallet, Pencil } from "lucide-react";
+import { CircleDollarSign, Users, Package, Handshake, Sparkles, UserCircle, Calendar, FileText, Wallet, Pencil, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatBR, nowBR, ymdBR } from "@/lib/datetime";
 import { saleIsFinalized } from "@/lib/financial";
 import { useJourneyStages } from "@/hooks/useSharedStageFilter";
 import { deriveClientStatusFromStageName, invalidateJourneyStageCaches } from "@/lib/journey-stage-sync";
+import { SaleDeductionsEditor } from "@/components/sales/SaleDeductionsEditor";
+import { invalidateFinancialData } from "@/lib/invalidateFinancial";
+import { SaleVisibilityOverrides, participantKey, type SaleParticipant } from "@/components/visibility/SaleVisibilityOverrides";
+import { isInheritAll, type Visibility, type VisibilityOverride } from "@/lib/visibility";
+import { deductionTotals, partnerBase, rowFromDb, rowToDb, sameRows, type DeductionModel, type DeductionRow, type DeductionType } from "@/lib/deductions";
 
 interface Props {
   open: boolean;
@@ -134,6 +139,96 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
     }
   }, [open, clientId, sale]);
 
+  // ===== Cascata de deduções (só admin) =====
+  const [dedRows, setDedRows] = useState<DeductionRow[]>([]);
+  const [dedLoaded, setDedLoaded] = useState<DeductionRow[] | null>(null);
+  const [dedLoadedProvider, setDedLoadedProvider] = useState<string | null>(null);
+  const [dedModel, setDedModel] = useState<DeductionModel>("cascata");
+  // Venda antiga não quitada: ao salvar a revisão, passa para a regra nova.
+  const [dedReviewPending, setDedReviewPending] = useState(false);
+  const effectiveModel: DeductionModel = dedReviewPending ? "cascata" : dedModel;
+
+  const { data: deductionTypes = [] } = useQuery({
+    queryKey: ["deduction-types"],
+    enabled: open,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).from("deduction_types").select("*").order("sort_order").order("name");
+      if (error) throw error;
+      return (data ?? []) as DeductionType[];
+    },
+    staleTime: 60_000,
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    if (sale?.id) {
+      setDedLoaded(null);
+      (async () => {
+        const [{ data: rows }, { data: saleRow }] = await Promise.all([
+          (supabase as any).from("sale_deductions").select("deduction_type_id, percent, fixed_amount").eq("sale_id", sale.id),
+          (supabase as any).from("sales").select("deduction_model, deduction_review_pending").eq("id", sale.id).maybeSingle(),
+        ]);
+        if (cancelled) return;
+        const loaded = ((rows ?? []) as any[]).map(rowFromDb);
+        setDedRows(loaded);
+        setDedLoaded(loaded);
+        setDedLoadedProvider(sale.service_provider_id ?? null);
+        setDedModel((saleRow?.deduction_model as DeductionModel) || "legado");
+        setDedReviewPending(!!saleRow?.deduction_review_pending && saleRow?.deduction_model === "legado");
+      })();
+    } else {
+      setDedRows([]);
+      setDedLoaded([]);
+      setDedLoadedProvider(null);
+      setDedModel("cascata");
+      setDedReviewPending(false);
+    }
+    return () => { cancelled = true; };
+  }, [open, sale?.id]);
+
+  // Custos da venda = totais da cascata (prestador => provider_cost; resto => zenon_cost).
+  useEffect(() => {
+    if (dedLoaded === null || deductionTypes.length === 0) return;
+    const t = deductionTotals(dedRows, deductionTypes, Number(form.amount) || 0);
+    setForm((f: any) =>
+      Number(f.zenon_cost || 0) === t.zenonCost && Number(f.provider_cost || 0) === t.providerCost
+        ? f
+        : { ...f, zenon_cost: t.zenonCost, provider_cost: t.providerCost },
+    );
+  }, [dedRows, dedLoaded, deductionTypes, form.amount]);
+
+  // Venda nova: ao escolher o produto, carrega as deduções padrão dele.
+  const loadProductDeductions = async (productId: string) => {
+    if (form.id || !productId) return;
+    const { data } = await (supabase as any)
+      .from("product_deduction_templates")
+      .select("deduction_type_id, percent, fixed_amount")
+      .eq("product_id", productId);
+    const rows = ((data ?? []) as any[]).map(rowFromDb);
+    if (rows.length) setDedRows(rows);
+  };
+
+  const saveDeductions = async (saleId: string) => {
+    const providerChanged = (form.service_provider_id ?? null) !== dedLoadedProvider;
+    if (dedLoaded !== null && sameRows(dedRows, dedLoaded) && !providerChanged) return;
+    const catById = new Map(deductionTypes.map((t) => [t.id, t.category]));
+    const upserts = dedRows.map((r) => ({
+      sale_id: saleId,
+      ...rowToDb(r),
+      payee_id: catById.get(r.deduction_type_id) === "prestador" ? form.service_provider_id || null : null,
+    }));
+    if (upserts.length) {
+      const { error } = await (supabase as any).from("sale_deductions").upsert(upserts, { onConflict: "sale_id,deduction_type_id" });
+      if (error) throw error;
+    }
+    const keep = dedRows.map((r) => r.deduction_type_id);
+    let del = (supabase as any).from("sale_deductions").delete().eq("sale_id", saleId);
+    if (keep.length) del = del.not("deduction_type_id", "in", `(${keep.join(",")})`);
+    const { error: delErr } = await del;
+    if (delErr) throw delErr;
+  };
+
 
   const { data: clients } = useClientsRef(open);
   const { data: productsAll } = useProductsRef(open);
@@ -164,9 +259,77 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
     },
   });
 
+  // ===== Visibilidade desta venda (ajuste sobre o cadastro de cada pessoa) =====
+  const participants: SaleParticipant[] = useMemo(() => {
+    const out: SaleParticipant[] = [];
+    if (form.partner_id) out.push({ type: "partner", id: form.partner_id, name: partnersAll?.find((x: any) => x.id === form.partner_id)?.full_name ?? "Parceiro" });
+    if (form.referrer_id) out.push({ type: "referrer", id: form.referrer_id, name: referrersAll?.find((x: any) => x.id === form.referrer_id)?.full_name ?? "Indicador" });
+    if (form.service_provider_id) out.push({ type: "service_provider", id: form.service_provider_id, name: providers?.find((x: any) => x.id === form.service_provider_id)?.name ?? "Prestador" });
+    return out;
+  }, [form.partner_id, form.referrer_id, form.service_provider_id, partnersAll, referrersAll, providers]);
+
+  const { data: visDefaults = {} } = useQuery({
+    queryKey: ["financial-visibility-defaults", participants.map(participantKey).join(",")],
+    enabled: open && participants.length > 0,
+    queryFn: async () => {
+      const ids = participants.map((p) => p.id);
+      const { data, error } = await (supabase as any)
+        .from("financial_visibility")
+        .select("beneficiary_type, beneficiary_id, see_gross, see_payments, see_deductions")
+        .in("beneficiary_id", ids);
+      if (error) throw error;
+      const m: Record<string, Visibility> = {};
+      for (const r of (data ?? []) as any[]) m[`${r.beneficiary_type}:${r.beneficiary_id}`] = r;
+      return m;
+    },
+  });
+
+  const [visOverrides, setVisOverrides] = useState<Record<string, VisibilityOverride>>({});
+  useEffect(() => {
+    if (!open) return;
+    if (!sale?.id) { setVisOverrides({}); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("sale_visibility_overrides")
+        .select("beneficiary_type, beneficiary_id, see_gross, see_payments, see_deductions")
+        .eq("sale_id", sale.id);
+      if (cancelled) return;
+      const m: Record<string, VisibilityOverride> = {};
+      for (const r of (data ?? []) as any[]) m[`${r.beneficiary_type}:${r.beneficiary_id}`] = { see_gross: r.see_gross, see_payments: r.see_payments, see_deductions: r.see_deductions };
+      setVisOverrides(m);
+    })();
+    return () => { cancelled = true; };
+  }, [open, sale?.id]);
+
+  const saveVisibility = async (saleId: string) => {
+    const current = new Set(participants.map(participantKey));
+    const upserts = participants
+      .map((p) => ({ p, o: visOverrides[participantKey(p)] }))
+      .filter(({ o }) => o && !isInheritAll(o))
+      .map(({ p, o }) => ({ sale_id: saleId, beneficiary_type: p.type, beneficiary_id: p.id, ...o, updated_at: new Date().toISOString() }));
+    // Remove ajustes de quem saiu da venda ou voltou ao padrão
+    const { data: existing } = await (supabase as any)
+      .from("sale_visibility_overrides").select("beneficiary_type, beneficiary_id").eq("sale_id", saleId);
+    const keepKeys = new Set(upserts.map((u) => `${u.beneficiary_type}:${u.beneficiary_id}`));
+    for (const r of (existing ?? []) as any[]) {
+      const k = `${r.beneficiary_type}:${r.beneficiary_id}`;
+      if (!keepKeys.has(k) || !current.has(k)) {
+        await (supabase as any).from("sale_visibility_overrides").delete()
+          .eq("sale_id", saleId).eq("beneficiary_type", r.beneficiary_type).eq("beneficiary_id", r.beneficiary_id);
+      }
+    }
+    if (upserts.length) {
+      const { error } = await (supabase as any).from("sale_visibility_overrides")
+        .upsert(upserts, { onConflict: "sale_id,beneficiary_type,beneficiary_id" });
+      if (error) throw error;
+    }
+  };
+
   const handleProductChange = (productId: string) => {
     const p = products?.find((x: any) => x.id === productId);
     setForm({ ...form, product_id: productId, amount: p?.base_price ?? form.amount, commission_percent: p?.default_commission_percent ?? form.commission_percent });
+    void loadProductDeductions(productId);
   };
 
   const handlePartnerChange = (partnerId: string) => {
@@ -180,45 +343,6 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
     return dt.toISOString().slice(0, 10);
   };
 
-  const buildPaymentRows = (saleRow: any, payload: any) => {
-    const isRecurring = payload.revenue_type === "recorrente";
-    const recurrenceStart = form.first_due_date || form.sale_date || ymdBR(nowBR());
-    if (isRecurring) {
-      const months = Math.max(1, payload.recurrence_months as number);
-      // form.amount = valor TOTAL do contrato recorrente; a mensalidade é total/meses.
-      const totalCents = Math.round(Number(form.amount) * 100);
-      const baseCents = Math.floor(totalCents / months);
-      const remainder = totalCents - baseCents * months;
-      return Array.from({ length: months }, (_, i) => ({
-        sale_id: saleRow.id,
-        client_id: saleRow.client_id,
-        product_id: saleRow.product_id,
-        amount: ((baseCents + (i === months - 1 ? remainder : 0)) / 100),
-        due_date: addMonths(recurrenceStart, i),
-        status: "pendente" as any,
-        installments_count: months,
-        installment_number: i + 1,
-        description: `Mensalidade ${i + 1}/${months}`,
-      }));
-    }
-
-    const n = Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1));
-    const baseDate = form.first_due_date || form.sale_date || ymdBR(nowBR());
-    const totalCents = Math.round(Number(form.amount) * 100);
-    const baseCents = Math.floor(totalCents / n);
-    const remainder = totalCents - baseCents * n;
-    return Array.from({ length: n }, (_, i) => ({
-      sale_id: saleRow.id,
-      client_id: saleRow.client_id,
-      product_id: saleRow.product_id,
-      amount: ((baseCents + (i === n - 1 ? remainder : 0)) / 100),
-      due_date: addMonths(baseDate, i),
-      status: "pendente" as any,
-      installments_count: n,
-      installment_number: i + 1,
-      description: n > 1 ? `Parcela ${i + 1}/${n}` : "Pagamento único",
-    }));
-  };
 
   const submit = async () => {
     if (!form.client_id || !form.product_id) {
@@ -245,7 +369,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       return;
     }
     if (zenonCostNum + providerCostNum > amountNum) {
-      toast.error("Custos (Zenon + Prestador) não podem ser maiores que o valor da venda");
+      toast.error("As deduções não podem passar do valor da venda");
       return;
     }
     const pctFields = [
@@ -298,7 +422,12 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         revenue_type: isRecurring ? "recorrente" : "avulso",
         recurrence_months: isRecurring ? Math.max(1, Math.min(120, parseInt(form.recurrence_months || 12, 10) || 12)) : null,
         recurrence_start: isRecurring ? recurrenceStart : null,
+        // Parcelamento fica gravado na venda: o banco gera as parcelas sempre
+        // com esta configuração (formulário e menu rápido dão o mesmo resultado).
+        installments_count: isRecurring ? null : Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1)),
+        first_due_date: form.first_due_date || form.sale_date || null,
         project_id: form.project_id || null,
+        ...(dedReviewPending ? { deduction_model: "cascata" } : {}),
       } as any;
 
       const shouldGenerateFinancialSchedule = saleIsFinalized(payload);
@@ -307,18 +436,18 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       if (form.id) {
         const { error } = await supabase.from("sales").update(payload).eq("id", form.id);
         if (error) throw error;
+        await saveDeductions(form.id);
+        await saveVisibility(form.id);
 
-        // Regenerar parcelas pendentes somente quando a venda estiver finalizada.
-        const finalizedNow = !saleIsFinalized(sale) && shouldGenerateFinancialSchedule;
-        if (shouldGenerateFinancialSchedule && (form.regenerate_payments || finalizedNow)) {
-          // Apaga apenas as parcelas ainda pendentes desta venda
-          await supabase.from("payments").delete().eq("sale_id", form.id).eq("status", "pendente");
-          const rows = buildPaymentRows({ id: form.id, client_id: form.client_id, product_id: form.product_id }, payload);
-          if (rows.length) await supabase.from("payments").insert(rows);
-          toast.success(`Venda atualizada — ${rows.length} parcela(s) regenerada(s)`);
+        // Parcelas: o banco gera ao concluir. "Regenerar" refaz só as parcelas em aberto.
+        if (shouldGenerateFinancialSchedule && form.regenerate_payments) {
+          const { data: n, error: regErr } = await (supabase as any).rpc("regenerate_sale_payments", { p_sale_id: form.id });
+          if (regErr) throw regErr;
+          toast.success(`Venda atualizada, ${n ?? 0} parcela(s) em aberto refeitas`);
+        } else if (!saleIsFinalized(sale) && shouldGenerateFinancialSchedule) {
+          toast.success("Venda finalizada, parcelas geradas");
         } else if (!shouldGenerateFinancialSchedule) {
-          await supabase.from("payments").delete().eq("sale_id", form.id).eq("status", "pendente");
-          toast.success("Venda salva como negociação — sem fluxo financeiro ativo");
+          toast.success("Venda salva como negociação, sem fluxo financeiro ativo");
         } else {
           toast.success("Venda atualizada com sucesso");
         }
@@ -328,17 +457,12 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
           created_by: user?.id,
         }).select().single();
         if (error) throw error;
+        await saveDeductions(newSale.id);
+        await saveVisibility(newSale.id);
 
         if (shouldGenerateFinancialSchedule) {
-          // Gera as parcelas (faturas) apenas quando a venda estiver finalizada.
-          const rows = buildPaymentRows(newSale, payload);
-          const { error: payErr } = await supabase.from("payments").insert(rows);
-          if (payErr) {
-            console.warn("Falha ao gerar parcelas:", payErr);
-            toast.warning("Venda criada, mas as parcelas não foram geradas: " + payErr.message);
-          } else {
-            toast.success(`Venda finalizada e ${rows.length} ${rows.length > 1 ? (isRecurring ? "mensalidades geradas" : "parcelas geradas") : "fatura gerada"}`);
-          }
+          // As parcelas são geradas pelo banco ao gravar a venda concluída.
+          toast.success(isRecurring ? "Venda finalizada, mensalidades geradas" : "Venda finalizada, parcelas geradas");
         } else {
           toast.success("Negociação registrada — finalize a venda para ativar o fluxo financeiro");
         }
@@ -365,6 +489,10 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       qc.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
+      qc.invalidateQueries({ queryKey: ["sale-deductions"] });
+      qc.invalidateQueries({ queryKey: ["commission-overpayments"] });
+      // Atualiza TODAS as telas de dinheiro (Financeiro, Comissões, Metas, Dashboard...).
+      void invalidateFinancialData(qc);
 
       onCreated?.();
       onOpenChange(false);
@@ -379,14 +507,15 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   const zenonCost = Number(form.zenon_cost || 0);
   const providerCost = Number(form.provider_cost || 0);
   const totalCosts = zenonCost + providerCost;
-  // Cascata: Bruto − Custos = base. Indicador/Imposto sai primeiro;
-  // depois Parceiro incide sobre o que sobrou; por fim Colaborador.
-  const commissionBase = Math.max(amount - totalCosts, 0);
-  const referrerCalc = form.referrer_id ? (commissionBase * Number(form.referrer_percent || 0)) / 100 : 0;
-  const partnerBase = Math.max(commissionBase - referrerCalc, 0);
-  const partnerCalc = form.partner_id ? (partnerBase * Number(form.commission_percent || 0)) / 100 : 0;
-  const collaboratorBase = Math.max(partnerBase - partnerCalc, 0);
-  const collaboratorCalc = form.collaborator_id ? (collaboratorBase * Number(form.collaborator_percent || 0)) / 100 : 0;
+  // Mesma regra que o banco grava (handle_sale_splits):
+  //   cascata: parceiro, indicador e colaborador = base de cálculo (bruto − deduções) × %
+  //   legado : parceiro sobre a base; indicador e colaborador sobre o bruto (como foram fechadas)
+  const partnerBaseValue = partnerBase(amount, zenonCost, providerCost, effectiveModel);
+  const othersBase = effectiveModel === "cascata" ? partnerBaseValue : amount;
+  const othersBaseLabel = effectiveModel === "cascata" ? "base de cálculo" : "bruto";
+  const referrerCalc = form.referrer_id ? (othersBase * Number(form.referrer_percent || 0)) / 100 : 0;
+  const partnerCalc = form.partner_id ? (partnerBaseValue * Number(form.commission_percent || 0)) / 100 : 0;
+  const collaboratorCalc = form.collaborator_id ? (othersBase * Number(form.collaborator_percent || 0)) / 100 : 0;
   const totalCommissions = partnerCalc + referrerCalc + collaboratorCalc;
   const liquido = amount - totalCosts - totalCommissions;
   const marginPct = amount > 0 ? (liquido / amount) * 100 : 0;
@@ -571,8 +700,8 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                     <div className="flex items-center gap-2">
                       <div className="size-6 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center text-[11px]">🔒</div>
                       <div className="flex-1">
-                        <p className="text-[11px] font-bold text-amber-900 uppercase tracking-wider leading-tight">Custos Internos & Prestador</p>
-                        <p className="text-[10px] text-amber-700/80 leading-tight">Não visíveis ao parceiro — deduzidos do líquido</p>
+                        <p className="text-[11px] font-bold text-amber-900 uppercase tracking-wider leading-tight">Deduções & Prestador</p>
+                        <p className="text-[10px] text-amber-700/80 leading-tight">Sigilo: o parceiro vê só a base de cálculo e o percentual dele</p>
                       </div>
                     </div>
                     <Field label="Prestador (repasse)">
@@ -593,74 +722,21 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                         </SelectContent>
                       </Select>
                     </Field>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <Field label="Custo Zenon (impostos)">
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-xs">R$</span>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            className="h-11 pl-9 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right tabular-nums"
-                            value={form.zenon_cost ?? ""}
-                            onChange={(e) => setForm({ ...form, zenon_cost: e.target.value })}
-                            placeholder="0,00"
-                          />
-                        </div>
-                      </Field>
-                      <Field label="Repasse ao Prestador">
-                        <div className="flex gap-1.5">
-                          <div className="inline-flex rounded-lg border border-amber-200 bg-white p-0.5 shadow-sm">
-                            <button
-                              type="button"
-                              onClick={() => setForm({ ...form, provider_cost_mode: "fixed" })}
-                              className={`px-2.5 h-10 text-xs font-bold rounded-md ${(form.provider_cost_mode ?? "fixed") === "fixed" ? "bg-amber-500 text-white" : "text-amber-700"}`}
-                            >R$</button>
-                            <button
-                              type="button"
-                              onClick={() => setForm({ ...form, provider_cost_mode: "percent" })}
-                              className={`px-2.5 h-10 text-xs font-bold rounded-md ${form.provider_cost_mode === "percent" ? "bg-amber-500 text-white" : "text-amber-700"}`}
-                            >%</button>
-                          </div>
-                          <div className="relative flex-1">
-                            {(form.provider_cost_mode ?? "fixed") === "fixed" ? (
-                              <>
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-xs">R$</span>
-                                <Input
-                                  type="number" step="0.01" min="0"
-                                  className="h-11 pl-9 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right tabular-nums"
-                                  value={form.provider_cost ?? ""}
-                                  onChange={(e) => setForm({ ...form, provider_cost: e.target.value, provider_cost_percent: null })}
-                                  placeholder="0,00"
-                                />
-                              </>
-                            ) : (
-                              <>
-                                <Input
-                                  type="number" step="0.01" min="0" max="100"
-                                  className="h-11 pr-9 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right tabular-nums"
-                                  value={form.provider_cost_percent ?? ""}
-                                  onChange={(e) => {
-                                    const pct = parseFloat(e.target.value) || 0;
-                                    const calc = ((Number(form.amount) || 0) * pct) / 100;
-                                    setForm({ ...form, provider_cost_percent: e.target.value, provider_cost: calc.toFixed(2) });
-                                  }}
-                                  placeholder="0,00"
-                                />
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-xs">%</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        {form.provider_cost_mode === "percent" && Number(form.provider_cost) > 0 && (
-                          <p className="text-[10px] text-amber-700 mt-1">Equivale a <strong className="font-mono">{fmt(Number(form.provider_cost))}</strong></p>
-                        )}
-                      </Field>
-
-                    </div>
-                    <p className="text-[10.5px] text-amber-700/90 leading-snug">
-                      Ordem de dedução: <strong>Bruto</strong> − custos (<strong className="font-mono">{fmt(totalCosts)}</strong>) − Indicador/Imposto − Parceiro − Colaborador. Cada nível incide sobre o que sobrou do nível anterior.
-                    </p>
+                    {dedReviewPending && (
+                      <div className="rounded-lg border border-amber-300 bg-white px-3 py-2 text-[11.5px] text-amber-900 leading-snug">
+                        <strong>Venda antiga em revisão.</strong> Preencha as deduções e salve: ela passa para a regra nova.
+                        O que já foi pago a cada um fica pago; a regra nova vale só para o que falta. Contas a pagar só das parcelas em aberto.
+                      </div>
+                    )}
+                    <Field label="Deduções da operação (sobre o bruto)">
+                      <SaleDeductionsEditor
+                        gross={Number(form.amount) || 0}
+                        rows={dedRows}
+                        types={deductionTypes}
+                        model={effectiveModel}
+                        onChange={setDedRows}
+                      />
+                    </Field>
                   </div>
 
                 </div>
@@ -783,6 +859,15 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
 
                 </div>
               </Section>
+
+              <Section icon={Eye} title="Quem vê o quê nesta venda" hint="Padrão vem do cadastro de cada pessoa. Ajuste só para este negócio.">
+                <SaleVisibilityOverrides
+                  participants={participants}
+                  defaults={visDefaults}
+                  value={visOverrides}
+                  onChange={setVisOverrides}
+                />
+              </Section>
             </div>
 
             {/* Sidebar de Informações Adicionais */}
@@ -852,16 +937,16 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                   {/* 2. Custos internos */}
                   {totalCosts > 0 && (
                     <div className="rounded-lg bg-amber-50/60 border border-amber-100 px-3 py-2.5 space-y-1.5">
-                      <p className="text-[9.5px] font-bold uppercase tracking-wider text-amber-800">Custos Internos</p>
+                      <p className="text-[9.5px] font-bold uppercase tracking-wider text-amber-800">Deduções</p>
                       {zenonCost > 0 && (
                         <div className="flex items-center justify-between gap-3 text-[11px]">
-                          <span className="text-amber-700 font-medium">🔒 Custo Zenon</span>
+                          <span className="text-amber-700 font-medium">🔒 Impostos, jurídico, sistema, PJ e custos</span>
                           <span className="font-mono font-semibold text-amber-800 tabular-nums">−{fmt(zenonCost)}</span>
                         </div>
                       )}
                       {providerCost > 0 && (
                         <div className="flex items-center justify-between gap-3 text-[11px]">
-                          <span className="text-amber-700 font-medium">🛠 Custo Prestador</span>
+                          <span className="text-amber-700 font-medium">🛠 Prestador</span>
                           <span className="font-mono font-semibold text-amber-800 tabular-nums">−{fmt(providerCost)}</span>
                         </div>
                       )}
@@ -870,21 +955,21 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
 
                   {/* 3. Base após custos */}
                   <div className="flex items-center justify-between gap-3 px-1">
-                    <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-500">Base após custos</span>
-                    <span className="text-[12px] font-bold tabular-nums font-mono text-slate-700">{fmt(commissionBase)}</span>
+                    <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-500">Base do parceiro</span>
+                    <span className="text-[12px] font-bold tabular-nums font-mono text-slate-700">{fmt(partnerBaseValue)}</span>
                   </div>
 
-                  {/* 4. Comissões em cascata: Indicador → Parceiro → Colaborador */}
+                  {/* 4. Comissões: mesma regra do banco (cascata: todos sobre a base de cálculo) */}
                   {(partnerCalc > 0 || referrerCalc > 0 || collaboratorCalc > 0) && (
                     <div className="rounded-lg bg-rose-50/40 border border-rose-100 px-3 py-2.5 space-y-2">
-                      <p className="text-[9.5px] font-bold uppercase tracking-wider text-rose-700">Comissões em cascata</p>
+                      <p className="text-[9.5px] font-bold uppercase tracking-wider text-rose-700">Comissões</p>
                       {referrerCalc > 0 && (
                         <div className="flex flex-col gap-0.5">
                           <div className="flex items-center justify-between gap-2 text-[11px]">
-                            <span className="text-rose-700 font-semibold">Indicador / Imposto</span>
+                            <span className="text-rose-700 font-semibold">Indicador</span>
                             <span className="font-mono font-bold text-rose-700 tabular-nums">−{fmt(referrerCalc)}</span>
                           </div>
-                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.referrer_percent}% × {fmt(commissionBase)}</span>
+                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.referrer_percent}% × {fmt(othersBase)} <span className="opacity-60">({othersBaseLabel})</span></span>
                         </div>
                       )}
                       {partnerCalc > 0 && (
@@ -893,7 +978,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                             <span className="text-rose-700 font-semibold">Parceiro</span>
                             <span className="font-mono font-bold text-rose-700 tabular-nums">−{fmt(partnerCalc)}</span>
                           </div>
-                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.commission_percent}% × {fmt(partnerBase)} <span className="opacity-60">(após indicador)</span></span>
+                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.commission_percent}% × {fmt(partnerBaseValue)} <span className="opacity-60">(base de cálculo)</span></span>
                         </div>
                       )}
                       {collaboratorCalc > 0 && (
@@ -902,7 +987,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                             <span className="text-rose-700 font-semibold">Colaborador</span>
                             <span className="font-mono font-bold text-rose-700 tabular-nums">−{fmt(collaboratorCalc)}</span>
                           </div>
-                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.collaborator_percent}% × {fmt(collaboratorBase)} <span className="opacity-60">(após parceiro)</span></span>
+                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.collaborator_percent}% × {fmt(othersBase)} <span className="opacity-60">({othersBaseLabel})</span></span>
                         </div>
                       )}
                       <div className="flex items-center justify-between gap-2 pt-1.5 mt-1 border-t border-rose-100 text-[10.5px]">

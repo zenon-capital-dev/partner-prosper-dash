@@ -34,6 +34,7 @@ import { downloadStorageFile, openDownloadUrl } from "@/lib/download";
 import { sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
 import { SupportThread } from "@/components/partner-support/SupportThread";
 
+import { SaleDisclosureDialog } from "@/components/visibility/SaleDisclosureDialog";
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
   { key: "clientes",   label: "Clientes",   icon: Users },
@@ -160,7 +161,8 @@ export default function PartnerPanel() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_products")
-        .select("id, product_id, client_id, status, value, deadline, sla_due_date, created_at, updated_at, custom_product_name, notes, service_provider_id, responsible_provider_id, clients(id, full_name, email, phone), products(id, name, description), service_providers:service_provider_id(id, name, specialty), responsible_provider:responsible_provider_id(id, name, specialty)")
+        // Sem "value": o parceiro não pode ver o valor do contrato do cliente.
+        .select("id, product_id, client_id, status, deadline, sla_due_date, created_at, updated_at, custom_product_name, notes, service_provider_id, responsible_provider_id, clients(id, full_name, email, phone), products(id, name, description), service_providers:service_provider_id(id, name, specialty), responsible_provider:responsible_provider_id(id, name, specialty)")
         .in("client_id", clientIds)
         .order("created_at", { ascending: false })
         .limit(300);
@@ -393,23 +395,35 @@ export default function PartnerPanel() {
     queryKey: ["partner-commissions", partner?.id],
     enabled: !!partner?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("commission_splits")
-        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(client_id, clients(id, full_name), products(name), client_products(id))")
-        .eq("beneficiary_type", "partner")
-        .eq("beneficiary_id", partner!.id)
-        .order("created_at", { ascending: false });
+      // Extrato seguro: o banco devolve só base de cálculo, % e comissão do parceiro logado.
+      // Valor bruto, deduções e ganhos de terceiros nunca chegam ao navegador.
+      const { data, error } = await (supabase as any).rpc("my_commission_statement");
       if (error) console.error("partner-commissions error", error);
-      return (data ?? []).map((c: any) => ({
-        ...c,
-        client_product_id: c.sales?.client_products?.[0]?.id ?? null,
-        client_id: c.sales?.client_id ?? null,
-        clients: c.sales?.clients,
-        products: c.sales?.products,
-      }));
+      return ((data ?? []) as any[])
+        .filter((c) => c.beneficiary_type === "partner")
+        .map((c) => ({
+          id: c.split_id,
+          amount: c.amount,
+          released_amount: Number(c.released_amount || 0),
+          percent: c.percent,
+          base_calculo: c.base_calculo,
+          gross_amount: c.gross_amount ?? null,
+          can_see_details: c.gross_amount != null || !!c.can_see_payments || !!c.can_see_deductions,
+          status: c.status,
+          paid_at: c.paid_at,
+          created_at: c.created_at,
+          sale_id: c.sale_id,
+          client_product_id: c.client_product_id ?? null,
+          client_id: c.client_id ?? null,
+          clients: { id: c.client_id, full_name: c.client_name },
+          products: { name: c.product_name },
+        }));
     },
     staleTime: 2 * 60_000,
   });
+
+  const [disclosureSale, setDisclosureSale] = useState<string | null>(null);
+  const showGross = useMemo(() => (commissions as any[]).some((c) => c.gross_amount != null), [commissions]);
 
   const commissionByService = useMemo(() => {
     const map = new Map<string, number>();
@@ -934,9 +948,14 @@ export default function PartnerPanel() {
                       <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500 font-semibold border-b border-slate-100">
                         <th className="px-3 py-2.5">Cliente</th>
                         {showProductName && <th className="px-3 py-2.5">Produto</th>}
+                        {showGross && <th className="px-3 py-2.5 text-right">Valor da venda</th>}
+                        <th className="px-3 py-2.5 text-right">Base de cálculo</th>
+                        <th className="px-3 py-2.5 text-right">%</th>
                         <th className="px-3 py-2.5 text-right">Valor</th>
+                        <th className="px-3 py-2.5 text-right">Liberado</th>
                         <th className="px-3 py-2.5">Status</th>
                         <th className="px-3 py-2.5">Data</th>
+                        <th className="px-3 py-2.5"><span className="sr-only">Detalhes</span></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -944,9 +963,14 @@ export default function PartnerPanel() {
                         <tr key={c.id} className="border-b border-slate-50 hover:bg-slate-50/60">
                           <td className="px-3 py-2.5 text-slate-900 font-medium">{c.clients?.full_name || "—"}</td>
                           {showProductName && <td className="px-3 py-2.5 text-slate-600">{c.products?.name || "—"}</td>}
+                          {showGross && <td className="px-3 py-2.5 text-right font-mono tabular-nums text-slate-600">{c.gross_amount != null ? formatBRL(c.gross_amount) : "—"}</td>}
+                          <td className="px-3 py-2.5 text-right font-mono tabular-nums text-slate-600">{c.base_calculo != null ? formatBRL(c.base_calculo) : "—"}</td>
+                          <td className="px-3 py-2.5 text-right font-mono tabular-nums text-slate-600">{c.percent != null ? `${Number(c.percent).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%` : "—"}</td>
                           <td className="px-3 py-2.5 text-right font-mono tabular-nums font-semibold">{formatBRL(c.amount)}</td>
+                          <td className="px-3 py-2.5 text-right font-mono tabular-nums text-emerald-700">{formatBRL(c.released_amount)}</td>
                           <td className="px-3 py-2.5"><Badge variant="outline" className={cn("text-[10px] border capitalize", (c.status === "pago" || c.status === "paga") ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{c.status}</Badge></td>
                           <td className="px-3 py-2.5 text-slate-500">{formatDate(c.paid_at || c.created_at)}</td>
+                          <td className="px-3 py-2.5 text-right">{c.can_see_details && c.sale_id && <button type="button" className="text-[12px] font-semibold text-indigo-600 hover:underline" onClick={() => setDisclosureSale(c.sale_id)}>Detalhes</button>}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1409,6 +1433,7 @@ export default function PartnerPanel() {
           {requestsTarget && <DemandRequestsPanel clientProductId={requestsTarget.id} currentRole="parceiro" />}
         </DialogContent>
       </Dialog>
+    <SaleDisclosureDialog saleId={disclosureSale} onOpenChange={(o) => { if (!o) setDisclosureSale(null); }} />
     </PanelShell>
   );
 }

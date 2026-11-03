@@ -9,5 +9,3 @@ verify_jwt = true
 [functions.process-alerts]
 verify_jwt = false
 
-[functions.seed-test-logins]
-verify_jwt = false
