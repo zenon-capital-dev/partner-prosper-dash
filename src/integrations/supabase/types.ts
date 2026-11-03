@@ -654,44 +654,6 @@ export type Database = {
           },
         ]
       }
-      client_product_financials: {
-        Row: {
-          client_product_id: string
-          custom_value: number | null
-          discount: number | null
-          employee_commission: number | null
-          partner_commission: number | null
-          updated_at: string
-          value: number | null
-        }
-        Insert: {
-          client_product_id: string
-          custom_value?: number | null
-          discount?: number | null
-          employee_commission?: number | null
-          partner_commission?: number | null
-          updated_at?: string
-          value?: number | null
-        }
-        Update: {
-          client_product_id?: string
-          custom_value?: number | null
-          discount?: number | null
-          employee_commission?: number | null
-          partner_commission?: number | null
-          updated_at?: string
-          value?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_product_financials_client_product_id_fkey"
-            columns: ["client_product_id"]
-            isOneToOne: true
-            referencedRelation: "client_products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       client_product_pauses: {
         Row: {
           client_product_id: string | null
