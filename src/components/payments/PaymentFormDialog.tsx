@@ -1,3 +1,4 @@
+import { ymdBR, addMonthsYmd as addMonths } from "@/lib/datetime";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,17 +21,11 @@ interface Props {
   onCreated?: () => void;
 }
 
-function addMonths(iso: string, months: number) {
-  const d = new Date(iso + "T00:00:00");
-  d.setMonth(d.getMonth() + months);
-  return d.toISOString().slice(0, 10);
-}
-
 export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId, onCreated }: Props) {
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [amount, setAmount] = useState("");
   const [installments, setInstallments] = useState(1);
-  const [firstDueDate, setFirstDueDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [firstDueDate, setFirstDueDate] = useState(() => ymdBR());
   // Seleção combinada de produto/serviço:
   //   "none"                  → pendência avulsa
   //   "cp:<client_product_id>" → serviço já contratado pelo cliente
@@ -46,7 +41,7 @@ export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId
     if (open) {
       setAmount("");
       setInstallments(1);
-      setFirstDueDate(new Date().toISOString().slice(0, 10));
+      setFirstDueDate(ymdBR());
       setProductSel("none");
       setTitle("");
       setDescription("");
