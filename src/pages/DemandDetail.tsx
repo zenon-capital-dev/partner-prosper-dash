@@ -47,7 +47,7 @@ import {
 import { calculateSLA } from "@/lib/sla";
 import { AutoStatusBadge } from "@/components/StatusBadge";
 
-import { CP_FIN, mergeCpFin } from "@/lib/clientProductFinancials";
+import { cpFinSelect, mergeCpFin } from "@/lib/clientProductFinancials";
 export default function DemandDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -189,7 +189,8 @@ export default function DemandDetail() {
   const { data: demand, isLoading } = useQuery({
     queryKey: ["demand-detail", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const cpFin = await cpFinSelect();
+      const { data, error } = await (supabase as any)
         .from("client_products")
         .select(`
           *,
@@ -200,7 +201,7 @@ export default function DemandDetail() {
           documents(*),
           steps:client_product_steps(*),
           deliveries:demand_deliveries(*),
-          ${CP_FIN}
+          ${cpFin}
         `)
         .eq("id", id!)
         .maybeSingle();

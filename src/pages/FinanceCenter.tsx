@@ -51,7 +51,7 @@ import { fetchAllRows } from "@/lib/fetchAll";
 import { salesDeductionSelect } from "@/lib/salesSchema";
 
 
-import { CP_FIN, mergeCpFinAll } from "@/lib/clientProductFinancials";
+import { cpFinSelect, mergeCpFinAll } from "@/lib/clientProductFinancials";
 const norm = (s: any) =>
   String(s ?? "")
     .toLowerCase()
@@ -2297,13 +2297,14 @@ function ByClient({ payments, canManage }: { payments: any[]; canManage: boolean
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["fin-client-products", clientId],
     enabled: !!clientId,
-    queryFn: async () =>
-      (
-        await supabase
-          .from("client_products")
-          .select(`id, status, products(name), custom_product_name, ${CP_FIN}`)
-          .eq("client_id", clientId)
-      ).data ?? [],
+    queryFn: async () => {
+      const cpFin = await cpFinSelect();
+      const { data } = await (supabase as any)
+        .from("client_products")
+        .select(`id, status, products(name), custom_product_name, ${cpFin}`)
+        .eq("client_id", clientId);
+      return data ?? [];
+    },
     select: (rows: any[]) => mergeCpFinAll(rows),
   });
 

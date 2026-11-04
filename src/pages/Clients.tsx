@@ -45,7 +45,7 @@ import { usePageSize } from "@/hooks/usePageSize";
 import { InlineStageSelect } from "@/components/clients/InlineStageSelect";
 import { QuickTaskDialog } from "@/components/tasks/QuickTaskDialog";
 
-import { CP_FIN, mergeCpFinAll } from "@/lib/clientProductFinancials";
+import { cpFinSelect, mergeCpFinAll } from "@/lib/clientProductFinancials";
 type SortKey = "name" | "revenue" | "created" | "health";
 type SortDir = "asc" | "desc";
 
@@ -149,9 +149,10 @@ export default function Clients() {
     queryKey: ["clients-admin-products-summary", clientIds.join(",")],
     enabled: clientIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const cpFin = await cpFinSelect();
+      const { data, error } = await (supabase as any)
         .from("client_products")
-        .select(`id, client_id, status, product_id, products(id, name), ${CP_FIN}`)
+        .select(`id, client_id, status, product_id, products(id, name), ${cpFin}`)
         .in("client_id", clientIds)
         .limit(Math.min(1000, Math.max(100, clientIds.length * 12)));
       if (error) throw error;
