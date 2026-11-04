@@ -432,9 +432,16 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
 
       const shouldGenerateFinancialSchedule = saleIsFinalized(payload);
 
+      // Sem as migrations, o gatilho antigo do banco ignora o parcelamento e erraria as parcelas.
+      const parcelasEspeciais = isRecurring || Number(payload.installments_count) > 1;
+      if (shouldGenerateFinancialSchedule && parcelasEspeciais && !(await salesSchemaIsCurrent())) {
+        throw new Error("Venda recorrente ou parcelada só pode ser concluída depois da atualização do banco.");
+      }
+      const dbPayload = await salesPayloadForSchema(payload);
+
 
       if (form.id) {
-        const { error } = await supabase.from("sales").update(payload).eq("id", form.id);
+        const { error } = await supabase.from("sales").update(dbPayload).eq("id", form.id);
         if (error) throw error;
         await saveDeductions(form.id);
         await saveVisibility(form.id);
@@ -453,7 +460,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         }
       } else {
         const { data: newSale, error } = await supabase.from("sales").insert({
-          ...payload,
+          ...dbPayload,
           created_by: user?.id,
         }).select().single();
         if (error) throw error;
