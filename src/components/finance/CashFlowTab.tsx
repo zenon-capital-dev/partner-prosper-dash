@@ -150,6 +150,11 @@ export function CashFlowTab() {
             <Stat label="Saldo projetado" value={money(data.saldo_projetado)} hint={includeOverdue ? "Inclui atrasados de meses anteriores" : "Não inclui atrasados de meses anteriores"} />
             <Stat label="Atrasados" value={`${formatBRL(Number(data.atrasados_receber))} a receber`} hint={`${formatBRL(Number(data.atrasados_pagar))} a pagar`} tone="warn" />
           </div>
+          {Number(data.saldo_sem_cronograma) > 0 && (
+            <p className="text-[12px] text-slate-500">
+              Contratos com {formatBRL(Number(data.saldo_sem_cronograma))} ainda sem data de parcela: esse valor é esperado, mas não entra na projeção do mês.
+            </p>
+          )}
           <div className="flex flex-wrap items-center justify-between gap-3 text-[13px] text-slate-600">
             <span>Vendido no mês (concluídas, pela data da venda; não é caixa): <strong className="text-slate-900 tabular-nums">{formatBRL(Number(data.vendido_mes))}</strong></span>
             <label className="flex items-center gap-2">
