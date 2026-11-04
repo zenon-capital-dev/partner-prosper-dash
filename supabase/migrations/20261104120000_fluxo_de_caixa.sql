@@ -888,6 +888,74 @@ $$;
 REVOKE ALL ON FUNCTION public.cash_refund_payment(uuid, numeric, text) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.cash_refund_payment(uuid, numeric, text) TO authenticated;
 
+-- Venda recorrente antiga gravada com o valor MENSAL: passa a ter o valor total do contrato,
+-- que é o significado de sales.amount em todo o sistema. As parcelas não mudam. A comissão é
+-- recalculada sobre o contrato pelos gatilhos da venda, preservando o que já foi pago.
+-- Só deve ser chamada para venda confirmada pelo usuário, uma a uma.
+CREATE TABLE IF NOT EXISTS public.cash_sale_adjustments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  sale_id uuid NOT NULL UNIQUE REFERENCES public.sales(id),
+  old_amount numeric(14,2) NOT NULL,
+  new_amount numeric(14,2) NOT NULL,
+  old_zenon_cost numeric(14,2),
+  old_provider_cost numeric(14,2),
+  months integer NOT NULL,
+  reason text NOT NULL,
+  created_by uuid,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.cash_sale_adjustments ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.cash_sale_adjustments FROM anon;
+REVOKE INSERT, UPDATE, DELETE ON public.cash_sale_adjustments FROM authenticated;
+GRANT SELECT ON public.cash_sale_adjustments TO authenticated;
+DROP POLICY IF EXISTS "Cash viewers read" ON public.cash_sale_adjustments;
+CREATE POLICY "Cash viewers read" ON public.cash_sale_adjustments FOR SELECT TO authenticated
+  USING (private.can_access_cash(auth.uid()));
+
+CREATE OR REPLACE FUNCTION public.cash_convert_monthly_sale(p_sale_id uuid, p_reason text)
+RETURNS numeric
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  s record;
+  v_months integer;
+BEGIN
+  -- Pelo sistema: só admin. Pelo SQL do banco (dono), não há usuário logado.
+  IF session_user IN ('authenticator','anon','authenticated') AND NOT private.can_access_cash(auth.uid()) THEN
+    RAISE EXCEPTION 'Sem permissão para corrigir vendas.';
+  END IF;
+  IF length(trim(COALESCE(p_reason, ''))) = 0 THEN RAISE EXCEPTION 'Informe o motivo.'; END IF;
+
+  SELECT * INTO s FROM public.sales WHERE id = p_sale_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Venda não encontrada.'; END IF;
+  IF s.revenue_type IS DISTINCT FROM 'recorrente' OR COALESCE(s.recurrence_months, 0) <= 1 THEN
+    RAISE EXCEPTION 'Só venda recorrente com mais de um mês pode ser convertida.';
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.cash_sale_adjustments WHERE sale_id = p_sale_id) THEN
+    RAISE EXCEPTION 'Esta venda já foi convertida.';
+  END IF;
+  v_months := s.recurrence_months;
+
+  INSERT INTO public.cash_sale_adjustments (sale_id, old_amount, new_amount, old_zenon_cost, old_provider_cost, months, reason, created_by)
+  VALUES (p_sale_id, s.amount, s.amount * v_months, s.zenon_cost, s.provider_cost, v_months, p_reason, auth.uid());
+
+  -- Custos em valor fixo acompanham o contrato. Percentuais são recalculados sobre o novo total.
+  UPDATE public.sale_deductions SET fixed_amount = fixed_amount * v_months
+   WHERE sale_id = p_sale_id AND fixed_amount IS NOT NULL;
+
+  UPDATE public.sales
+     SET amount = s.amount * v_months,
+         zenon_cost = COALESCE(s.zenon_cost, 0) * v_months,
+         provider_cost = COALESCE(s.provider_cost, 0) * v_months
+   WHERE id = p_sale_id;
+  RETURN s.amount * v_months;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.cash_convert_monthly_sale(uuid, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.cash_convert_monthly_sale(uuid, text) TO authenticated;
+
 -- Confirma que um pagamento histórico sinalizado aconteceu de verdade.
 CREATE OR REPLACE FUNCTION public.cash_confirm_historic(p_settlement_id uuid)
 RETURNS void
