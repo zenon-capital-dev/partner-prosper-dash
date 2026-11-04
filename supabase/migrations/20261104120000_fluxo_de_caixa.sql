@@ -687,6 +687,8 @@ REVOKE ALL ON FUNCTION public.cash_settle(text, uuid, numeric, date, text, text,
 GRANT EXECUTE ON FUNCTION public.cash_settle(text, uuid, numeric, date, text, text, text) TO authenticated;
 
 -- Recebimento informado na venda: abate as parcelas em aberto, da mais antiga para a mais nova.
+-- Contrato com valor estimado e recebimentos variáveis: o que passar das parcelas vira uma
+-- parcela nova, limitada ao saldo do contrato ainda sem cronograma.
 CREATE OR REPLACE FUNCTION public.cash_receive_for_sale(
   p_sale_id uuid,
   p_amount numeric,
@@ -705,6 +707,9 @@ DECLARE
   v_open numeric;
   v_take numeric;
   v_count integer := 0;
+  v_sale record;
+  v_unscheduled numeric;
+  v_new_id uuid;
 BEGIN
   IF NOT private.can_operate_cash(auth.uid()) THEN
     RAISE EXCEPTION 'Sem permissão para operar o caixa.';
@@ -712,7 +717,7 @@ BEGIN
   IF p_amount IS NULL OR p_amount <= 0 OR round(p_amount, 2) <> p_amount THEN
     RAISE EXCEPTION 'Informe um valor maior que zero, com até 2 casas decimais.';
   END IF;
-  PERFORM 1 FROM public.sales WHERE id = p_sale_id AND status::text = 'concluida' FOR UPDATE;
+  SELECT * INTO v_sale FROM public.sales WHERE id = p_sale_id AND status::text = 'concluida' FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Finalize a venda antes de registrar recebimentos.'; END IF;
 
   IF p_idempotency_key IS NOT NULL AND EXISTS (
@@ -723,8 +728,11 @@ BEGIN
   SELECT COALESCE(SUM(p.amount - private.cash_net_settled('payment', p.id)), 0) INTO v_open
     FROM public.payments p
    WHERE p.sale_id = p_sale_id AND p.status::text NOT IN ('cancelado','cancelada','reembolsado','estornado');
-  IF p_amount > v_open THEN
-    RAISE EXCEPTION 'O valor excede o saldo em aberto das parcelas desta venda (R$ %).', v_open;
+  SELECT GREATEST(v_sale.amount - COALESCE(SUM(p.amount), 0), 0) INTO v_unscheduled
+    FROM public.payments p
+   WHERE p.sale_id = p_sale_id AND p.status::text NOT IN ('cancelado','cancelada','reembolsado','estornado');
+  IF p_amount > v_open + v_unscheduled THEN
+    RAISE EXCEPTION 'O valor excede o saldo do contrato (R$ %). Se o valor estimado mudou, ajuste o valor da venda antes de registrar.', v_open + v_unscheduled;
   END IF;
 
   FOR r IN
@@ -741,6 +749,16 @@ BEGIN
     v_left := v_left - v_take;
     v_count := v_count + 1;
   END LOOP;
+
+  IF v_left > 0 THEN
+    INSERT INTO public.payments (sale_id, client_id, product_id, amount, due_date, status, description)
+    VALUES (p_sale_id, v_sale.client_id, v_sale.product_id, v_left, p_effective_date, 'pendente'::payment_status,
+            'Recebimento variável do contrato')
+    RETURNING id INTO v_new_id;
+    PERFORM public.cash_settle('payment', v_new_id, v_left, p_effective_date, p_payment_method, p_notes,
+      CASE WHEN p_idempotency_key IS NOT NULL THEN p_idempotency_key || ':' || v_new_id END);
+    v_count := v_count + 1;
+  END IF;
   RETURN v_count;
 END;
 $$;
@@ -1280,6 +1298,15 @@ BEGIN
     'saldo_projetado', v_projected,
     'atrasados_receber', v_over_in,
     'atrasados_pagar', v_over_out,
+    -- Contratos concluídos com valor maior que a soma das parcelas: dinheiro esperado, sem data.
+    'saldo_sem_cronograma', (
+      SELECT COALESCE(SUM(GREATEST(s.amount - COALESCE(a.total, 0), 0)), 0)
+        FROM public.sales s
+        LEFT JOIN LATERAL (
+          SELECT SUM(p.amount) AS total FROM public.payments p
+           WHERE p.sale_id = s.id AND p.status::text NOT IN ('cancelado','cancelada','reembolsado','estornado')
+        ) a ON true
+       WHERE s.status::text = 'concluida'),
     'nao_confirmado', m.nao_confirmado,
     'vendido_mes', (SELECT COALESCE(SUM(amount), 0) FROM public.sales
                      WHERE status::text = 'concluida' AND sale_date BETWEEN v_start AND v_end),
