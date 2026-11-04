@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { fetchAllRows } from "@/lib/fetchAll";
+import { salesDeductionSelect } from "@/lib/salesSchema";
 import { ComposedChart, Area, Bar, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
@@ -191,10 +192,11 @@ export default function Sales() {
     queryFn: async () => {
       // Busca todas as vendas (antes só as 250 mais recentes: projeções futuras escondiam o resto).
       try {
+        const deductionCols = await salesDeductionSelect();
         return await fetchAllRows((from, to) =>
-          supabase
+          (supabase as any)
             .from("sales")
-            .select("id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, resource_pool_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, revenue_type, recurrence_months, closed_at, deduction_model, deduction_review_pending, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
+            .select(`id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, resource_pool_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, revenue_type, recurrence_months, closed_at${deductionCols}, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)`)
             .order("sale_date", { ascending: false })
             .order("id")
             .range(from, to)

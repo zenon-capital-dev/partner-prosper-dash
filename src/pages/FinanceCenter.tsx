@@ -48,6 +48,7 @@ import {
 } from "@/lib/financial";
 import { ymdBR } from "@/lib/datetime";
 import { fetchAllRows } from "@/lib/fetchAll";
+import { salesDeductionSelect } from "@/lib/salesSchema";
 
 
 import { CP_FIN, mergeCpFinAll } from "@/lib/clientProductFinancials";
@@ -290,14 +291,16 @@ export default function FinanceCenter() {
 
   const { data: salesCosts = [] } = useQuery({
     queryKey: ["fin-sales-costs"],
-    queryFn: () =>
-      fetchAllRows((from, to) =>
-        supabase
+    queryFn: async () => {
+      const deductionCols = await salesDeductionSelect();
+      return fetchAllRows((from, to) =>
+        (supabase as any)
           .from("sales")
-          .select("id, amount, zenon_cost, provider_cost, sale_date, status, deduction_model")
+          .select(`id, amount, zenon_cost, provider_cost, sale_date, status${deductionCols}`)
           .order("id")
           .range(from, to)
-      ),
+      );
+    },
     staleTime: 60_000,
   });
 

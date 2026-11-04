@@ -122,7 +122,8 @@ export default function DashboardAdmin() {
     staleTime: STALE,
     enabled: stageActive,
     queryFn: async () => {
-      let query = supabase.from("sales").select("id, sale_date, amount, client_id, status, zenon_cost, provider_cost, deduction_model").eq("status", "concluida").order("sale_date", { ascending: false }).limit(300);
+      const deductionCols = await salesDeductionSelect();
+      let query = (supabase as any).from("sales").select(`id, sale_date, amount, client_id, status, zenon_cost, provider_cost${deductionCols}`).eq("status", "concluida").order("sale_date", { ascending: false }).limit(300);
 
       let rangeStart = new Date(brasiliaToday);
       const rangeEnd = new Date(brasiliaToday);
