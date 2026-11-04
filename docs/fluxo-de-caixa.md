@@ -41,6 +41,14 @@ Comportamentos bloqueados, com mensagem: pagamento acima do saldo, data efetiva 
 
 `sales.amount` é sempre o valor total do contrato, e a comissão incide sobre ele. Venda antiga gravada com o valor mensal é convertida por `cash_convert_monthly_sale`, depois de confirmada: multiplica valor e custos pelos meses, não muda parcelas, recalcula a comissão preservando o que já foi pago, e registra o valor anterior em `cash_sale_adjustments`.
 
+### Comissão
+
+A comissão total incide sobre o líquido do contrato. Ela é liberada na proporção do que entra, o que equivale ao líquido de cada parcela: em uma parcela de R$ 4.000 de um contrato de R$ 12.000 com R$ 3.000 de custos, o líquido é R$ 3.000; com 10%, libera R$ 300.
+
+### Contrato com valor estimado
+
+Quando os recebimentos variam, a venda não precisa de parcelas fixas. "Registrar Recebimento" abate as parcelas abertas e, se passar delas, cria uma parcela com o valor e a data do recebimento, até o saldo do contrato. Acima disso, o sistema recusa e pede para ajustar o valor da venda. O saldo sem data aparece no fluxo de caixa e fica fora da projeção.
+
 ## Ordem de implantação
 
 1. Backup do banco.
