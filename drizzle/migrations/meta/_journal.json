@@ -36,6 +36,13 @@
       "when": 1793765747462,
       "tag": "0004_visibilidade_financeira",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793765841302,
+      "tag": "0005_base_liquida_liberacao_provisoes",
+      "breakpoints": true
     }
   ]
 }

@@ -1978,6 +1978,7 @@ export type Database = {
           payment_id: string | null
           payment_method: string | null
           percent: number
+          released_amount: number
           sale_id: string | null
           status: Database["public"]["Enums"]["split_status"]
           updated_at: string
@@ -1995,6 +1996,7 @@ export type Database = {
           payment_id?: string | null
           payment_method?: string | null
           percent: number
+          released_amount?: number
           sale_id?: string | null
           status?: Database["public"]["Enums"]["split_status"]
           updated_at?: string
@@ -2012,6 +2014,7 @@ export type Database = {
           payment_id?: string | null
           payment_method?: string | null
           percent?: number
+          released_amount?: number
           sale_id?: string | null
           status?: Database["public"]["Enums"]["split_status"]
           updated_at?: string
@@ -2080,6 +2083,7 @@ export type Database = {
           reason: string | null
           receipt_url: string | null
           referrer_id: string | null
+          released_amount: number
           rule_type: string | null
           rule_value: number | null
           sale_id: string | null
@@ -2116,6 +2120,7 @@ export type Database = {
           reason?: string | null
           receipt_url?: string | null
           referrer_id?: string | null
+          released_amount?: number
           rule_type?: string | null
           rule_value?: number | null
           sale_id?: string | null
@@ -2152,6 +2157,7 @@ export type Database = {
           reason?: string | null
           receipt_url?: string | null
           referrer_id?: string | null
+          released_amount?: number
           rule_type?: string | null
           rule_value?: number | null
           sale_id?: string | null
@@ -3528,6 +3534,7 @@ export type Database = {
       expenses: {
         Row: {
           amount: number
+          auto_provision: boolean
           category: string
           created_at: string
           created_by: string | null
@@ -3538,15 +3545,19 @@ export type Database = {
           notes: string | null
           paid: boolean
           paid_at: string | null
+          payment_id: string | null
           payment_method: string | null
           receipt_url: string | null
           reference_month: string | null
+          sale_deduction_id: string | null
+          sale_id: string | null
           subcategory: string | null
           updated_at: string
           vendor: string | null
         }
         Insert: {
           amount: number
+          auto_provision?: boolean
           category?: string
           created_at?: string
           created_by?: string | null
@@ -3557,15 +3568,19 @@ export type Database = {
           notes?: string | null
           paid?: boolean
           paid_at?: string | null
+          payment_id?: string | null
           payment_method?: string | null
           receipt_url?: string | null
           reference_month?: string | null
+          sale_deduction_id?: string | null
+          sale_id?: string | null
           subcategory?: string | null
           updated_at?: string
           vendor?: string | null
         }
         Update: {
           amount?: number
+          auto_provision?: boolean
           category?: string
           created_at?: string
           created_by?: string | null
@@ -3576,14 +3591,39 @@ export type Database = {
           notes?: string | null
           paid?: boolean
           paid_at?: string | null
+          payment_id?: string | null
           payment_method?: string | null
           receipt_url?: string | null
           reference_month?: string | null
+          sale_deduction_id?: string | null
+          sale_id?: string | null
           subcategory?: string | null
           updated_at?: string
           vendor?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "expenses_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_sale_deduction_id_fkey"
+            columns: ["sale_deduction_id"]
+            isOneToOne: false
+            referencedRelation: "sale_deductions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       financial_alerts: {
         Row: {
@@ -7113,6 +7153,7 @@ export type Database = {
           percent: number
           product_name: string
           recurrence_months: number
+          released_amount: number
           revenue_type: string
           sale_id: string
           split_id: string
