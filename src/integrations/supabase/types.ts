@@ -2713,6 +2713,42 @@ export type Database = {
           },
         ]
       }
+      deduction_types: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          default_fixed_amount: number | null
+          default_percent: number | null
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          created_at?: string
+          default_fixed_amount?: number | null
+          default_percent?: number | null
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          default_fixed_amount?: number | null
+          default_percent?: number | null
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       demand_comments: {
         Row: {
           attachments: Json | null
@@ -4838,6 +4874,49 @@ export type Database = {
           },
         ]
       }
+      product_deduction_templates: {
+        Row: {
+          deduction_type_id: string
+          fixed_amount: number | null
+          percent: number | null
+          product_id: string
+        }
+        Insert: {
+          deduction_type_id: string
+          fixed_amount?: number | null
+          percent?: number | null
+          product_id: string
+        }
+        Update: {
+          deduction_type_id?: string
+          fixed_amount?: number | null
+          percent?: number | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_deduction_templates_deduction_type_id_fkey"
+            columns: ["deduction_type_id"]
+            isOneToOne: false
+            referencedRelation: "deduction_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_deduction_templates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_deduction_templates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "view_performance_by_product"
+            referencedColumns: ["product_id"]
+          },
+        ]
+      }
       product_document_files: {
         Row: {
           created_at: string
@@ -5851,6 +5930,54 @@ export type Database = {
           },
         ]
       }
+      sale_deductions: {
+        Row: {
+          created_at: string
+          deduction_type_id: string
+          fixed_amount: number | null
+          id: string
+          notes: string | null
+          payee_id: string | null
+          percent: number | null
+          sale_id: string
+        }
+        Insert: {
+          created_at?: string
+          deduction_type_id: string
+          fixed_amount?: number | null
+          id?: string
+          notes?: string | null
+          payee_id?: string | null
+          percent?: number | null
+          sale_id: string
+        }
+        Update: {
+          created_at?: string
+          deduction_type_id?: string
+          fixed_amount?: number | null
+          id?: string
+          notes?: string | null
+          payee_id?: string | null
+          percent?: number | null
+          sale_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_deductions_deduction_type_id_fkey"
+            columns: ["deduction_type_id"]
+            isOneToOne: false
+            referencedRelation: "deduction_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_deductions_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales: {
         Row: {
           amount: number
@@ -5861,6 +5988,7 @@ export type Database = {
           commission_percent: number | null
           created_at: string
           created_by: string | null
+          deduction_model: string
           id: string
           invoice_number: string | null
           notes: string | null
@@ -5892,6 +6020,7 @@ export type Database = {
           commission_percent?: number | null
           created_at?: string
           created_by?: string | null
+          deduction_model?: string
           id?: string
           invoice_number?: string | null
           notes?: string | null
@@ -5923,6 +6052,7 @@ export type Database = {
           commission_percent?: number | null
           created_at?: string
           created_by?: string | null
+          deduction_model?: string
           id?: string
           invoice_number?: string | null
           notes?: string | null
