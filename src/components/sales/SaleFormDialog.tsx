@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { salesPayloadForSchema, salesSchemaIsCurrent } from "@/lib/salesSchema";
+import { SaleParcelsPanel } from "@/components/sales/SaleParcelsPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -1028,6 +1029,8 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
             </div>
           </div>
         </div>
+
+        {form.id && <SaleParcelsPanel saleId={form.id} saleAmount={Number(form.amount || 0)} />}
 
         {/* Footer */}
         <DialogFooter className="px-6 sm:px-8 py-4 bg-white border-t border-slate-200/70 flex items-center justify-between gap-3">

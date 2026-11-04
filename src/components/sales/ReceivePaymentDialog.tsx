@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { saleIsFinalized, paymentReceivedAmount, isPaymentPaidInFuture } from "@/lib/financial";
 
 import { invalidateFinancialData } from "@/lib/invalidateFinancial";
+import { cashReceiveForSale, cashReverseSource, newIdempotencyKey } from "@/lib/cashFlow";
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -26,10 +27,10 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
   const qc = useQueryClient();
   const [amount, setAmount] = useState("");
   const [paidAt, setPaidAt] = useState(ymdBR(nowBR()));
-  const [competenceMonth, setCompetenceMonth] = useState(ymdBR(nowBR()).slice(0, 7));
   const [method, setMethod] = useState("pix");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [submitKey, setSubmitKey] = useState(newIdempotencyKey);
 
   const saleId = sale?.id;
 
@@ -81,7 +82,6 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
       setAmount("");
       const today = ymdBR(nowBR());
       setPaidAt(today);
-      setCompetenceMonth(today.slice(0, 7));
       setMethod("pix");
       setNotes("");
     }
@@ -111,56 +111,18 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
       toast.error("Informe um valor maior que zero");
       return;
     }
-    if (v > remaining + 0.009) {
-      toast.error(`Valor excede o saldo restante (${formatBRL(remaining)})`);
-      return;
-    }
     setSaving(true);
     try {
-      const today = ymdBR(nowBR());
-      const isFuture = paidAt > today;
-      const newReceived = received + (isFuture ? 0 : v);
-      const isFull = !isFuture && newReceived >= gross - 0.009;
-      const { data: paymentInserted, error } = await supabase.from("payments").insert({
-        sale_id: sale.id,
-        client_id: sale.client_id,
-        product_id: sale.product_id,
-        amount: v,
-        amount_paid: v,
-        paid_at: `${paidAt}T12:00:00`,
-        due_date: paidAt,
-        competence_month: `${competenceMonth}-01`,
-        status: (isFuture ? "pendente" : "pago") as any,
-        payment_method: method,
-        description: isFuture
-          ? `Recebimento agendado — Venda ${sale.id.slice(0, 8)}`
-          : `Recebimento parcial — Venda ${sale.id.slice(0, 8)}`,
-        notes: notes || null,
-      } as any).select("id").single();
-      if (error) throw error;
-
-      // As comissões (parceiro/indicador/colaborador/prestador) são geradas
-      // automaticamente pelo trigger `payments_sync_commissions` no banco assim
-      // que a parcela entra com status 'pago'. Isso garante o mesmo valor em
-      // todos os portais (Zenon, parceiro, prestador, cliente, indicador).
-      qc.invalidateQueries({ queryKey: ["partner-commissions"] });
-      qc.invalidateQueries({ queryKey: ["fin-commissions"] });
-      qc.invalidateQueries({ queryKey: ["dash-commissions"] });
-      qc.invalidateQueries({ queryKey: ["provider-commissions"] });
-      qc.invalidateQueries({ queryKey: ["referrer-commissions"] });
-
-
-
-      toast.success(isFuture ? "Recebimento agendado para o futuro" : (isFull ? "Venda quitada integralmente!" : "Recebimento registrado"));
+      // O valor abate as parcelas em aberto, da mais antiga para a mais nova, sem criar parcela nova.
+      await cashReceiveForSale({ saleId: sale.id, amount: v, date: paidAt, method, notes: notes || null, key: submitKey });
+      setSubmitKey(newIdempotencyKey());
+      toast.success("Recebimento registrado");
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["sale-receipts", sale.id] }),
         qc.invalidateQueries({ queryKey: ["sales-receipts-by-sale"] }),
-        qc.invalidateQueries({ queryKey: ["sales-rich-v2"] }),
+        qc.invalidateQueries({ queryKey: ["sale-parcels", sale.id] }),
       ]);
-      qc.invalidateQueries({ queryKey: ["payments"] });
-      qc.invalidateQueries({ queryKey: ["client-payments"] });
-      qc.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
-    void invalidateFinancialData(qc);
+      void invalidateFinancialData(qc);
       onSaved?.();
       setAmount("");
       setNotes("");
@@ -171,13 +133,16 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
     }
   };
 
-  const removeReceipt = async (id: string) => {
-    if (!confirm("Excluir este recebimento?")) return;
-    const { error } = await supabase.from("payments").delete().eq("id", id);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Recebimento excluído");
-    qc.refetchQueries({ queryKey: ["sale-receipts", sale.id] });
-    qc.refetchQueries({ queryKey: ["sales-receipts-by-sale"] });
+  const reverseReceipt = async (id: string) => {
+    const reason = window.prompt("Motivo do estorno:");
+    if (!reason?.trim()) return;
+    try {
+      await cashReverseSource("payment", id, reason.trim());
+      toast.success("Recebimento estornado");
+      void invalidateFinancialData(qc);
+    } catch (e: any) {
+      toast.error(e.message || "Não foi possível estornar");
+    }
   };
 
   const updateReceiptCompetence = async (id: string, ym: string) => {
@@ -287,29 +252,10 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
                   <Input
                     type="date"
                     value={paidAt}
-                    onChange={(e) => {
-                      setPaidAt(e.target.value);
-                      if (e.target.value) setCompetenceMonth(e.target.value.slice(0, 7));
-                    }}
+                    max={ymdBR(nowBR())}
+                    onChange={(e) => setPaidAt(e.target.value)}
                     className="h-10 bg-white"
                   />
-                  {paidAt > ymdBR(nowBR()) && (
-                    <p className="text-[10px] font-semibold text-amber-700">
-                      Data futura — registrado como <strong>agendado</strong>. Não entra no caixa até chegar a data.
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Competência (mês de referência)</Label>
-                  <Input
-                    type="month"
-                    value={competenceMonth}
-                    onChange={(e) => setCompetenceMonth(e.target.value)}
-                    className="h-10 bg-white"
-                  />
-                  <p className="text-[10px] text-slate-500">
-                    Mês em que este valor entra no fluxo (mesmo que pago em outro mês).
-                  </p>
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Forma</Label>
@@ -397,12 +343,14 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
                         title="Competência (mês de referência)"
                         className="h-7 w-[130px] text-[11px] bg-white"
                       />
-                      <button
-                        onClick={() => removeReceipt(r.id)}
-                        className="text-[10.5px] font-semibold text-rose-600 hover:text-rose-800 px-2 py-1 rounded hover:bg-rose-50"
-                      >
-                        Excluir
-                      </button>
+                      {paymentReceivedAmount(r) > 0 && (
+                        <button
+                          onClick={() => reverseReceipt(r.id)}
+                          className="text-[10.5px] font-semibold text-rose-600 hover:text-rose-800 px-2 py-1 rounded hover:bg-rose-50"
+                        >
+                          Estornar
+                        </button>
+                      )}
                     </div>
                   </div>
                   );
