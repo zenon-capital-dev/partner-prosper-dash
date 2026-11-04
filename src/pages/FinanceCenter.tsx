@@ -25,6 +25,8 @@ import {
 import { ConsistencyReport } from "@/components/finance/ConsistencyReport";
 
 import { RevenueMap } from "@/components/finance/RevenueMap";
+import { CashFlowTab } from "@/components/finance/CashFlowTab";
+import { cashRefundPayment } from "@/lib/cashFlow";
 
 
 import { PaymentFormDialog } from "@/components/payments/PaymentFormDialog";
@@ -847,7 +849,7 @@ export default function FinanceCenter() {
           </div>
 
           <TabsContent value="fluxo" className="mt-6">
-            <CashFlow payments={effectivePayments} commissions={commissionRows} sales={effectiveSalesCosts as any[]} />
+            <CashFlowTab />
           </TabsContent>
           <TabsContent value="mapa" className="mt-6">
             <RevenueMap payments={effectivePayments} />
@@ -1210,15 +1212,11 @@ function PaymentsTable({
   };
 
   const submitRefund = async (paymentId: string, amount: number) => {
-    const { error } = await supabase
-      .from("payments")
-      .update({
-        status: "reembolsado",
-        refunded_at: new Date().toISOString(),
-        refund_amount: amount,
-      })
-      .eq("id", paymentId);
-    if (error) return toast.error(error.message);
+    try {
+      await cashRefundPayment(paymentId, amount, "Reembolso registrado na Central Financeira");
+    } catch (error: any) {
+      return toast.error(error.message);
+    }
     toast.success("Reembolso registrado");
     invalidate();
     setDialog(null);
@@ -2070,107 +2068,6 @@ const CASH_RANGES: Record<string, CashRange & { label: string }> = {
   "6m": { days: 180, bucket: "week", label: "Últimos 6 meses" },
   year: { days: 365, bucket: "month", label: "Último ano" },
 };
-
-function CashFlow({ payments, commissions, sales }: { payments: any[]; commissions: any[]; sales: any[] }) {
-  const [rangeKey, setRangeKey] = useState<string>("month");
-  const { days, bucket } = CASH_RANGES[rangeKey];
-
-  const bucketKey = (iso: string) => {
-    if (!iso) return "";
-    const d = new Date(iso);
-    if (bucket === "day") return iso.slice(0, 10);
-    if (bucket === "month") return iso.slice(0, 7);
-    // week: ISO Monday
-    const day = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() - (day - 1));
-    return d.toISOString().slice(0, 10);
-  };
-
-  const data = useMemo(() => {
-    const map: Record<string, { label: string; entrada: number; saida: number; saldo: number }> = {};
-    const start = new Date();
-    start.setDate(start.getDate() - (days - 1));
-    const cursor = new Date(start);
-    while (cursor <= new Date()) {
-      const key = bucketKey(cursor.toISOString());
-      if (!map[key]) {
-        const label =
-          bucket === "month"
-            ? key
-            : bucket === "week"
-            ? `sem ${key.slice(5)}`
-            : key.slice(5);
-        map[key] = { label, entrada: 0, saida: 0, saldo: 0 };
-      }
-      cursor.setDate(cursor.getDate() + 1);
-    }
-    payments.forEach((p: any) => {
-      const received = paymentReceivedAmount(p);
-      if (received <= 0) return;
-      const key = bucketKey(p.paid_at || "");
-      if (map[key]) map[key].entrada += received;
-    });
-    const salesAmountById = new Map((sales || []).map((s: any) => [s.id, Number(s.amount || 0)]));
-    const receivedBySaleByBucket: Record<string, Map<string, number>> = {};
-    payments.forEach((p: any) => {
-      const received = paymentReceivedAmount(p);
-      if (received <= 0 || !p.sale_id) return;
-      const key = bucketKey(p.paid_at || "");
-      if (!map[key]) return;
-      if (!receivedBySaleByBucket[key]) receivedBySaleByBucket[key] = new Map();
-      receivedBySaleByBucket[key].set(p.sale_id, (receivedBySaleByBucket[key].get(p.sale_id) || 0) + received);
-    });
-    commissions
-      .filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status))
-      .forEach((c: any) => {
-        const key = bucketKey(c.paid_at || "");
-        if (map[key]) map[key].saida += accruedCommissionAmount(c, receivedBySaleByBucket[key] || new Map(), salesAmountById);
-      });
-    let acc = 0;
-    return Object.keys(map)
-      .sort()
-      .map((k) => {
-        acc += map[k].entrada - map[k].saida;
-        return { ...map[k], saldo: acc };
-      });
-  }, [payments, commissions, sales, days, bucket]);
-
-  return (
-    <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-semibold text-slate-800">Fluxo de caixa</h3>
-        <Select value={rangeKey} onValueChange={setRangeKey}>
-          <SelectTrigger className="w-[180px] h-9 bg-white border-slate-200">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(CASH_RANGES).map(([k, v]) => (
-              <SelectItem key={k} value={k}>{v.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="h-72">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis dataKey="label" fontSize={11} stroke="#94a3b8" />
-            <YAxis fontSize={11} stroke="#94a3b8" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-            <Tooltip
-              formatter={(v: any) => formatBRL(v)}
-              contentStyle={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 12 }}
-            />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Area type="monotone" dataKey="entrada" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.18} name="Entradas" />
-            <Area type="monotone" dataKey="saida" stroke="#e11d48" fill="#e11d48" fillOpacity={0.15} name="Saídas" />
-            <Area type="monotone" dataKey="saldo" stroke="#059669" fill="transparent" name="Saldo acumulado" />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
-}
-
 
 // -------------------- Reports --------------------
 function Reports({ payments, commissions, sales }: { payments: any[]; commissions: any[]; sales: any[] }) {
