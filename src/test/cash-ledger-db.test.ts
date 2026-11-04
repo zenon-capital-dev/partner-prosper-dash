@@ -41,7 +41,7 @@ async function month(m: string, overdue = false) {
 async function resetData() {
   await db.exec(`
     SET session_replication_role = replica;
-    TRUNCATE public.cash_settlements, public.cash_opening_balances, public.cash_other_income,
+    TRUNCATE public.cash_sale_adjustments, public.cash_settlements, public.cash_opening_balances, public.cash_other_income,
              public.commission_splits, public.commissions, public.expenses, public.payments,
              public.client_products, public.sales CASCADE;
     SET session_replication_role = DEFAULT;
@@ -305,6 +305,43 @@ describe.skipIf(!PGlite)("livro de caixa no PostgreSQL com todas as migrations",
       const after = await parcels(sale);
       expect(after.length).toBe(3);
       expect(after.map((p) => num(p.amount_paid))).toEqual([100, 50, 0]);
+    });
+  });
+
+  describe("recorrente antiga com valor mensal", () => {
+    let sale: string;
+    const split = () => one(`SELECT amount, released_amount, status::text AS status FROM public.commission_splits WHERE sale_id=$1 AND status::text <> 'cancelado'`, [sale]);
+    beforeAll(async () => {
+      await resetData();
+      await asUser(ADMIN);
+      await today("2025-12-31");
+      sale = await newSale({ amount: 2500, date: "2025-06-01", first: "2025-06-10", pct: 10, status: "pendente", recurring: 12 });
+      for (let i = 1; i <= 12; i++) {
+        await q(`INSERT INTO public.payments (sale_id, client_id, product_id, amount, due_date, status, installment_number, installments_count)
+                 VALUES ($1,$2,$3,2500,$4::date,'pendente',$5,12)`, [sale, CLIENT, PRODUCT, `${2025 + Math.floor((5 + i - 1) / 12)}-${String(((5 + i - 1) % 12) + 1).padStart(2, "0")}-10`, i]);
+      }
+      await db.exec(`UPDATE public.sales SET status='concluida' WHERE id='${sale}'`);
+    });
+    it("antes da conversão a comissão fica errada, sobre uma mensalidade", async () => {
+      expect(num((await split()).amount)).toBe(250);
+    });
+    it("a conversão leva o valor e a comissão ao contrato inteiro, sem mexer nas parcelas", async () => {
+      const r = await one(`SELECT public.cash_convert_monthly_sale($1,'Confirmado pelo usuário') AS v`, [sale]);
+      expect(num(r.v)).toBe(30000);
+      expect(num((await split()).amount)).toBe(3000);
+      const ps = await parcels(sale);
+      expect(ps.length).toBe(12);
+      expect(ps.every((p) => num(p.amount) === 2500)).toBe(true);
+    });
+    it("cada mensalidade recebida libera a parte proporcional da comissão", async () => {
+      await settle("payment", (await parcels(sale))[0].id, 2500, "2025-06-10");
+      const s = await split();
+      expect([num(s.released_amount), s.status]).toEqual([250, "pendente"]);
+    });
+    it("não converte duas vezes e registra o valor anterior", async () => {
+      await expect(one(`SELECT public.cash_convert_monthly_sale($1,'De novo')`, [sale])).rejects.toThrow(/já foi convertida/);
+      const a = await one(`SELECT old_amount, new_amount FROM public.cash_sale_adjustments WHERE sale_id=$1`, [sale]);
+      expect([num(a.old_amount), num(a.new_amount)]).toEqual([2500, 30000]);
     });
   });
 
