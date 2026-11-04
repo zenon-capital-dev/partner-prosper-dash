@@ -8,6 +8,13 @@
       "when": 1792846217511,
       "tag": "0000_collab_fk_doc_shares_support",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793765576703,
+      "tag": "0001_sigilo_valores_parceiro_prestador",
+      "breakpoints": true
     }
   ]
 }

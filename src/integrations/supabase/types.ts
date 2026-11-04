@@ -6860,6 +6860,26 @@ export type Database = {
         Returns: string
       }
       mark_overdue_payments: { Args: never; Returns: undefined }
+      my_commission_statement: {
+        Args: never
+        Returns: {
+          amount: number
+          base_calculo: number
+          beneficiary_type: string
+          client_id: string
+          client_name: string
+          client_product_id: string
+          created_at: string
+          paid_at: string
+          percent: number
+          product_name: string
+          recurrence_months: number
+          revenue_type: string
+          sale_id: string
+          split_id: string
+          status: string
+        }[]
+      }
       notification_enabled: {
         Args: { _type: string; _user_id: string }
         Returns: boolean
@@ -6877,6 +6897,31 @@ export type Database = {
       provider_can_read_shared_file: {
         Args: { _path: string; _user_id: string }
         Returns: boolean
+      }
+      provider_client_dossier: { Args: { _client_id: string }; Returns: Json }
+      provider_client_profiles: {
+        Args: never
+        Returns: {
+          address_neighborhood: string
+          address_number: string
+          address_street: string
+          address_zip_code: string
+          birth_date: string
+          city: string
+          client_id: string
+          company: string
+          created_at: string
+          demands: Json
+          document: string
+          email: string
+          full_name: string
+          ltv: number
+          phone: string
+          source: string
+          state: string
+          status: string
+          whatsapp: string
+        }[]
       }
       provider_has_demand_access: {
         Args: { _client_product_id: string; _user_id: string }
