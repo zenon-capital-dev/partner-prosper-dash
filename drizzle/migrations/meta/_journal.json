@@ -8,6 +8,48 @@
       "when": 1792846217511,
       "tag": "0000_collab_fk_doc_shares_support",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793765576703,
+      "tag": "0001_sigilo_valores_parceiro_prestador",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793765633229,
+      "tag": "0002_cofre_valores_demandas_contratos",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793765699432,
+      "tag": "0003_cascata_deducoes",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793765747462,
+      "tag": "0004_visibilidade_financeira",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793765841302,
+      "tag": "0005_base_liquida_liberacao_provisoes",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793765927553,
+      "tag": "0006_vendas_antigas_regra_nova",
+      "breakpoints": true
     }
   ]
 }

@@ -654,6 +654,44 @@ export type Database = {
           },
         ]
       }
+      client_product_financials: {
+        Row: {
+          client_product_id: string
+          custom_value: number | null
+          discount: number | null
+          employee_commission: number | null
+          partner_commission: number | null
+          updated_at: string
+          value: number | null
+        }
+        Insert: {
+          client_product_id: string
+          custom_value?: number | null
+          discount?: number | null
+          employee_commission?: number | null
+          partner_commission?: number | null
+          updated_at?: string
+          value?: number | null
+        }
+        Update: {
+          client_product_id?: string
+          custom_value?: number | null
+          discount?: number | null
+          employee_commission?: number | null
+          partner_commission?: number | null
+          updated_at?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_product_financials_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: true
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_product_pauses: {
         Row: {
           client_product_id: string | null
@@ -1940,6 +1978,7 @@ export type Database = {
           payment_id: string | null
           payment_method: string | null
           percent: number
+          released_amount: number
           sale_id: string | null
           status: Database["public"]["Enums"]["split_status"]
           updated_at: string
@@ -1957,6 +1996,7 @@ export type Database = {
           payment_id?: string | null
           payment_method?: string | null
           percent: number
+          released_amount?: number
           sale_id?: string | null
           status?: Database["public"]["Enums"]["split_status"]
           updated_at?: string
@@ -1974,6 +2014,7 @@ export type Database = {
           payment_id?: string | null
           payment_method?: string | null
           percent?: number
+          released_amount?: number
           sale_id?: string | null
           status?: Database["public"]["Enums"]["split_status"]
           updated_at?: string
@@ -2042,6 +2083,7 @@ export type Database = {
           reason: string | null
           receipt_url: string | null
           referrer_id: string | null
+          released_amount: number
           rule_type: string | null
           rule_value: number | null
           sale_id: string | null
@@ -2078,6 +2120,7 @@ export type Database = {
           reason?: string | null
           receipt_url?: string | null
           referrer_id?: string | null
+          released_amount?: number
           rule_type?: string | null
           rule_value?: number | null
           sale_id?: string | null
@@ -2114,6 +2157,7 @@ export type Database = {
           reason?: string | null
           receipt_url?: string | null
           referrer_id?: string | null
+          released_amount?: number
           rule_type?: string | null
           rule_value?: number | null
           sale_id?: string | null
@@ -2674,6 +2718,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      deduction_types: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          default_fixed_amount: number | null
+          default_percent: number | null
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          created_at?: string
+          default_fixed_amount?: number | null
+          default_percent?: number | null
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          default_fixed_amount?: number | null
+          default_percent?: number | null
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       demand_comments: {
         Row: {
@@ -3454,6 +3534,7 @@ export type Database = {
       expenses: {
         Row: {
           amount: number
+          auto_provision: boolean
           category: string
           created_at: string
           created_by: string | null
@@ -3464,15 +3545,19 @@ export type Database = {
           notes: string | null
           paid: boolean
           paid_at: string | null
+          payment_id: string | null
           payment_method: string | null
           receipt_url: string | null
           reference_month: string | null
+          sale_deduction_id: string | null
+          sale_id: string | null
           subcategory: string | null
           updated_at: string
           vendor: string | null
         }
         Insert: {
           amount: number
+          auto_provision?: boolean
           category?: string
           created_at?: string
           created_by?: string | null
@@ -3483,15 +3568,19 @@ export type Database = {
           notes?: string | null
           paid?: boolean
           paid_at?: string | null
+          payment_id?: string | null
           payment_method?: string | null
           receipt_url?: string | null
           reference_month?: string | null
+          sale_deduction_id?: string | null
+          sale_id?: string | null
           subcategory?: string | null
           updated_at?: string
           vendor?: string | null
         }
         Update: {
           amount?: number
+          auto_provision?: boolean
           category?: string
           created_at?: string
           created_by?: string | null
@@ -3502,14 +3591,39 @@ export type Database = {
           notes?: string | null
           paid?: boolean
           paid_at?: string | null
+          payment_id?: string | null
           payment_method?: string | null
           receipt_url?: string | null
           reference_month?: string | null
+          sale_deduction_id?: string | null
+          sale_id?: string | null
           subcategory?: string | null
           updated_at?: string
           vendor?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "expenses_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_sale_deduction_id_fkey"
+            columns: ["sale_deduction_id"]
+            isOneToOne: false
+            referencedRelation: "sale_deductions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       financial_alerts: {
         Row: {
@@ -3581,6 +3695,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      financial_visibility: {
+        Row: {
+          beneficiary_id: string
+          beneficiary_type: string
+          see_deductions: boolean
+          see_gross: boolean
+          see_payments: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          beneficiary_id: string
+          beneficiary_type: string
+          see_deductions?: boolean
+          see_gross?: boolean
+          see_payments?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          beneficiary_id?: string
+          beneficiary_type?: string
+          see_deductions?: boolean
+          see_gross?: boolean
+          see_payments?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       lead_history: {
         Row: {
@@ -4800,6 +4944,49 @@ export type Database = {
           },
         ]
       }
+      product_deduction_templates: {
+        Row: {
+          deduction_type_id: string
+          fixed_amount: number | null
+          percent: number | null
+          product_id: string
+        }
+        Insert: {
+          deduction_type_id: string
+          fixed_amount?: number | null
+          percent?: number | null
+          product_id: string
+        }
+        Update: {
+          deduction_type_id?: string
+          fixed_amount?: number | null
+          percent?: number | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_deduction_templates_deduction_type_id_fkey"
+            columns: ["deduction_type_id"]
+            isOneToOne: false
+            referencedRelation: "deduction_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_deduction_templates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_deduction_templates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "view_performance_by_product"
+            referencedColumns: ["product_id"]
+          },
+        ]
+      }
       product_document_files: {
         Row: {
           created_at: string
@@ -5813,9 +6000,96 @@ export type Database = {
           },
         ]
       }
+      sale_deductions: {
+        Row: {
+          created_at: string
+          deduction_type_id: string
+          fixed_amount: number | null
+          id: string
+          notes: string | null
+          payee_id: string | null
+          percent: number | null
+          sale_id: string
+        }
+        Insert: {
+          created_at?: string
+          deduction_type_id: string
+          fixed_amount?: number | null
+          id?: string
+          notes?: string | null
+          payee_id?: string | null
+          percent?: number | null
+          sale_id: string
+        }
+        Update: {
+          created_at?: string
+          deduction_type_id?: string
+          fixed_amount?: number | null
+          id?: string
+          notes?: string | null
+          payee_id?: string | null
+          percent?: number | null
+          sale_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_deductions_deduction_type_id_fkey"
+            columns: ["deduction_type_id"]
+            isOneToOne: false
+            referencedRelation: "deduction_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_deductions_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sale_visibility_overrides: {
+        Row: {
+          beneficiary_id: string
+          beneficiary_type: string
+          sale_id: string
+          see_deductions: boolean | null
+          see_gross: boolean | null
+          see_payments: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          beneficiary_id: string
+          beneficiary_type: string
+          sale_id: string
+          see_deductions?: boolean | null
+          see_gross?: boolean | null
+          see_payments?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          beneficiary_id?: string
+          beneficiary_type?: string
+          sale_id?: string
+          see_deductions?: boolean | null
+          see_gross?: boolean | null
+          see_payments?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_visibility_overrides_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales: {
         Row: {
           amount: number
+          cascata_since: string | null
           client_id: string
           closed_at: string | null
           collaborator_id: string | null
@@ -5823,6 +6097,8 @@ export type Database = {
           commission_percent: number | null
           created_at: string
           created_by: string | null
+          deduction_model: string
+          deduction_review_pending: boolean
           id: string
           invoice_number: string | null
           notes: string | null
@@ -5847,6 +6123,7 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          cascata_since?: string | null
           client_id: string
           closed_at?: string | null
           collaborator_id?: string | null
@@ -5854,6 +6131,8 @@ export type Database = {
           commission_percent?: number | null
           created_at?: string
           created_by?: string | null
+          deduction_model?: string
+          deduction_review_pending?: boolean
           id?: string
           invoice_number?: string | null
           notes?: string | null
@@ -5878,6 +6157,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          cascata_since?: string | null
           client_id?: string
           closed_at?: string | null
           collaborator_id?: string | null
@@ -5885,6 +6165,8 @@ export type Database = {
           commission_percent?: number | null
           created_at?: string
           created_by?: string | null
+          deduction_model?: string
+          deduction_review_pending?: boolean
           id?: string
           invoice_number?: string | null
           notes?: string | null
@@ -6696,6 +6978,20 @@ export type Database = {
       }
     }
     Views: {
+      v_commission_overpayments: {
+        Row: {
+          beneficiary_id: string | null
+          beneficiary_name: string | null
+          beneficiary_type: string | null
+          client_id: string | null
+          client_name: string | null
+          due_amount: number | null
+          overpaid: number | null
+          paid_amount: number | null
+          sale_id: string | null
+        }
+        Relationships: []
+      }
       v_commissions_unified: {
         Row: {
           amount: number | null
@@ -6860,6 +7156,31 @@ export type Database = {
         Returns: string
       }
       mark_overdue_payments: { Args: never; Returns: undefined }
+      my_commission_statement: {
+        Args: never
+        Returns: {
+          amount: number
+          base_calculo: number
+          beneficiary_type: string
+          can_see_deductions: boolean
+          can_see_payments: boolean
+          client_id: string
+          client_name: string
+          client_product_id: string
+          created_at: string
+          gross_amount: number
+          paid_at: string
+          percent: number
+          product_name: string
+          recurrence_months: number
+          released_amount: number
+          revenue_type: string
+          sale_id: string
+          split_id: string
+          status: string
+        }[]
+      }
+      my_sale_disclosure: { Args: { p_sale_id: string }; Returns: Json }
       notification_enabled: {
         Args: { _type: string; _user_id: string }
         Returns: boolean
@@ -6877,6 +7198,31 @@ export type Database = {
       provider_can_read_shared_file: {
         Args: { _path: string; _user_id: string }
         Returns: boolean
+      }
+      provider_client_dossier: { Args: { _client_id: string }; Returns: Json }
+      provider_client_profiles: {
+        Args: never
+        Returns: {
+          address_neighborhood: string
+          address_number: string
+          address_street: string
+          address_zip_code: string
+          birth_date: string
+          city: string
+          client_id: string
+          company: string
+          created_at: string
+          demands: Json
+          document: string
+          email: string
+          full_name: string
+          ltv: number
+          phone: string
+          source: string
+          state: string
+          status: string
+          whatsapp: string
+        }[]
       }
       provider_has_demand_access: {
         Args: { _client_product_id: string; _user_id: string }
