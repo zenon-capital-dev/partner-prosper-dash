@@ -169,7 +169,7 @@ export default function ClientDetail() {
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return mergeCpFinAll(data);
+      return mergeCpFinAll<any>(data);
     },
     enabled: !!id,
     retry: 1,
