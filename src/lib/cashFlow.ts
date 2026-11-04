@@ -46,6 +46,7 @@ export interface CashMonth {
   saldo_projetado: number | null;
   atrasados_receber: number;
   atrasados_pagar: number;
+  saldo_sem_cronograma: number;
   nao_confirmado: number;
   vendido_mes: number;
   lancamentos_sinalizados: number;
