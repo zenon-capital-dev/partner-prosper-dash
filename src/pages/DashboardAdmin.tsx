@@ -1,6 +1,7 @@
 import { formatBR as format, nowBR, formatBRDate, formatBRDateTime, formatBRTime } from "@/lib/datetime";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { salesDeductionSelect } from "@/lib/salesSchema";
 import {
   CircleDollarSign, Users, Clock, FileSignature, Target, Plus, ArrowUpRight,
   FileText, ChevronRight, UserPlus,
