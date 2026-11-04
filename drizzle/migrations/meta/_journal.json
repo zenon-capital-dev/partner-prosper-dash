@@ -43,6 +43,13 @@
       "when": 1793765841302,
       "tag": "0005_base_liquida_liberacao_provisoes",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793765927553,
+      "tag": "0006_vendas_antigas_regra_nova",
+      "breakpoints": true
     }
   ]
 }

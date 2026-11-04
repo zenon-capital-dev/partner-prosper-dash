@@ -6089,6 +6089,7 @@ export type Database = {
       sales: {
         Row: {
           amount: number
+          cascata_since: string | null
           client_id: string
           closed_at: string | null
           collaborator_id: string | null
@@ -6097,6 +6098,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           deduction_model: string
+          deduction_review_pending: boolean
           id: string
           invoice_number: string | null
           notes: string | null
@@ -6121,6 +6123,7 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          cascata_since?: string | null
           client_id: string
           closed_at?: string | null
           collaborator_id?: string | null
@@ -6129,6 +6132,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deduction_model?: string
+          deduction_review_pending?: boolean
           id?: string
           invoice_number?: string | null
           notes?: string | null
@@ -6153,6 +6157,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          cascata_since?: string | null
           client_id?: string
           closed_at?: string | null
           collaborator_id?: string | null
@@ -6161,6 +6166,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deduction_model?: string
+          deduction_review_pending?: boolean
           id?: string
           invoice_number?: string | null
           notes?: string | null
@@ -6972,6 +6978,20 @@ export type Database = {
       }
     }
     Views: {
+      v_commission_overpayments: {
+        Row: {
+          beneficiary_id: string | null
+          beneficiary_name: string | null
+          beneficiary_type: string | null
+          client_id: string | null
+          client_name: string | null
+          due_amount: number | null
+          overpaid: number | null
+          paid_amount: number | null
+          sale_id: string | null
+        }
+        Relationships: []
+      }
       v_commissions_unified: {
         Row: {
           amount: number | null
