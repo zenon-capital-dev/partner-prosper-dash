@@ -15,6 +15,13 @@
       "when": 1793765576703,
       "tag": "0001_sigilo_valores_parceiro_prestador",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793765633229,
+      "tag": "0002_cofre_valores_demandas_contratos",
+      "breakpoints": true
     }
   ]
 }
