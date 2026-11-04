@@ -15,7 +15,7 @@ Sem dados de clientes: este repositório é público.
 
 Os campos antigos (`payments.amount_paid`, `expenses.paid`, status dos repasses) viram espelho do livro. Se uma tela gravar direto neles, um gatilho registra a diferença no livro.
 
-Funções: `cash_settle`, `cash_receive_for_sale`, `cash_reverse`, `cash_reverse_source`, `cash_refund_payment`, `cash_confirm_historic`, `cash_create_entry`, `cash_cancel_income`, `cash_set_opening_balance`, `cash_month`, `cash_can_access`.
+Funções: `cash_settle`, `cash_receive_for_sale`, `cash_reverse`, `cash_reverse_source`, `cash_refund_payment`, `cash_confirm_historic`, `cash_create_entry`, `cash_cancel_income`, `cash_convert_monthly_sale`, `cash_set_opening_balance`, `cash_month`, `cash_can_access`.
 
 ## Regras de cálculo
 
@@ -36,6 +36,10 @@ Funções: `cash_settle`, `cash_receive_for_sale`, `cash_reverse`, `cash_reverse
 | Provisão automática | Aparece como estimativa e só aceita pagamento integral |
 
 Comportamentos bloqueados, com mensagem: pagamento acima do saldo, data efetiva futura, mais de 2 casas decimais, valor abaixo do já pago, cancelar ou excluir com pagamento lançado, alterar o livro.
+
+## Recorrência
+
+`sales.amount` é sempre o valor total do contrato, e a comissão incide sobre ele. Venda antiga gravada com o valor mensal é convertida por `cash_convert_monthly_sale`, depois de confirmada: multiplica valor e custos pelos meses, não muda parcelas, recalcula a comissão preservando o que já foi pago, e registra o valor anterior em `cash_sale_adjustments`.
 
 ## Ordem de implantação
 
@@ -69,7 +73,7 @@ Entre os passos 3 e 4, as telas antigas continuam funcionando, e o gatilho regis
 | Contas e transferências | Uma conta | n/a | Não aplicável: o sistema não tem contas bancárias |
 | Moedas | Só real | n/a | Não aplicável |
 | Renegociação | Não implementada | Nenhum | Pendente de decisão |
-| Recorrência: valor mensal ou total | Não alterada | Nenhum | Pendente de decisão |
+| Recorrência: `sales.amount` é sempre o total do contrato; comissão sobre o contrato inteiro | Campo Mensalidade no formulário; `cash_convert_monthly_sale` para venda antiga | `cash-ledger-db` | Conversão verificada no banco de teste; vendas reais dependem de confirmação uma a uma |
 | Caixinha | Fora do saldo | Nenhum | Pendente de decisão |
 | Comprovante e anexos | Não incluídos | Nenhum | Pendente |
 | Concorrência entre sessões | Trava de linha | Nenhum | Implementado, não verificado: o PGlite tem uma conexão |
