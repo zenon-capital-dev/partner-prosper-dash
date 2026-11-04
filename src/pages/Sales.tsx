@@ -625,7 +625,8 @@ export default function Sales() {
     if (error) { toast.error(error.message); return; }
 
     const [paymentsResult, splitsResult, commissionsResult] = await Promise.all([
-      supabase.from("payments").update({ status: "cancelado" }).eq("sale_id", s.id).neq("status", "pago"),
+      // Parcela com valor recebido fica como está: dinheiro recebido não some ao cancelar a venda.
+      supabase.from("payments").update({ status: "cancelado" }).eq("sale_id", s.id).neq("status", "pago").or("amount_paid.is.null,amount_paid.eq.0"),
       supabase.from("commission_splits").update({ status: "cancelado" }).eq("sale_id", s.id).neq("status", "pago"),
       supabase.from("commissions").update({ status: "cancelado", workflow_status: "cancelada", paid_at: null, approval_date: null }).eq("sale_id", s.id).neq("status", "pago"),
     ]);

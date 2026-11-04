@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { salesPayloadForSchema, salesSchemaIsCurrent } from "@/lib/salesSchema";
+import { SaleParcelsPanel } from "@/components/sales/SaleParcelsPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -627,6 +628,21 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                     value={form.first_due_date ?? form.sale_date}
                     onChange={(e) => setForm({ ...form, first_due_date: e.target.value })} />
                 </Field>
+                <div className="col-span-2">
+                  <Field label="Mensalidade (preenche o valor total do contrato)">
+                    <Input type="number" min={0} step="0.01"
+                      className="h-10 bg-white border-slate-200 shadow-sm rounded-lg font-mono"
+                      key={`${form.amount}-${form.recurrence_months}`}
+                      defaultValue={Number(form.amount) > 0 ? (Number(form.amount) / Math.max(1, parseInt(form.recurrence_months || 12, 10) || 12)).toFixed(2) : ""}
+                      onBlur={(e) => {
+                        const monthly = Number(e.target.value);
+                        if (!Number.isFinite(monthly) || monthly <= 0) return;
+                        const months = Math.max(1, parseInt(form.recurrence_months || 12, 10) || 12);
+                        const total = Math.round(monthly * months * 100) / 100;
+                        if (total !== Number(form.amount)) setForm({ ...form, amount: total });
+                      }} />
+                  </Field>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3 mt-3">
@@ -1028,6 +1044,8 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
             </div>
           </div>
         </div>
+
+        {form.id && <SaleParcelsPanel saleId={form.id} saleAmount={Number(form.amount || 0)} />}
 
         {/* Footer */}
         <DialogFooter className="px-6 sm:px-8 py-4 bg-white border-t border-slate-200/70 flex items-center justify-between gap-3">
