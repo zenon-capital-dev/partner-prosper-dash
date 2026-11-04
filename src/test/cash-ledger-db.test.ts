@@ -345,6 +345,48 @@ describe.skipIf(!PGlite)("livro de caixa no PostgreSQL com todas as migrations",
     });
   });
 
+  describe("formatos de contrato", () => {
+    beforeAll(async () => { await resetData(); await asUser(ADMIN); await today("2026-11-04"); });
+    it("mensal com um recebimento: converte e gera os meses que faltam, até o total", async () => {
+      const sale = await newSale({ amount: 1500, date: "2026-06-15", first: "2026-06-15", status: "pendente", recurring: 12, pct: 8 });
+      await q(`INSERT INTO public.payments (sale_id, client_id, product_id, amount, amount_paid, paid_at, due_date, status, description)
+               VALUES ($1,$2,$3,1500,1500,'2026-06-15T12:00:00-03','2026-06-15','pago','Recebimento parcial')`, [sale, CLIENT, PRODUCT]);
+      await db.exec(`UPDATE public.sales SET status='concluida' WHERE id='${sale}'`);
+      await one(`SELECT public.cash_convert_monthly_sale($1,'Confirmado: 12 x 1.500')`, [sale]);
+      await one(`SELECT private.generate_sale_payments($1)`, [sale]);
+      const ps = await parcels(sale);
+      expect(ps.length).toBe(12);
+      expect(ps.reduce((t, p) => t + num(p.amount), 0)).toBeCloseTo(18000, 2);
+      expect(ps.every((p) => num(p.amount) === 1500)).toBe(true);
+      const c = await one(`SELECT amount, released_amount FROM public.commission_splits WHERE sale_id=$1 AND status::text <> 'cancelado'`, [sale]);
+      expect(num(c.amount)).toBeCloseTo(1440, 2);
+      expect(num(c.released_amount)).toBeCloseTo(120, 2);
+    });
+    it("valor estimado com recebimentos variáveis: registra até o total, sem inventar datas", async () => {
+      const sale = await newSale({ amount: 40000, date: "2026-06-01", first: "2026-06-10", status: "pendente", recurring: 12, pct: 10 });
+      await db.exec(`DELETE FROM public.payments WHERE sale_id='${sale}'`);
+      await db.exec(`SET session_replication_role = replica; UPDATE public.sales SET status='concluida' WHERE id='${sale}'; SET session_replication_role = DEFAULT;`);
+      expect(num((await month("2026-11")).saldo_sem_cronograma)).toBeGreaterThanOrEqual(40000);
+      await one(`SELECT public.cash_receive_for_sale($1,5000,'2026-07-10'::date,NULL,NULL,$2)`, [sale, key()]);
+      await one(`SELECT public.cash_receive_for_sale($1,10000,'2026-08-10'::date,NULL,NULL,$2)`, [sale, key()]);
+      const ps = await parcels(sale);
+      expect(ps.map((p) => [num(p.amount), p.status, p.due_date])).toEqual([[5000, "pago", "2026-07-10"], [10000, "pago", "2026-08-10"]]);
+      await expect(one(`SELECT public.cash_receive_for_sale($1,25001,'2026-09-10'::date,NULL,NULL,$2)`, [sale, key()])).rejects.toThrow(/saldo do contrato/);
+      await one(`SELECT public.cash_receive_for_sale($1,25000,'2026-09-10'::date,NULL,NULL,$2)`, [sale, key()]);
+      expect((await parcels(sale)).reduce((t, p) => t + num(p.amount_paid), 0)).toBe(40000);
+    });
+    it("comissão sobre o líquido de cada parcela: custo proporcional no que entra", async () => {
+      await db.exec(`DELETE FROM public.commission_splits WHERE true`);
+      const sale = await newSale({ amount: 12000, n: 3, first: "2026-01-10", date: "2026-01-01", pct: 10 });
+      await db.exec(`UPDATE public.sales SET zenon_cost=3000 WHERE id='${sale}'`);
+      const p = (await parcels(sale))[0];
+      await settle("payment", p.id, 4000, "2026-01-10");
+      const c = await one(`SELECT amount, released_amount FROM public.commission_splits WHERE sale_id=$1 AND status::text <> 'cancelado'`, [sale]);
+      // Parcela 4.000 menos custo proporcional 1.000 = líquido 3.000; 10% = 300
+      expect([num(c.amount), num(c.released_amount)]).toEqual([900, 300]);
+    });
+  });
+
   describe("estorno pela venda e devolução", () => {
     it("linha antiga de recebimento é cancelada ao estornar; parcela normal volta a aberta", async () => {
       await resetData();

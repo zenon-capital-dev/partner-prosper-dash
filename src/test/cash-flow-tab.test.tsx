@@ -12,7 +12,7 @@ vi.mock("@/lib/cashFlow", async (orig) => ({
     month: "2026-11", period: "atual", cutoff: "2026-11-30", include_overdue: false,
     opening_configured: true, opening_reference_date: "2026-10-31", opening: 10000, opening_projected: false,
     entradas_realizadas: 3000, saidas_realizadas: 2000, resultado_realizado: 1000, saldo_realizado: 11000,
-    entradas_pendentes: 0, saidas_pendentes: 1000, saldo_projetado: 10000, atrasados_receber: 0, atrasados_pagar: 0,
+    entradas_pendentes: 0, saidas_pendentes: 1000, saldo_projetado: 10000, atrasados_receber: 0, atrasados_pagar: 0, saldo_sem_cronograma: 0,
     nao_confirmado: 0, vendido_mes: 12000, lancamentos_sinalizados: 0,
     lines: [{
       source_type: "expense", source_id: "e1", direction: "saida", description: "Aluguel", counterparty: "Fornecedor",
