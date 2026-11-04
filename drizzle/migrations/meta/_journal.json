@@ -29,6 +29,13 @@
       "when": 1793765699432,
       "tag": "0003_cascata_deducoes",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793765747462,
+      "tag": "0004_visibilidade_financeira",
+      "breakpoints": true
     }
   ]
 }

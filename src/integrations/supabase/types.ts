@@ -3656,6 +3656,36 @@ export type Database = {
           },
         ]
       }
+      financial_visibility: {
+        Row: {
+          beneficiary_id: string
+          beneficiary_type: string
+          see_deductions: boolean
+          see_gross: boolean
+          see_payments: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          beneficiary_id: string
+          beneficiary_type: string
+          see_deductions?: boolean
+          see_gross?: boolean
+          see_payments?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          beneficiary_id?: string
+          beneficiary_type?: string
+          see_deductions?: boolean
+          see_gross?: boolean
+          see_payments?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       lead_history: {
         Row: {
           action: string
@@ -5978,6 +6008,44 @@ export type Database = {
           },
         ]
       }
+      sale_visibility_overrides: {
+        Row: {
+          beneficiary_id: string
+          beneficiary_type: string
+          sale_id: string
+          see_deductions: boolean | null
+          see_gross: boolean | null
+          see_payments: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          beneficiary_id: string
+          beneficiary_type: string
+          sale_id: string
+          see_deductions?: boolean | null
+          see_gross?: boolean | null
+          see_payments?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          beneficiary_id?: string
+          beneficiary_type?: string
+          sale_id?: string
+          see_deductions?: boolean | null
+          see_gross?: boolean | null
+          see_payments?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_visibility_overrides_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales: {
         Row: {
           amount: number
@@ -7034,10 +7102,13 @@ export type Database = {
           amount: number
           base_calculo: number
           beneficiary_type: string
+          can_see_deductions: boolean
+          can_see_payments: boolean
           client_id: string
           client_name: string
           client_product_id: string
           created_at: string
+          gross_amount: number
           paid_at: string
           percent: number
           product_name: string
@@ -7048,6 +7119,7 @@ export type Database = {
           status: string
         }[]
       }
+      my_sale_disclosure: { Args: { p_sale_id: string }; Returns: Json }
       notification_enabled: {
         Args: { _type: string; _user_id: string }
         Returns: boolean
