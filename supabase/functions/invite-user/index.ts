@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
       const [{ data: clients }, { data: partners }, { data: providers }, { data: referrers }] = await Promise.all([
         admin.from("clients").select("id, full_name, user_id"),
         admin.from("partners").select("id, full_name, user_id"),
-        admin.from("service_providers").select("id, full_name, user_id"),
+        admin.from("service_providers").select("id, name, user_id"),
         admin.from("referrers").select("id, full_name, user_id"),
       ]);
 
@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
           links: {
             clients: (clients ?? []).filter((c: any) => c.user_id === p.id).map((c: any) => ({ id: c.id, name: c.full_name })),
             partners: (partners ?? []).filter((c: any) => c.user_id === p.id).map((c: any) => ({ id: c.id, name: c.full_name })),
-            providers: (providers ?? []).filter((c: any) => c.user_id === p.id).map((c: any) => ({ id: c.id, name: c.full_name })),
+            providers: (providers ?? []).filter((c: any) => c.user_id === p.id).map((c: any) => ({ id: c.id, name: c.name })),
             referrers: (referrers ?? []).filter((c: any) => c.user_id === p.id).map((c: any) => ({ id: c.id, name: c.full_name })),
           },
         };
