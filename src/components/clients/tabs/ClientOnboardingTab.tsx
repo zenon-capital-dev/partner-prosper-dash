@@ -71,7 +71,6 @@ export function ClientOnboardingTab({ clientId }: { clientId: string }) {
         .from("profiles")
         .update({ 
           onboarding_completed: completed,
-          onboarding_status: completed ? 'completo' : 'em_andamento'
         } as any)
         .eq("id", userId);
       if (error) throw error;

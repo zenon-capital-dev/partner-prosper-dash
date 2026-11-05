@@ -593,7 +593,7 @@ function ProposalFormDialog({ open, onOpenChange, proposal, onSaved }: {
   const { data: clients = [] } = useClientsRef(open);
   const { data: leads = [] } = useQuery({
     queryKey: ["ref:leads"],
-    queryFn: async () => (await supabase.from("leads").select("id, name, email, company").order("name").limit(300)).data ?? [],
+    queryFn: async () => (await supabase.from("leads").select("id, name:full_name, email, company").order("full_name").limit(300)).data ?? [],
     enabled: open,
   });
   const { data: products = [] } = useProductsRef(open);
