@@ -419,7 +419,7 @@ export default function ProviderPanel() {
     queryFn: async () => {
       const { data } = await supabase
         .from("notifications")
-        .select("id, title, message, created_at, read_at, kind, link")
+        .select("id, title, message, created_at, read, type, link")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(6);
@@ -864,7 +864,7 @@ export default function ProviderPanel() {
                 action={
                   recentNotifications.length > 0 && (
                     <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200">
-                      {(recentNotifications as any[]).filter((n) => !n.read_at).length} nova(s)
+                      {(recentNotifications as any[]).filter((n) => !n.read).length} nova(s)
                     </Badge>
                   )
                 }
@@ -882,14 +882,14 @@ export default function ProviderPanel() {
                             {...(clickable ? { type: "button", onClick: () => navigate(n.link) } : {})}
                             className={cn(
                               "w-full text-left rounded-md p-2 border text-[12px] transition",
-                              n.read_at ? "border-slate-100 bg-white" : "border-indigo-100 bg-indigo-50/40",
+                              n.read ? "border-slate-100 bg-white" : "border-indigo-100 bg-indigo-50/40",
                               clickable && "hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer",
                             )}
                           >
                             <div className="flex items-start gap-2">
-                              <div className={cn("size-1.5 rounded-full mt-1.5 shrink-0", n.read_at ? "bg-slate-300" : "bg-indigo-500")} />
+                              <div className={cn("size-1.5 rounded-full mt-1.5 shrink-0", n.read ? "bg-slate-300" : "bg-indigo-500")} />
                               <div className="min-w-0 flex-1">
-                                <p className="font-medium text-slate-900 truncate">{n.title || n.kind}</p>
+                                <p className="font-medium text-slate-900 truncate">{n.title || n.type}</p>
                                 {n.message && <p className="text-[11px] text-slate-500 truncate">{n.message}</p>}
                                 <p className="text-[10px] text-slate-400 mt-0.5 tabular-nums">{formatDate(n.created_at)}</p>
                               </div>
