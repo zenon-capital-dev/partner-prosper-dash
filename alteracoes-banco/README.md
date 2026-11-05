@@ -4,6 +4,10 @@ Esta pasta diz exatamente o que precisa mudar no banco e em que ordem, para o Lo
 
 Repositório público: nunca colocar nome de cliente, valor de venda ou identificador de venda aqui.
 
+**O mapa do banco inteiro está em [crm-inteiro/](crm-inteiro/README.md).** Comece por [crm-inteiro/lacunas.md](crm-inteiro/lacunas.md).
+
+**Nunca repetir todas as migrations em sequência no banco de produção.** Uma delas apaga os dados operacionais. Aplique só o que estiver em "Pendentes".
+
 ## Regras para aplicar
 
 1. Fazer backup do banco antes.
