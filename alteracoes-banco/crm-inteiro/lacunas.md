@@ -75,7 +75,7 @@ SELECT tablename FROM pg_publication_tables
 
 ## 6. Código: consultas a colunas que não existem
 
-**Quem resolve:** correção no código, sem mudança no banco. **Ainda não corrigido.**
+**Quem resolve:** correção no código, sem mudança no banco. **Corrigido no PR 19.** Vale depois do merge e da publicação.
 
 Essas colunas não existem nas migrations nem no `types.ts`:
 
